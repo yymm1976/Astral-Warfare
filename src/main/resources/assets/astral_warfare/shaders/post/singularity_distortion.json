@@ -1,0 +1,15 @@
+{
+    "targets": ["swap"],
+    "passes": [
+        {
+            "name": "astral_warfare:singularity_distortion",
+            "intarget": "minecraft:main",
+            "outtarget": "swap"
+        },
+        {
+            "name": "blit",
+            "intarget": "swap",
+            "outtarget": "minecraft:main"
+        }
+    ]
+}

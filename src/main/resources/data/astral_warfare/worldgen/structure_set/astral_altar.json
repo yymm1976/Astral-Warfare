@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "astral_warfare:astral_altar",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 48,
+    "separation": 32,
+    "salt": 368964601
+  }
+}

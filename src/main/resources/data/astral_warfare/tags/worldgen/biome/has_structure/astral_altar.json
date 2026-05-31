@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "#minecraft:is_savanna",
+    "#minecraft:is_plains",
+    "#neoforge:is_plains",
+    "#neoforge:is_savanna",
+    "#neoforge:is_dry"
+  ]
+}
