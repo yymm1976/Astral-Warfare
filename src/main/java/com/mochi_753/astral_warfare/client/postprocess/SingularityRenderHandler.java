@@ -24,15 +24,22 @@ import java.util.List;
 // 关键：必须在 AFTER_LEVEL 之前设置 isActive，否则 PostProcessor.applyPostProcess() 会跳过
 //
 // 注意：当前屏幕后处理已禁用，改为世界空间粒子扭曲（见 NightfallSingularityEntity）
-// 保留此代码结构以便未来需要时重新启用
+// ENABLED = false 时直接返回，避免每帧 64 格范围 AABB 搜索的 CPU 开销
 @EventBusSubscriber(modid = AstralWarfare.MOD_ID, value = Dist.CLIENT)
 public class SingularityRenderHandler {
+
+    // 后处理开关：当前已禁用，改为世界空间粒子扭曲
+    // 设为 true 可重新启用屏幕后处理效果
+    private static final boolean ENABLED = false;
 
     // 黑洞实体搜索范围（格）
     private static final double SEARCH_RADIUS = 64.0;
 
     @SubscribeEvent
     public static void onRenderLevel(RenderLevelStageEvent event) {
+        // 后处理已禁用时直接返回，避免每帧实体搜索开销
+        if (!ENABLED) return;
+
         // 仅在 AFTER_TRANSLUCENT_BLOCKS 阶段执行检测
         // 此阶段在 AFTER_LEVEL 之前，确保 PostProcessor 状态已更新
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {

@@ -1,5 +1,6 @@
 package com.mochi_753.astral_warfare.entity;
 
+import com.mochi_753.astral_warfare.init.ModConstants;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
 import com.mochi_753.astral_warfare.network.ClientboundLodestoneParticlePacket;
 import net.minecraft.network.chat.Component;
@@ -18,7 +19,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 public class StellaDyingStateMachine {
 
     // 死亡演出持续时间：5 秒 = 100 tick
-    private static final int DYING_DURATION_TICKS = 100;
+    // 死亡演出总时长，引用 ModConstants 保持单一权威来源
+    private static final int DYING_DURATION_TICKS = ModConstants.DYING_DURATION_TICKS;
 
     private final StellaEvokerEntity evoker;
     // 死亡演出倒计时计时器

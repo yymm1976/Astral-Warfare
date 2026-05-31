@@ -31,10 +31,10 @@ public class ModConfig {
         // BOSS 属性分组
         BUILDER.push("boss");
         BASE_HP = BUILDER
-                .comment("BOSS 基础血量")
+                .comment("BOSS 基础血量", "该值仅对新召唤的 BOSS 生效，已存在的 BOSS 将保留原血量直到死亡")
                 .defineInRange("base_hp", 1000.0, 1.0, 100000.0);
         HP_PER_EXTRA_PLAYER = BUILDER
-                .comment("每多一名玩家增加的血量")
+                .comment("每多一名玩家增加的血量", "该值仅对新召唤的 BOSS 生效，已存在的 BOSS 将保留原血量直到死亡")
                 .defineInRange("hp_per_extra_player", 400.0, 0.0, 100000.0);
         PISTON_PROTECTION_RADIUS = BUILDER
                 .comment("活塞推离保护阈值（格），BOSS 偏离祭坛中心超过此距离时强制瞬移回中心")

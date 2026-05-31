@@ -669,7 +669,6 @@ public class StellaEvokerEntity extends AbstractIllager {
         // 转阶段演出状态持久化：防止区块重载后 BOSS 卡一阶段
         tag.putBoolean("IsTransitioning", isTransitioning());
         tag.putInt("TransitionTimer", transitionFSM.getTransitionTimer());
-        tag.putBoolean("HasTransitioned", transitionFSM.hasTransitioned());
         // 死亡演出状态持久化：防止区块卸载后 BOSS "复活"
         tag.putBoolean("IsDying", isDying());
         tag.putInt("DyingTimer", dyingFSM.writeToNbt());

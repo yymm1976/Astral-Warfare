@@ -86,6 +86,8 @@ public class SpellCastGoal extends Goal {
         if (this.evoker.level().isClientSide) return false;
         if (this.evoker.getCombatPhase() != StellaEvokerEntity.PHASE_1_CASTER) return false;
         if (this.evoker.isTransitioning()) return false;
+        // 死亡演出期间禁止施法：防止 super.tick() 中 goalSelector.tick() 在 isDying() 检查前激活本 Goal
+        if (this.evoker.isDying()) return false;
 
         // 冷却递减：必须在 canUse() 中执行
         // 关键原因：tick() 仅在 Goal 激活时被 GoalSelector 调用
@@ -138,6 +140,8 @@ public class SpellCastGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
+        // 死亡演出期间中断正在施放的法术
+        if (this.evoker.isDying()) return false;
         return this.currentSpell != null && this.castTick < this.currentSpell.castDuration;
     }
 
@@ -204,7 +208,9 @@ public class SpellCastGoal extends Goal {
                 );
                 if (golems.isEmpty()) {
                     // 没有充能傀儡时取消此法术，避免浪费法力
+                    // 设置重试间隔防止每 tick 空转：无傀儡时连续选取 TELEKINETIC_THROW 并取消
                     this.currentSpell = null;
+                    this.nextCastAttempt = 40 + this.evoker.getRandom().nextInt(20);
                 } else {
                     this.throwGolem = golems.get(0);
                     this.throwTarget = serverLevel.getNearestPlayer(this.evoker, 64.0);
