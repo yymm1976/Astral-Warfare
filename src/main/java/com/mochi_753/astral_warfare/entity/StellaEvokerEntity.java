@@ -400,7 +400,9 @@ public class StellaEvokerEntity extends AbstractIllager {
         // 阈值与脱战检测半径对齐，消除灰色地带
         // 防止玩家借助活塞在安全距离内反复骚扰 BOSS
         if (altarCenterPos != null) {
-            double pistonProtectDistSq = ModConstants.PISTON_PROTECT_DIST * ModConstants.PISTON_PROTECT_DIST;
+            // 活塞保护距离从 ModConfig 读取，服主可在配置文件中调整
+            double pistonProtectDist = ModConfig.PISTON_PROTECTION_RADIUS.get();
+            double pistonProtectDistSq = pistonProtectDist * pistonProtectDist;
             double distToAltar = this.distanceToSqr(
                     altarCenterPos.getX() + 0.5,
                     this.getY(),
