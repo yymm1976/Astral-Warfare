@@ -58,7 +58,8 @@ public class NightfallSingularityEntity extends Entity {
     // 扫描计数器，控制 getEntitiesOfClass 调用频率
     private int scanTimer = 0;
     // 缓存扫描结果，在两次扫描之间复用
-    private List<Player> cachedNearbyPlayers = List.of();
+    // 使用 Collections.emptyList() 初始化，避免 List.of() 的不可变列表在意外修改时抛出异常
+    private List<Player> cachedNearbyPlayers = java.util.Collections.emptyList();
 
     public NightfallSingularityEntity(EntityType<?> entityType, Level level) {
         super(entityType, level);

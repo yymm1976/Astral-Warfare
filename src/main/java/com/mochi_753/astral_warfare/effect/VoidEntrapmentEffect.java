@@ -48,17 +48,20 @@ public class VoidEntrapmentEffect extends MobEffect {
         // 使用 Lodestone 粒子网络包替代原版 sendParticles
         // 设计意图：禁锢效果对所有附近玩家可见，增强多人联机的战斗信息透明度
         // 距离限制：仅当附近 32 格内有玩家时才发送粒子，避免低配客户端性能压力
+        // 性能优化：粒子扫描降频到每 10 tick 一次，减少 getEntitiesOfClass 调用
         if (entity.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
-            boolean hasNearbyPlayer = serverLevel.getEntitiesOfClass(
-                    net.minecraft.world.entity.player.Player.class,
-                    entity.getBoundingBox().inflate(32.0),
-                    net.minecraft.world.entity.player.Player::isAlive
-            ).isEmpty() == false;
-            if (hasNearbyPlayer) {
-                // 虚空火花（传送门变体）：虚空禁锢环绕粒子
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(entity,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_VOID_SPARK,
-                                entity.getX(), entity.getY() + entity.getEyeHeight(), entity.getZ(), 2));
+            if (entity.tickCount % 10 == 0) {
+                boolean hasNearbyPlayer = !serverLevel.getEntitiesOfClass(
+                        net.minecraft.world.entity.player.Player.class,
+                        entity.getBoundingBox().inflate(32.0),
+                        net.minecraft.world.entity.player.Player::isAlive
+                ).isEmpty();
+                if (hasNearbyPlayer) {
+                    // 虚空火花（传送门变体）：虚空禁锢环绕粒子
+                    PacketDistributor.sendToPlayersTrackingEntityAndSelf(entity,
+                            new ClientboundLodestoneParticlePacket(StellaParticles.ID_VOID_SPARK,
+                                    entity.getX(), entity.getY() + entity.getEyeHeight(), entity.getZ(), 2));
+                }
             }
         }
         return true;

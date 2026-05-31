@@ -10,6 +10,5 @@
   "overwrites": {
     "requireAnnotations": true
   },
-  "minVersion": "0.8.0",
-  "_comment": "mixins 和 client 数组当前为空。package 路径预留，待添加 Mixin 类时创建对应包目录"
+  "minVersion": "0.8.0"
 }

@@ -208,8 +208,21 @@ public class StellaManaSystem {
         return isFallingFromExhaustion;
     }
 
+    // 从 NBT 恢复坠落状态：防止区块卸载后 BOSS 以满法力值复活
+    public void setFallingFromExhaustion(boolean falling) {
+        this.isFallingFromExhaustion = falling;
+        if (falling) {
+            evoker.setNoGravity(false);
+        }
+    }
+
     public boolean isImpactTriggered() {
         return impactTriggered;
+    }
+
+    // 从 NBT 恢复冲击波触发状态
+    public void setImpactTriggered(boolean triggered) {
+        this.impactTriggered = triggered;
     }
 
     public int getWeakenedTimer() {

@@ -17,11 +17,6 @@ public final class ModConstants {
 
     // ==================== 战斗区域限制 ====================
 
-    // 活塞保护距离：BOSS 偏离祭坛中心超过此距离时强制瞬移回中心
-    // @deprecated 已迁移至 ModConfig.PISTON_PROTECTION_RADIUS，服主可在配置文件中调整
-    // 保留此常量仅作为默认值参考，实际逻辑已改读 ModConfig
-    @Deprecated
-    public static final double PISTON_PROTECT_DIST = 20.0;
     // 脱战检测半径：此范围内无玩家时 BOSS 消失
     public static final double ANCHOR_CHECK_RADIUS = 30.0;
     // 脱战检测间隔（tick）

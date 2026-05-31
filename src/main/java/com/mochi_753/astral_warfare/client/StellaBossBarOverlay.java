@@ -72,16 +72,24 @@ public class StellaBossBarOverlay {
         // 直接从 ClientManaData 缓存读取法力数据，无需遍历客户端实体
         // ClientManaData 中的数据由网络包同步，始终与服务端保持一致
         // 支持多 BOSS 场景：为每个 BOSS 渲染独立法力条
-        java.util.List<ManaData> activeManaData = new java.util.ArrayList<>();
-        for (Map.Entry<UUID, ManaData> entry : ClientManaData.getAllManaData().entrySet()) {
-            ManaData data = entry.getValue();
-            // 跳过已关闭法力系统的 BOSS（二阶段后隐藏法力条）
+        // 性能优化：直接遍历 Map 条目，避免每帧分配新 ArrayList
+        java.util.Map<UUID, ManaData> allData = ClientManaData.getAllManaData();
+        if (allData.isEmpty()) {
+            manaWarningParticles.tick();
+            manaWarningParticles.render(guiGraphics);
+            return;
+        }
+
+        // 检查是否有活跃法力条（非禁用状态）
+        boolean hasActiveManaBar = false;
+        for (ManaData data : allData.values()) {
             if (!data.isManaSystemDisabled()) {
-                activeManaData.add(data);
+                hasActiveManaBar = true;
+                break;
             }
         }
 
-        if (activeManaData.isEmpty()) {
+        if (!hasActiveManaBar) {
             // 没有活跃法力条时，仍然tick已有粒子使其自然消散
             manaWarningParticles.tick();
             manaWarningParticles.render(guiGraphics);
@@ -100,9 +108,10 @@ public class StellaBossBarOverlay {
         int x = (screenWidth - BAR_WIDTH) / 2;
 
         // 为每个活跃 BOSS 渲染法力条
-        for (int i = 0; i < activeManaData.size(); i++) {
-            ManaData manaData = activeManaData.get(i);
-            int y = baseY + i * BOSS_BAR_SPACING;
+        int manaBarIndex = 0;
+        for (ManaData manaData : allData.values()) {
+            if (manaData.isManaSystemDisabled()) continue;
+            int y = baseY + manaBarIndex * BOSS_BAR_SPACING;
 
             // 计算法力比例
             float manaRatio = (float) manaData.getCurrentMana() / manaData.getMaxMana();
@@ -162,6 +171,7 @@ public class StellaBossBarOverlay {
                             .spawn(particleX, particleY);
                 }
             }
+            manaBarIndex++;
         }
 
         // tick更新屏幕粒子（位置、生命周期、透明度衰减等）

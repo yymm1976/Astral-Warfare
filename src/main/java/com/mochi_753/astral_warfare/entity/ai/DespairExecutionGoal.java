@@ -461,10 +461,10 @@ public class DespairExecutionGoal extends Goal {
         PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
                 new ClientboundScreenShakePacket(0.8F, 10, 0.08F));
 
-        // 伤害判定
+        // 伤害判定：排除主目标（已在上方单独处理），避免双重伤害
         AABB slamBox = this.evoker.getBoundingBox().inflate(SLAM_RADIUS);
         for (Player player : level.getEntitiesOfClass(Player.class, slamBox,
-                p -> p.isAlive() && !p.isSpectator())) {
+                p -> p.isAlive() && !p.isSpectator() && p != this.targetPlayer)) {
             player.hurt(level.damageSources().indirectMagic(this.evoker, this.evoker),
                     ModConstants.EXECUTION_SLAM_SPLASH_DAMAGE);
             Vec3 knockbackDir = player.position().subtract(this.evoker.position()).normalize();

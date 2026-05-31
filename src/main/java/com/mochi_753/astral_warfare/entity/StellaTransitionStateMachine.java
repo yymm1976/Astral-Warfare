@@ -109,7 +109,8 @@ public class StellaTransitionStateMachine {
         }
         evoker.setDeltaMovement(0, -0.5, 0);
 
-        restorePhase2State();
+        // 委托给实体的 restorePhase2State()，消除代码重复（DRY 原则）
+        evoker.restorePhase2State();
 
         level.playSound(null, evoker.getX(), evoker.getY(), evoker.getZ(),
                 SoundEvents.ENDER_DRAGON_GROWL, SoundSource.HOSTILE, 3.0F, 0.5F);
@@ -137,35 +138,6 @@ public class StellaTransitionStateMachine {
             level.playSound(null, golem.getX(), golem.getY(), golem.getZ(),
                     SoundEvents.GENERIC_EXPLODE, SoundSource.HOSTILE, 1.5F, 1.0F);
             golem.discard();
-        }
-    }
-
-    private static final ResourceLocation PHASE2_SPEED_MODIFIER_ID =
-            ResourceLocation.fromNamespaceAndPath(AstralWarfare.MOD_ID, "phase2_speed_bonus");
-
-    private void restorePhase2State() {
-        // 清理所有 goalSelector 中的 Goal，防止 Raider 父类构造函数添加的 Goal 干扰
-        // 与 StellaEvokerEntity.restorePhase2State() 保持一致
-        evoker.goalSelector.getAvailableGoals().forEach(
-                net.minecraft.world.entity.ai.goal.WrappedGoal::stop);
-        evoker.goalSelector.getAvailableGoals().clear();
-
-        evoker.phase2MeleeGoal = new com.mochi_753.astral_warfare.entity.ai.Phase2MeleeGoal(evoker);
-        evoker.despairExecutionGoal = new com.mochi_753.astral_warfare.entity.ai.DespairExecutionGoal(evoker);
-        evoker.goalSelector.addGoal(1, evoker.despairExecutionGoal);
-        evoker.goalSelector.addGoal(2, evoker.phase2MeleeGoal);
-
-        // 重建导航：一阶段飞行时 GroundPathNavigation 可能积累脏状态
-        evoker.reinitializeNavigation();
-
-        var speedAttr = evoker.getAttribute(Attributes.MOVEMENT_SPEED);
-        if (speedAttr != null) {
-            speedAttr.removeModifier(PHASE2_SPEED_MODIFIER_ID);
-            speedAttr.addPermanentModifier(new AttributeModifier(
-                    PHASE2_SPEED_MODIFIER_ID,
-                    com.mochi_753.astral_warfare.init.ModConstants.PHASE2_SPEED_MULTIPLIER - 1.0,
-                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
-            ));
         }
     }
 

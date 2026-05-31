@@ -262,17 +262,25 @@ public class StellaEvokerEntity extends AbstractIllager {
     // 架构师裁决：ModConfig 是唯一权威，createAttributes() 中的 200.0 只是安全的默认基准
     // 在实体首次 tick 时（此时配置文件已加载）从 ModConfig 读取真实值并覆盖基础属性
     // 首次生成时同步刷新当前血量为满值；区块重载时不自动回满
+    //
+    // 关键：如果 NocturnalAstrolabeItem 已设置多人缩放血量（baseValue >= configBaseHp），
+    // 则不覆盖，保留缩放后的血量值。仅当 baseValue 仍为默认值 200.0 时才注入配置值
     private void injectConfigHp() {
         if (configHpInjected) return;
         configHpInjected = true;
         double configMaxHp = ModConfig.BASE_HP.get();
         var maxHealthAttr = this.getAttribute(Attributes.MAX_HEALTH);
-        if (maxHealthAttr != null && maxHealthAttr.getBaseValue() != configMaxHp) {
-            maxHealthAttr.setBaseValue(configMaxHp);
-            // 首次生成时（tickCount < 2），同步刷新当前血量为满值
-            // 区块重载时不自动回满，避免玩家打残 BOSS 后走远再回来又满血
-            if (this.tickCount < 2) {
-                this.setHealth((float) configMaxHp);
+        if (maxHealthAttr != null) {
+            double currentBase = maxHealthAttr.getBaseValue();
+            // 如果 baseValue 已被 NocturnalAstrolabeItem 设置为缩放血量（>= configBaseHp），保留
+            // 仅当 baseValue 仍为 createAttributes 中的默认值 200.0 时才注入配置值
+            if (currentBase < configMaxHp) {
+                maxHealthAttr.setBaseValue(configMaxHp);
+                // 首次生成时（tickCount < 2），同步刷新当前血量为满值
+                // 区块重载时不自动回满，避免玩家打残 BOSS 后走远再回来又满血
+                if (this.tickCount < 2) {
+                    this.setHealth((float) configMaxHp);
+                }
             }
         }
     }
@@ -479,7 +487,6 @@ public class StellaEvokerEntity extends AbstractIllager {
         }
     }
 
-    // ... existing code ...
     // 死亡演出逻辑已迁移至 StellaDyingStateMachine 组件
 
     // 强制死亡：绕过 isDying() 检查，直接调用原版死亡逻辑
@@ -704,10 +711,12 @@ public class StellaEvokerEntity extends AbstractIllager {
             this.entityData.set(DATA_WEAKENED_TICKS, manaSystem.getWeakenedTimer());
         }
         if (tag.contains("IsFallingFromExhaustion")) {
-            // handled by component
+            // 恢复法力枯竭坠落状态：防止区块卸载后 BOSS 以满法力值复活
+            manaSystem.setFallingFromExhaustion(tag.getBoolean("IsFallingFromExhaustion"));
         }
         if (tag.contains("ImpactTriggered")) {
-            // handled by component
+            // 恢复冲击波触发状态：防止重载后重复触发冲击波
+            manaSystem.setImpactTriggered(tag.getBoolean("ImpactTriggered"));
         }
         if (tag.contains("CrystalManaRecoverTimer")) {
             manaSystem.setCrystalManaRecoverTimer(tag.getInt("CrystalManaRecoverTimer"));
@@ -776,10 +785,7 @@ public class StellaEvokerEntity extends AbstractIllager {
             this.setNoGravity(false);
             this.moveControl = new MoveControl(this);
 
-            // 重建导航：区块重载后导航可能处于脏状态
-            this.reinitializeNavigation();
-
-            // restorePhase2State() 会清理所有 goalSelector Goal 并重新注册
+            // restorePhase2State() 内部已调用 reinitializeNavigation()，无需重复调用
             restorePhase2State();
         }
 
@@ -807,7 +813,10 @@ public class StellaEvokerEntity extends AbstractIllager {
     //   第三段施加虚空流血（DoT），绝不施加虚空禁锢
     //
     // 两者共享 MOVE+LOOK Flag，同一时刻只能运行一个
-    private void restorePhase2State() {
+    // 恢复二阶段 AI 状态：清理一阶段 Goal 并注册二阶段专用 Goal
+    // 被 readAdditionalSaveData() 和 StellaTransitionStateMachine.finishTransition() 共同调用
+    // 包可见：供 StellaTransitionStateMachine 委托调用，消除代码重复（DRY 原则）
+    void restorePhase2State() {
         // 清理所有 goalSelector 中的 Goal，防止 Raider 父类构造函数添加的 Goal 干扰
         // Raider 在构造函数中添加了 MeleeAttackGoal 等使用 MOVE+LOOK Flag 的 Goal
         // 这些 Goal 会与 Phase2MeleeGoal 产生 Flag 互斥，导致 BOSS 不追人
