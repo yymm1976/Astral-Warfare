@@ -42,7 +42,7 @@ ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.${ mod_id }]]
-modId = "player-animation-library"
+modId = "player_animation_library"
 type = "required"
 versionRange = "[1.1,)"
 ordering = "AFTER"
