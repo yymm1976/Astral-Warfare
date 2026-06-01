@@ -33,15 +33,10 @@ mcp.json
 mc_src2.zip
 sync.txt
 
-build_final.txt
-build_full.txt
-build_log.txt
-build_log3.txt
-build_output.txt
-compile_log.txt
-dep_log.txt
-eclipse.txt
-eclipse2.txt
+build_*.txt
+*_log.txt
+*_log*.txt
+eclipse*.txt
 
 .classpath
 .project

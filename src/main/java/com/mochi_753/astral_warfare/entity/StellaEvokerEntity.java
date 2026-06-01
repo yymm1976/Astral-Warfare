@@ -189,6 +189,7 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
                     case "stella_evoker_thrust" -> THRUST_ANIM;
                     case "stella_evoker_backstab" -> BACKSTAB_ANIM;
                     case "stella_evoker_execution_slam" -> EXECUTION_SLAM_ANIM;
+                    case "stella_evoker_phase_transition" -> PHASE_TRANSITION_ANIM;
                     default -> null;
                 };
                 if (anim != null) {
@@ -201,9 +202,11 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
         }));
 
         // 待机控制器：过渡时间 10 tick（平滑切换）
+        // 死亡动画例外：检测到 isDying() 时临时将过渡时间设为 0，确保跪地动作瞬间开始
         controllers.add(new AnimationController<>(this, "idle_controller", 10, state -> {
             if (this.isDying()) {
-                // 死亡动画：一次性播放，播完后保持最后一帧（PlayState.STOP）
+                // 死亡动画：硬切（过渡时间 0），跪地动作干脆无过渡
+                state.getController().transitionLength(0);
                 state.getController().setAnimation(DEATH_ANIM);
                 return software.bernie.geckolib.animation.PlayState.STOP;
             }
