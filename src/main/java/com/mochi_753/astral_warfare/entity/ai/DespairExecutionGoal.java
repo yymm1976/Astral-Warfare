@@ -373,6 +373,11 @@ public class DespairExecutionGoal extends Goal {
     // 【修复】禁锢在落地瞬间解除，而非下刺开始时
     //   之前 stateTimer==1 就解除禁锢，玩家在空中就自由了，体验不对
     private void tickSlamming(ServerLevel level) {
+        // 首次进入下刺阶段时触发处决下砸动画
+        if (this.stateTimer == 1) {
+            this.evoker.currentAttackAnim = "stella_evoker_execution_slam";
+        }
+
         this.evoker.setNoGravity(false);
         this.evoker.setDeltaMovement(0, -3.0, 0);
 
@@ -406,6 +411,7 @@ public class DespairExecutionGoal extends Goal {
             executeSlamImpact(level);
             // 砸地完成后直接回到 IDLE，释放 MOVE/LOOK 标志
             // 之前通过 COOLDOWN 状态持有 MOVE/LOOK 标志导致 BOSS 站桩5秒
+            this.evoker.currentAttackAnim = null;
             this.state = State.IDLE;
             this.stateTimer = 0;
             this.cooldownTimer = COOLDOWN_TICKS;
@@ -419,6 +425,7 @@ public class DespairExecutionGoal extends Goal {
             if (this.targetPlayer != null && this.targetPlayer.hasEffect(ModEffects.VOID_ENTRAPMENT)) {
                 this.targetPlayer.removeEffect(ModEffects.VOID_ENTRAPMENT);
             }
+            this.evoker.currentAttackAnim = null;
             this.state = State.IDLE;
             this.stateTimer = 0;
             this.cooldownTimer = COOLDOWN_TICKS / 2;
@@ -557,6 +564,8 @@ public class DespairExecutionGoal extends Goal {
     public void stop() {
         this.state = State.IDLE;
         this.stateTimer = 0;
+        // 清除攻击动画，让 idle_controller 接管
+        this.evoker.currentAttackAnim = null;
         // 【修复】异常终止时必须清除玩家身上的虚空禁锢
         // 之前 stop() 不清除禁锢，导致玩家在终结技被打断后仍被定身4秒
         if (this.targetPlayer != null && this.targetPlayer.hasEffect(ModEffects.VOID_ENTRAPMENT)) {

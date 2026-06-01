@@ -156,8 +156,17 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
     private static final RawAnimation BACKSTAB_ANIM = RawAnimation.begin()
             .thenPlay("stella_evoker_backstab");
 
+    // 处决下砸动画：双手持戟高举→急速下刺→砸地震退回弹
+    private static final RawAnimation EXECUTION_SLAM_ANIM = RawAnimation.begin()
+            .thenPlay("stella_evoker_execution_slam");
+
+    // 转阶段动画：升空撑开→收缩碎裂→下坠展开→砸地缓冲
+    private static final RawAnimation PHASE_TRANSITION_ANIM = RawAnimation.begin()
+            .thenPlay("stella_evoker_phase_transition");
+
     // GeckoLib 动画控制器注册
     // attack_controller 优先级高于 idle_controller：
+    //   isTransitioning() → 播放转阶段动画（硬切，过渡时间 0）
     //   currentAttackAnim 非空时播放对应攻击动画（硬切，过渡时间 0）
     //   攻击动画播完后 currentAttackAnim 被清除，idle_controller 接管
     //
@@ -167,13 +176,19 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
     //   否则 → 播放一阶段悬浮待机（浮动呼吸）
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        // 攻击控制器：过渡时间 0（出招瞬间硬切，不放过渡）
+        // 攻击/演出控制器：过渡时间 0（出招/演出瞬间硬切，不放过渡）
         controllers.add(new AnimationController<>(this, "attack_controller", 0, state -> {
+            // 转阶段动画优先级最高：isTransitioning() 时强制播放
+            if (this.isTransitioning()) {
+                state.getController().setAnimation(PHASE_TRANSITION_ANIM);
+                return software.bernie.geckolib.animation.PlayState.CONTINUE;
+            }
             if (this.currentAttackAnim != null) {
                 RawAnimation anim = switch (this.currentAttackAnim) {
                     case "stella_evoker_slash" -> SLASH_ANIM;
                     case "stella_evoker_thrust" -> THRUST_ANIM;
                     case "stella_evoker_backstab" -> BACKSTAB_ANIM;
+                    case "stella_evoker_execution_slam" -> EXECUTION_SLAM_ANIM;
                     default -> null;
                 };
                 if (anim != null) {
@@ -181,7 +196,7 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
                     return software.bernie.geckolib.animation.PlayState.CONTINUE;
                 }
             }
-            // 无攻击动画：让 idle_controller 接管
+            // 无攻击/演出动画：让 idle_controller 接管
             return software.bernie.geckolib.animation.PlayState.STOP;
         }));
 
