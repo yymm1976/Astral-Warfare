@@ -240,11 +240,12 @@ public class StellaBattleMusic {
             fadingOutBgm = currentBgm;
         }
 
-        // 创建新 BGM，初始音量为 0，将在 tick() 中淡入
+        // 创建新 BGM，初始音量为极小值（0.01F），确保声音通道被 Minecraft 音频引擎正确分配
+        // 如果初始音量为 0，SoundManager 可能不分配音频通道，导致后续 tick() 淡入无效
         currentBgm = new BattleBgmSoundInstance(
                 getSoundForPhase(newPhase),
                 SoundSource.MUSIC,
-                0.0F
+                0.01F
         );
         currentBgm.setTargetVolume(BASE_VOLUME);
         currentBgmPhase = newPhase;

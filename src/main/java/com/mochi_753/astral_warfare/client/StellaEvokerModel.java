@@ -18,9 +18,12 @@ public class StellaEvokerModel extends GeoModel<StellaEvokerEntity> {
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(
             AstralWarfare.MOD_ID, "textures/entity/stella_evoker.png");
 
-    // 动画文件路径：assets/astral_warfare/animations/stella_evoker_idle_phase1.animation.json
+    // 动画文件路径：assets/astral_warfare/animations/stella_evoker.animation.json
+    // 所有动画合并到单一文件中，因为 GeckoLib 4.7.3 的 AnimationController
+    // 通过 RawAnimation 按名称查找动画时，只在 getAnimationResource() 返回的文件中搜索
+    // 如果动画分散在多个文件中，Controller 找不到非当前文件中的动画，导致 BOSS 无动作
     private static final ResourceLocation ANIMATIONS = ResourceLocation.fromNamespaceAndPath(
-            AstralWarfare.MOD_ID, "animations/stella_evoker_idle_phase1.animation.json");
+            AstralWarfare.MOD_ID, "animations/stella_evoker.animation.json");
 
     // GeckoLib 4.7.3：三个抽象方法参数均为 T（实体类型）
     // 与 4.7.7+ 版本不同，4.7.3 没有引入 GeoRenderState

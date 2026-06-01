@@ -14,7 +14,6 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -498,16 +497,10 @@ public class DespairExecutionGoal extends Goal {
             }
         }
 
-        level.explode(
-                this.evoker,
-                this.evoker.getX(), this.evoker.getY(), this.evoker.getZ(),
-                2.0F, Level.ExplosionInteraction.NONE
-        );
-        level.explode(
-                this.evoker,
-                this.evoker.getX(), this.evoker.getY() + 0.5, this.evoker.getZ(),
-                3.0F, Level.ExplosionInteraction.NONE
-        );
+        // 纯视觉爆炸效果：使用 ExplosionInteraction.NONE 不破坏方块
+        // 但爆炸仍可能对 BOSS 自身施加击退导致脱离仇恨范围
+        // 改用粒子+音效替代实际爆炸，保留视觉冲击感但无物理击退
+        // level.explode() 已移除，冲击波由粒子系统 IMPACT_WAVE 体现
 
         PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
                 new ClientboundScreenShakePacket(0.8F, 10, 0.08F));

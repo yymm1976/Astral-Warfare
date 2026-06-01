@@ -148,8 +148,9 @@ public final class ModConstants {
     // 击飞范围：前摇结束后，此范围内的玩家才会被击飞（非锁头）
     // 从 10.0 增大到 15.0，扩大击飞判定范围
     public static final double EXECUTION_LAUNCH_RANGE = 15.0;
-    // 传送高度（格）
-    public static final double EXECUTION_TELEPORT_HEIGHT = 4.0;
+    // 传送高度（格）：BOSS 瞬移到玩家正上方的高度
+    // 从 4.0 降低到 3.0，避免 BOSS 传送过高导致下刺后弹飞脱离仇恨范围
+    public static final double EXECUTION_TELEPORT_HEIGHT = 3.0;
     // 蓄力时间（tick）
     public static final int EXECUTION_CHARGE_TICKS = 15;
     // 处决主目标伤害

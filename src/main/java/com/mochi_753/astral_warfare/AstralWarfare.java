@@ -2,7 +2,6 @@ package com.mochi_753.astral_warfare;
 
 import com.mochi_753.astral_warfare.client.ClientEvents;
 import com.mochi_753.astral_warfare.client.PlayerAnimationHandler;
-import com.mochi_753.astral_warfare.client.postprocess.SingularityPostProcessor;
 import com.mochi_753.astral_warfare.init.ModAttachments;
 import com.mochi_753.astral_warfare.init.ModConfig;
 import com.mochi_753.astral_warfare.init.ModCreativeTabs;
@@ -19,7 +18,6 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig.Type;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
-import team.lodestar.lodestone.systems.postprocess.PostProcessHandler;
 
 // 模组主入口类，由 NeoForge 通过 @Mod 注解自动发现和加载
 @Mod(AstralWarfare.MOD_ID)
@@ -78,12 +76,12 @@ public class AstralWarfare {
         modEventBus.addListener(AstralWarfare::onClientSetup);
     }
 
-    // 客户端初始化回调：注册黑洞后处理器到 Lodestone 系统
-    // PostProcessHandler 会在 AFTER_LEVEL 阶段自动调用所有已注册 PostProcessor 的 applyPostProcess()
+    // 客户端初始化回调：注册 PAL 动画层
+    // 已移除 SingularityPostProcessor 注册：该后处理器因 ENABLED=false 永远不会被正确激活
+    // 但 Lodestone 仍每帧处理它，导致着色器在默认坐标(0,0)产生屏幕左下角残留渲染
     // FMLClientSetupEvent 在 MOD_BUS 上触发，此时游戏资源已加载完毕
     private static void onClientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(() -> {
-            PostProcessHandler.addInstance(SingularityPostProcessor.INSTANCE);
             // 注册 PAL 动画层：虚空禁锢玩家动画
             // PAL 要求在 enqueueWork 中注册，确保在主线程执行
             PlayerAnimationHandler.registerAnimationLayer();
