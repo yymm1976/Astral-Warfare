@@ -117,6 +117,11 @@ repositories {
         name = "CuriosMaven"
         url = uri("https://maven.theillusivec4.top/")
     }
+    // PAL（Player Animation Library）：玩家动画系统
+    maven {
+        name = "RedlanceMinecraft"
+        url = uri("https://repo.redlance.org/public")
+    }
 }
 
 dependencies {
@@ -127,6 +132,9 @@ dependencies {
     // Curios API：Lodestone NeoForge 版本的硬依赖
     compileOnly("top.theillusivec4.curios:curios-neoforge:9.5.1+1.21.1:api")
     runtimeOnly("top.theillusivec4.curios:curios-neoforge:9.5.1+1.21.1")
+    // PAL（Player Animation Library）：玩家动画系统
+    // 官方坐标：com.zigythebird.playeranim:PlayerAnimationLibNeo
+    implementation("com.zigythebird.playeranim:PlayerAnimationLibNeo:1.1.4+mc.1.21.1")
 }
 
 tasks.named("createMinecraftArtifacts") {

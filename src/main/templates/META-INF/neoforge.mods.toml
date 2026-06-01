@@ -41,3 +41,10 @@ type = "required"
 versionRange = "[9.0,)"
 ordering = "AFTER"
 side = "BOTH"
+
+[[dependencies.${ mod_id }]]
+modId = "player-animation-library"
+type = "required"
+versionRange = "[1.1,)"
+ordering = "AFTER"
+side = "BOTH"

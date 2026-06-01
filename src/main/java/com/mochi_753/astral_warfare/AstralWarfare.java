@@ -1,6 +1,7 @@
 package com.mochi_753.astral_warfare;
 
 import com.mochi_753.astral_warfare.client.ClientEvents;
+import com.mochi_753.astral_warfare.client.PlayerAnimationHandler;
 import com.mochi_753.astral_warfare.client.postprocess.SingularityPostProcessor;
 import com.mochi_753.astral_warfare.init.ModAttachments;
 import com.mochi_753.astral_warfare.init.ModConfig;
@@ -81,6 +82,9 @@ public class AstralWarfare {
     private static void onClientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(() -> {
             PostProcessHandler.addInstance(SingularityPostProcessor.INSTANCE);
+            // 注册 PAL 动画层：虚空禁锢玩家动画
+            // PAL 要求在 enqueueWork 中注册，确保在主线程执行
+            PlayerAnimationHandler.registerAnimationLayer();
         });
     }
 }
