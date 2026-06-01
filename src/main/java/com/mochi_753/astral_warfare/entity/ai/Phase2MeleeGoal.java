@@ -3,7 +3,6 @@ package com.mochi_753.astral_warfare.entity.ai;
 import com.mochi_753.astral_warfare.init.ModEffects;
 import com.mochi_753.astral_warfare.entity.StellaEvokerEntity;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
-import com.mochi_753.astral_warfare.network.ClientboundLodestoneParticlePacket;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;

@@ -3,7 +3,6 @@ package com.mochi_753.astral_warfare.client;
 import com.mochi_753.astral_warfare.attachment.ManaData;
 
 import java.awt.Color;
-import java.util.Map;
 import java.util.UUID;
 
 import net.minecraft.client.Minecraft;

@@ -6,7 +6,6 @@ import com.mochi_753.astral_warfare.entity.StellaEvokerEntity;
 import com.mochi_753.astral_warfare.init.ModConstants;
 import com.mochi_753.astral_warfare.init.ModEntities;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
-import com.mochi_753.astral_warfare.network.ClientboundLodestoneParticlePacket;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import com.mochi_753.astral_warfare.network.ClientboundScreenShakePacket;
 import net.minecraft.server.level.ServerLevel;
