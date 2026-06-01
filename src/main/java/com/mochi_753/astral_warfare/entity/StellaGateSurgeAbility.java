@@ -3,7 +3,7 @@ package com.mochi_753.astral_warfare.entity;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
 import com.mochi_753.astral_warfare.init.ModConstants;
 import com.mochi_753.astral_warfare.init.ModEntities;
-import com.mochi_753.astral_warfare.network.ClientboundLodestoneParticlePacket;
+import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -13,7 +13,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.List;
 
@@ -99,15 +98,16 @@ public class StellaGateSurgeAbility {
         evoker.setDeltaMovement(Vec3.ZERO);
 
         if (gateSurgeTimer % 4 == 0) {
-            int particlesPerRing = 16;
-            double rotationOffset = gateSurgeTimer * 0.1;
-            for (int i = 0; i < particlesPerRing; i++) {
-                double angle = (i * Math.PI * 2.0 / particlesPerRing) + rotationOffset;
-                double px = evoker.getX() + Math.cos(angle) * GATE_SURGE_RING_RADIUS;
-                double pz = evoker.getZ() + Math.sin(angle) * GATE_SURGE_RING_RADIUS;
-                double py = evoker.getY() + (evoker.getRandom().nextDouble() - 0.5) * 0.5;
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_STELLA_WISP, px, py, pz, 0));
+            try (ParticleEmitter emitter = new ParticleEmitter(evoker)) {
+                int particlesPerRing = 16;
+                double rotationOffset = gateSurgeTimer * 0.1;
+                for (int i = 0; i < particlesPerRing; i++) {
+                    double angle = (i * Math.PI * 2.0 / particlesPerRing) + rotationOffset;
+                    double px = evoker.getX() + Math.cos(angle) * GATE_SURGE_RING_RADIUS;
+                    double pz = evoker.getZ() + Math.sin(angle) * GATE_SURGE_RING_RADIUS;
+                    double py = evoker.getY() + (evoker.getRandom().nextDouble() - 0.5) * 0.5;
+                    emitter.add(StellaParticles.ID_STELLA_WISP, px, py, pz, 0);
+                }
             }
         }
 
@@ -132,16 +132,17 @@ public class StellaGateSurgeAbility {
 
         // 脉冲波情景：能量环从中心向外扩散，冲击地面
         // 只保留 IMPACT_WAVE（冲击波扩散）+ CLOUD（原版云雾扩散），删除 VOID_SPARK、ASTRAL_BEAM，降低粒子数量
-        int ringCount = 2;
-        for (int ring = 0; ring < ringCount; ring++) {
-            double ringRadius = GATE_SURGE_WAVE_RADIUS * (0.3 + ring * 0.5);
-            int particlesPerRing = 12 + ring * 6;
-            for (int i = 0; i < particlesPerRing; i++) {
-                double angle = i * Math.PI * 2.0 / particlesPerRing;
-                double px = centerX + Math.cos(angle) * ringRadius;
-                double pz = centerZ + Math.sin(angle) * ringRadius;
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_IMPACT_WAVE, px, groundY + 0.3, pz, 0));
+        try (ParticleEmitter emitter = new ParticleEmitter(evoker)) {
+            int ringCount = 2;
+            for (int ring = 0; ring < ringCount; ring++) {
+                double ringRadius = GATE_SURGE_WAVE_RADIUS * (0.3 + ring * 0.5);
+                int particlesPerRing = 12 + ring * 6;
+                for (int i = 0; i < particlesPerRing; i++) {
+                    double angle = i * Math.PI * 2.0 / particlesPerRing;
+                    double px = centerX + Math.cos(angle) * ringRadius;
+                    double pz = centerZ + Math.sin(angle) * ringRadius;
+                    emitter.add(StellaParticles.ID_IMPACT_WAVE, px, groundY + 0.3, pz, 0);
+                }
             }
         }
 

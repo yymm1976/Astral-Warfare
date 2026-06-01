@@ -6,6 +6,7 @@ import com.mochi_753.astral_warfare.entity.StellaEvokerEntity;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
 import com.mochi_753.astral_warfare.network.ClientboundLodestoneParticlePacket;
 import com.mochi_753.astral_warfare.network.ClientboundScreenShakePacket;
+import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -138,42 +139,38 @@ public class DespairExecutionGoal extends Goal {
         double progress = (double) this.stateTimer / WINDUP_TICKS;
 
         // BOSS身体周围虚空能量螺旋上升（密度加倍）
-        int spiralCount = (int) (4 + progress * 6);
-        for (int i = 0; i < spiralCount; i++) {
-            double angle = this.stateTimer * 0.5 + i * Math.PI * 2.0 / spiralCount;
-            double r = 0.8 + progress * 2.5;
-            double px = this.evoker.getX() + Math.cos(angle) * r;
-            double py = this.evoker.getY() + 0.5 + (this.stateTimer % 20) / 20.0 * 3.0;
-            double pz = this.evoker.getZ() + Math.sin(angle) * r;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_VOID_SPARK, px, py, pz, 0));
-            // 新增：星穹微光混合螺旋
-            if (i % 2 == 0) {
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_STELLA_WISP, px, py + 0.5, pz, 2));
+        try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+            int spiralCount = (int) (4 + progress * 6);
+            for (int i = 0; i < spiralCount; i++) {
+                double angle = this.stateTimer * 0.5 + i * Math.PI * 2.0 / spiralCount;
+                double r = 0.8 + progress * 2.5;
+                double px = this.evoker.getX() + Math.cos(angle) * r;
+                double py = this.evoker.getY() + 0.5 + (this.stateTimer % 20) / 20.0 * 3.0;
+                double pz = this.evoker.getZ() + Math.sin(angle) * r;
+                emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 0);
+                // 新增：星穹微光混合螺旋
+                if (i % 2 == 0) {
+                    emitter.add(StellaParticles.ID_STELLA_WISP, px, py + 0.5, pz, 2);
+                }
             }
-        }
 
-        // 地面预警圈：暗红余烬标记击飞范围（从32分段增加到48分段，更密集）
-        double warningRadius = LAUNCH_RANGE;
-        int circleSegments = 48;
-        for (int i = 0; i < circleSegments; i++) {
-            double angle = i * Math.PI * 2.0 / circleSegments;
-            double px = this.evoker.getX() + Math.cos(angle) * warningRadius;
-            double pz = this.evoker.getZ() + Math.sin(angle) * warningRadius;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_DYING_EMBER,
-                            px, this.evoker.getY() + 0.1, pz, 0));
-            // 新增：预警圈内圈星形标记
-            if (i % 4 == 0) {
-                double innerR = warningRadius * 0.6;
-                double innerPx = this.evoker.getX() + Math.cos(angle) * innerR;
-                double innerPz = this.evoker.getZ() + Math.sin(angle) * innerR;
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_TRANSITION_BURST,
-                                innerPx, this.evoker.getY() + 0.15, innerPz, 0));
+            // 地面预警圈：暗红余烬标记击飞范围（从32分段增加到48分段，更密集）
+            double warningRadius = LAUNCH_RANGE;
+            int circleSegments = 48;
+            for (int i = 0; i < circleSegments; i++) {
+                double angle = i * Math.PI * 2.0 / circleSegments;
+                double px = this.evoker.getX() + Math.cos(angle) * warningRadius;
+                double pz = this.evoker.getZ() + Math.sin(angle) * warningRadius;
+                emitter.add(StellaParticles.ID_DYING_EMBER, px, this.evoker.getY() + 0.1, pz, 0);
+                // 新增：预警圈内圈星形标记
+                if (i % 4 == 0) {
+                    double innerR = warningRadius * 0.6;
+                    double innerPx = this.evoker.getX() + Math.cos(angle) * innerR;
+                    double innerPz = this.evoker.getZ() + Math.sin(angle) * innerR;
+                    emitter.add(StellaParticles.ID_TRANSITION_BURST, innerPx, this.evoker.getY() + 0.15, innerPz, 0);
+                }
             }
-        }
+        } // auto-flush on close
 
         // 蓄力音效：逐渐升高的音调+低频心跳，营造压迫感
         if (this.stateTimer % 10 == 0) {
@@ -223,13 +220,14 @@ public class DespairExecutionGoal extends Goal {
                 }
 
                 // 击飞爆发粒子
-                for (int i = 0; i < 12; i++) {
-                    double px = this.targetPlayer.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
-                    double py = this.targetPlayer.getY() + this.evoker.getRandom().nextDouble() * 1.5;
-                    double pz = this.targetPlayer.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
-                    PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                            new ClientboundLodestoneParticlePacket(StellaParticles.ID_TRANSITION_BURST, px, py, pz, 0));
-                }
+                try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+                    for (int i = 0; i < 12; i++) {
+                        double px = this.targetPlayer.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
+                        double py = this.targetPlayer.getY() + this.evoker.getRandom().nextDouble() * 1.5;
+                        double pz = this.targetPlayer.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
+                        emitter.add(StellaParticles.ID_TRANSITION_BURST, px, py, pz, 0);
+                    }
+                } // auto-flush on close
                 // 原版爆炸粒子：击飞瞬间的爆炸闪光
                 level.sendParticles(net.minecraft.core.particles.ParticleTypes.EXPLOSION,
                         this.targetPlayer.getX(), this.targetPlayer.getY() + 1.0, this.targetPlayer.getZ(),
@@ -313,24 +311,24 @@ public class DespairExecutionGoal extends Goal {
         }
 
         // 长戟凝聚：虚空能量在BOSS下方聚集
-        for (int i = 0; i < 4; i++) {
-            double px = this.evoker.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 0.5;
-            double py = this.evoker.getY() - 0.5 + (this.evoker.getRandom().nextDouble() - 0.5) * 0.5;
-            double pz = this.evoker.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 0.5;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_VOID_SPARK, px, py, pz, 0));
-        }
-
-        // 下坠余烬
-        if (this.stateTimer % 4 == 0) {
-            for (int i = 0; i < 2; i++) {
-                double px = this.evoker.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 0.8;
-                double py = this.evoker.getY() - 0.3;
-                double pz = this.evoker.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 0.8;
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_DYING_EMBER, px, py, pz, 0));
+        try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+            for (int i = 0; i < 4; i++) {
+                double px = this.evoker.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 0.5;
+                double py = this.evoker.getY() - 0.5 + (this.evoker.getRandom().nextDouble() - 0.5) * 0.5;
+                double pz = this.evoker.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 0.5;
+                emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 0);
             }
-        }
+
+            // 下坠余烬
+            if (this.stateTimer % 4 == 0) {
+                for (int i = 0; i < 2; i++) {
+                    double px = this.evoker.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 0.8;
+                    double py = this.evoker.getY() - 0.3;
+                    double pz = this.evoker.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 0.8;
+                    emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 0);
+                }
+            }
+        } // auto-flush on close
 
         // 蓄力音效：信标充能+末影龙低吼，体现虚空长戟凝聚的恐怖能量
         if (this.stateTimer % 5 == 0) {
@@ -365,23 +363,22 @@ public class DespairExecutionGoal extends Goal {
         double velLen = vel.length();
         if (velLen > 0.001) {
             Vec3 trailDir = vel.normalize().reverse();
-            for (int i = 0; i < 10; i++) {
-                double t = i / 10.0;
-                double px = ex + trailDir.x * t * 4.0;
-                double py = ey + trailDir.y * t * 4.0;
-                double pz = ez + trailDir.z * t * 4.0;
-                // 虚空火花（SPARKLE）：下刺核心
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_VOID_SPARK, px, py, pz, 0));
-                // 死亡余烬（SMOKE）：下刺余波
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_DYING_EMBER, px, py, pz, 0));
-                // 星界光束（SPARK）：能量拖尾
-                if (i % 2 == 0) {
-                    PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                            new ClientboundLodestoneParticlePacket(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0));
+            try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+                for (int i = 0; i < 10; i++) {
+                    double t = i / 10.0;
+                    double px = ex + trailDir.x * t * 4.0;
+                    double py = ey + trailDir.y * t * 4.0;
+                    double pz = ez + trailDir.z * t * 4.0;
+                    // 虚空火花（SPARKLE）：下刺核心
+                    emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 0);
+                    // 死亡余烬（SMOKE）：下刺余波
+                    emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 0);
+                    // 星界光束（SPARK）：能量拖尾
+                    if (i % 2 == 0) {
+                        emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0);
+                    }
                 }
-            }
+            } // auto-flush on close
         }
 
         if (this.evoker.onGround()) {
@@ -472,30 +469,29 @@ public class DespairExecutionGoal extends Goal {
         }
 
         // 冲击波扩散：IMPACT_WAVE
-        for (int i = 0; i < 40; i++) {
-            double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
-            double r = this.evoker.getRandom().nextDouble() * SLAM_RADIUS;
-            double px = this.evoker.getX() + Math.cos(angle) * r;
-            double pz = this.evoker.getZ() + Math.sin(angle) * r;
-            double py = this.evoker.getY() + 0.3 + this.evoker.getRandom().nextDouble() * 0.5;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_IMPACT_WAVE, px, py, pz, 0));
-        }
-
-        // 十字裂缝线
-        for (int dir = 0; dir < 4; dir++) {
-            double angle = dir * Math.PI * 0.5;
-            double dx = Math.cos(angle);
-            double dz = Math.sin(angle);
-            for (int i = 0; i < 6; i++) {
-                double dist = (i + 1) * 0.8;
-                double px = this.evoker.getX() + dx * dist;
-                double pz = this.evoker.getZ() + dz * dist;
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_IMPACT_WAVE,
-                                px, this.evoker.getY() + 0.1, pz, dir));
+        try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+            for (int i = 0; i < 40; i++) {
+                double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
+                double r = this.evoker.getRandom().nextDouble() * SLAM_RADIUS;
+                double px = this.evoker.getX() + Math.cos(angle) * r;
+                double pz = this.evoker.getZ() + Math.sin(angle) * r;
+                double py = this.evoker.getY() + 0.3 + this.evoker.getRandom().nextDouble() * 0.5;
+                emitter.add(StellaParticles.ID_IMPACT_WAVE, px, py, pz, 0);
             }
-        }
+
+            // 十字裂缝线
+            for (int dir = 0; dir < 4; dir++) {
+                double angle = dir * Math.PI * 0.5;
+                double dx = Math.cos(angle);
+                double dz = Math.sin(angle);
+                for (int i = 0; i < 6; i++) {
+                    double dist = (i + 1) * 0.8;
+                    double px = this.evoker.getX() + dx * dist;
+                    double pz = this.evoker.getZ() + dz * dist;
+                    emitter.add(StellaParticles.ID_IMPACT_WAVE, px, this.evoker.getY() + 0.1, pz, dir);
+                }
+            }
+        } // auto-flush on close
 
         // 砸地音效：爆炸+铁砧砸地+凋灵破坏，三重叠加体现毁灭性冲击
         level.playSound(null, this.evoker.getX(), this.evoker.getY(), this.evoker.getZ(),
@@ -538,18 +534,18 @@ public class DespairExecutionGoal extends Goal {
         if (dist < 0.1) return;
         dir = dir.normalize();
         int steps = (int) (dist * 4);
-        for (int i = 0; i < steps; i++) {
-            double t = (i + 0.5) / steps;
-            double px = startX + dir.x * dist * t;
-            double py = startY + dir.y * dist * t;
-            double pz = startZ + dir.z * dist * t;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0));
-            // 转阶段爆发（STAR）：命中点爆发
-            if (i > steps * 0.7) {
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_TRANSITION_BURST, px, py, pz, 0));
+        try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+            for (int i = 0; i < steps; i++) {
+                double t = (i + 0.5) / steps;
+                double px = startX + dir.x * dist * t;
+                double py = startY + dir.y * dist * t;
+                double pz = startZ + dir.z * dist * t;
+                emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0);
+                // 转阶段爆发（STAR）：命中点爆发
+                if (i > steps * 0.7) {
+                    emitter.add(StellaParticles.ID_TRANSITION_BURST, px, py, pz, 0);
+                }
             }
-        }
+        } // auto-flush on close
     }
 }

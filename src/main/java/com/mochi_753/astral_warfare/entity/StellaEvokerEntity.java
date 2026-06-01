@@ -10,9 +10,9 @@ import com.mochi_753.astral_warfare.entity.ai.StellaFlyingMoveControl;
 import com.mochi_753.astral_warfare.init.ModAttachments;
 import com.mochi_753.astral_warfare.init.ModConfig;
 import com.mochi_753.astral_warfare.init.ModConstants;
-import com.mochi_753.astral_warfare.network.ClientboundLodestoneParticlePacket;
 import com.mochi_753.astral_warfare.network.ClientboundStellaManaPacket;
 import com.mochi_753.astral_warfare.network.ClientboundStellaManaRemovePacket;
+import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -554,12 +554,13 @@ public class StellaEvokerEntity extends AbstractIllager {
     }
 
     private void spawnDespawnParticles(ServerLevel level) {
-        for (int i = 0; i < 50; i++) {
-            double px = this.getX() + (this.random.nextDouble() - 0.5) * 2.0;
-            double py = this.getY() + this.random.nextDouble() * 2.0;
-            double pz = this.getZ() + (this.random.nextDouble() - 0.5) * 2.0;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_STELLA_WISP, px, py, pz, 0));
+        try (ParticleEmitter emitter = new ParticleEmitter(this)) {
+            for (int i = 0; i < 50; i++) {
+                double px = this.getX() + (this.random.nextDouble() - 0.5) * 2.0;
+                double py = this.getY() + this.random.nextDouble() * 2.0;
+                double pz = this.getZ() + (this.random.nextDouble() - 0.5) * 2.0;
+                emitter.add(StellaParticles.ID_STELLA_WISP, px, py, pz, 0);
+            }
         }
     }
 
@@ -567,14 +568,15 @@ public class StellaEvokerEntity extends AbstractIllager {
 
     private void tickPhase2(ServerLevel serverLevel) {
         if (this.tickCount % 2 == 0) {
-            for (int j = 0; j < 2; j++) {
-                double angle = this.random.nextDouble() * Math.PI * 2;
-                double radius = 0.6 + this.random.nextDouble() * 0.4;
-                double px = this.getX() + Math.cos(angle) * radius;
-                double py = this.getY() + this.random.nextDouble() * 1.8;
-                double pz = this.getZ() + Math.sin(angle) * radius;
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_VOID_SPARK, px, py, pz, 2));
+            try (ParticleEmitter emitter = new ParticleEmitter(this)) {
+                for (int j = 0; j < 2; j++) {
+                    double angle = this.random.nextDouble() * Math.PI * 2;
+                    double radius = 0.6 + this.random.nextDouble() * 0.4;
+                    double px = this.getX() + Math.cos(angle) * radius;
+                    double py = this.getY() + this.random.nextDouble() * 1.8;
+                    double pz = this.getZ() + Math.sin(angle) * radius;
+                    emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 2);
+                }
             }
         }
     }

@@ -2,13 +2,12 @@ package com.mochi_753.astral_warfare.effect;
 
 import com.mochi_753.astral_warfare.AstralWarfare;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
-import com.mochi_753.astral_warfare.network.ClientboundLodestoneParticlePacket;
+import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 // 虚空禁锢效果 - 二阶段 BOSS 的专属定身 MobEffect
 // 效果机制：
@@ -58,9 +57,10 @@ public class VoidEntrapmentEffect extends MobEffect {
                 ).isEmpty();
                 if (hasNearbyPlayer) {
                     // 虚空火花（传送门变体）：虚空禁锢环绕粒子
-                    PacketDistributor.sendToPlayersTrackingEntityAndSelf(entity,
-                            new ClientboundLodestoneParticlePacket(StellaParticles.ID_VOID_SPARK,
-                                    entity.getX(), entity.getY() + entity.getEyeHeight(), entity.getZ(), 2));
+                    try (ParticleEmitter emitter = new ParticleEmitter(entity)) {
+                        emitter.add(StellaParticles.ID_VOID_SPARK,
+                                entity.getX(), entity.getY() + entity.getEyeHeight(), entity.getZ(), 2);
+                    }
                 }
             }
         }

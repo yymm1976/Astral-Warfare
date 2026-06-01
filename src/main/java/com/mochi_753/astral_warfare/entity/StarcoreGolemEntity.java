@@ -3,7 +3,7 @@ package com.mochi_753.astral_warfare.entity;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
 import com.mochi_753.astral_warfare.entity.ai.GolemMoveToBossGoal;
 import com.mochi_753.astral_warfare.init.ModConstants;
-import com.mochi_753.astral_warfare.network.ClientboundLodestoneParticlePacket;
+import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -93,14 +93,15 @@ public class StarcoreGolemEntity extends Monster {
         // 充能状态视觉反馈：充能时持续散发星界蓝色微光粒子
         // 每 3 tick 生成 2 个粒子，比之前更密集，让玩家能一眼识别
         if (isCharged() && !this.level().isClientSide && this.tickCount % 3 == 0) {
-            for (int i = 0; i < 2; i++) {
-                double angle = this.random.nextDouble() * Math.PI * 2;
-                double radius = 0.4 + this.random.nextDouble() * 0.3;
-                double px = this.getX() + Math.cos(angle) * radius;
-                double py = this.getY() + this.random.nextDouble() * 1.2;
-                double pz = this.getZ() + Math.sin(angle) * radius;
-                net.neoforged.neoforge.network.PacketDistributor.sendToPlayersTrackingEntityAndSelf(this,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0));
+            try (ParticleEmitter emitter = new ParticleEmitter(this)) {
+                for (int i = 0; i < 2; i++) {
+                    double angle = this.random.nextDouble() * Math.PI * 2;
+                    double radius = 0.4 + this.random.nextDouble() * 0.3;
+                    double px = this.getX() + Math.cos(angle) * radius;
+                    double py = this.getY() + this.random.nextDouble() * 1.2;
+                    double pz = this.getZ() + Math.sin(angle) * radius;
+                    emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0);
+                }
             }
         }
     }

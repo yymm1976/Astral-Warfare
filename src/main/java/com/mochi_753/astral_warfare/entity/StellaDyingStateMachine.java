@@ -2,13 +2,12 @@ package com.mochi_753.astral_warfare.entity;
 
 import com.mochi_753.astral_warfare.init.ModConstants;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
-import com.mochi_753.astral_warfare.network.ClientboundLodestoneParticlePacket;
+import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 // StellaEvoker 死亡演出状态机组件
 // 从 StellaEvokerEntity 中剥离死亡演出逻辑，实现单一职责原则
@@ -62,16 +61,17 @@ public class StellaDyingStateMachine {
         // 只保留 VOID_SPARK（虚空吸入）+ PORTAL（原版传送门旋转），删除 STELLA_WISP，降低密度
         if (this.evoker.getRandom().nextFloat() < 0.2F + progress * 0.3F) {
             int particleCount = (int) (1 + progress * 4);
-            for (int i = 0; i < particleCount; i++) {
-                double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
-                double radius = 1.0 + this.evoker.getRandom().nextDouble() * (3.0 - progress * 2.5);
-                double px = this.evoker.getX() + Math.cos(angle) * radius;
-                double pz = this.evoker.getZ() + Math.sin(angle) * radius;
-                double py = this.evoker.getY() + this.evoker.getRandom().nextDouble() * 2.0;
+            try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+                for (int i = 0; i < particleCount; i++) {
+                    double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
+                    double radius = 1.0 + this.evoker.getRandom().nextDouble() * (3.0 - progress * 2.5);
+                    double px = this.evoker.getX() + Math.cos(angle) * radius;
+                    double pz = this.evoker.getZ() + Math.sin(angle) * radius;
+                    double py = this.evoker.getY() + this.evoker.getRandom().nextDouble() * 2.0;
 
-                // 虚空火花（默认变体）：反向吸入粒子
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_VOID_SPARK, px, py, pz, 0));
+                    // 虚空火花（默认变体）：反向吸入粒子
+                    emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 0);
+                }
             }
             // 原版传送门粒子：死亡吸入的虚空旋转效果
             level.sendParticles(net.minecraft.core.particles.ParticleTypes.PORTAL,
@@ -95,14 +95,15 @@ public class StellaDyingStateMachine {
                 this.evoker.getX(), this.evoker.getY() + 1.0, this.evoker.getZ(),
                 15, 1.5, 0.5, 1.5, 0.05);
         // 大范围爆炸粒子
-        for (int i = 0; i < 40; i++) {
-            double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
-            double r = this.evoker.getRandom().nextDouble() * 6.0;
-            double px = this.evoker.getX() + Math.cos(angle) * r;
-            double pz = this.evoker.getZ() + Math.sin(angle) * r;
-            // 冲击波（大爆炸变体）：死亡爆炸
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_IMPACT_WAVE, px, this.evoker.getY() + 1.0, pz, 1));
+        try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+            for (int i = 0; i < 40; i++) {
+                double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
+                double r = this.evoker.getRandom().nextDouble() * 6.0;
+                double px = this.evoker.getX() + Math.cos(angle) * r;
+                double pz = this.evoker.getZ() + Math.sin(angle) * r;
+                // 冲击波（大爆炸变体）：死亡爆炸
+                emitter.add(StellaParticles.ID_IMPACT_WAVE, px, this.evoker.getY() + 1.0, pz, 1);
+            }
         }
 
         // 播放末影龙死亡回音

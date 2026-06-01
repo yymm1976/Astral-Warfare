@@ -7,6 +7,7 @@ import com.mochi_753.astral_warfare.init.ModConstants;
 import com.mochi_753.astral_warfare.init.ModEntities;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
 import com.mochi_753.astral_warfare.network.ClientboundLodestoneParticlePacket;
+import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import com.mochi_753.astral_warfare.network.ClientboundScreenShakePacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -332,51 +333,43 @@ public class SpellCastGoal extends Goal {
         double targetY = this.starfallLockedPos.y;
         double topY = targetY + STARFALL_METEOR_HEIGHT;
 
-        // 修复：天空粒子柱从Y+30到Y+5，更清晰的陨石下落轨迹
-        // 密度随施法进度递增，营造"陨石逼近"的紧迫感
-        int particlesPerTick = 5 + this.castTick / 5;
-        for (int i = 0; i < particlesPerTick; i++) {
-            double t = this.evoker.getRandom().nextDouble();
-            // 粒子从Y+30到Y+5分布，模拟陨石下落轨迹
-            double py = (targetY + 5.0) + (topY - targetY - 5.0) * t;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_ASTRAL_BEAM,
-                            targetX + (this.evoker.getRandom().nextDouble() - 0.5) * 0.3,
-                            py,
-                            targetZ + (this.evoker.getRandom().nextDouble() - 0.5) * 0.3, 0));
-        }
-
-        // 修复：头顶预警圈替代脚下预警圈
-        // 在目标玩家头顶Y+5到Y+10处画红色圆环，提示陨石即将从天而降
-        int warningParticles = 6 + this.castTick / 5;
-        for (int i = 0; i < warningParticles; i++) {
-            double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
-            double r = ModConstants.STARFALL_RADIUS * (0.8 + this.evoker.getRandom().nextDouble() * 0.4);
-            double px = targetX + Math.cos(angle) * r;
-            double pz = targetZ + Math.sin(angle) * r;
-            // 预警圆环在头顶Y+5到Y+10之间
-            double warningY = targetY + 5.0 + this.evoker.getRandom().nextDouble() * 5.0;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_DYING_EMBER,
-                            px, warningY, pz, 0));
-        }
-
-        // 修复：最后10tick在Y+5处生成密集"陨石头部"粒子簇，模拟陨石即将砸到
-        if (this.castTick > 20) {
-            for (int i = 0; i < 8; i++) {
-                double ox = (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
-                double oz = (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_IMPACT_WAVE,
-                                targetX + ox, targetY + 5.0, targetZ + oz, 0));
+        try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+            // 修复：天空粒子柱从Y+30到Y+5，更清晰的陨石下落轨迹
+            // 密度随施法进度递增，营造"陨石逼近"的紧迫感
+            int particlesPerTick = 5 + this.castTick / 5;
+            for (int i = 0; i < particlesPerTick; i++) {
+                double t = this.evoker.getRandom().nextDouble();
+                // 粒子从Y+30到Y+5分布，模拟陨石下落轨迹
+                double py = (targetY + 5.0) + (topY - targetY - 5.0) * t;
+                emitter.add(StellaParticles.ID_ASTRAL_BEAM, targetX + (this.evoker.getRandom().nextDouble() - 0.5) * 0.3, py, targetZ + (this.evoker.getRandom().nextDouble() - 0.5) * 0.3, 0);
             }
-            // 陨石核心：密集的星界光束粒子
-            for (int i = 0; i < 4; i++) {
-                double ox = (this.evoker.getRandom().nextDouble() - 0.5) * 0.8;
-                double oz = (this.evoker.getRandom().nextDouble() - 0.5) * 0.8;
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_ASTRAL_BEAM,
-                                targetX + ox, targetY + 4.5, targetZ + oz, 0));
+
+            // 修复：头顶预警圈替代脚下预警圈
+            // 在目标玩家头顶Y+5到Y+10处画红色圆环，提示陨石即将从天而降
+            int warningParticles = 6 + this.castTick / 5;
+            for (int i = 0; i < warningParticles; i++) {
+                double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
+                double r = ModConstants.STARFALL_RADIUS * (0.8 + this.evoker.getRandom().nextDouble() * 0.4);
+                double px = targetX + Math.cos(angle) * r;
+                double pz = targetZ + Math.sin(angle) * r;
+                // 预警圆环在头顶Y+5到Y+10之间
+                double warningY = targetY + 5.0 + this.evoker.getRandom().nextDouble() * 5.0;
+                emitter.add(StellaParticles.ID_DYING_EMBER, px, warningY, pz, 0);
+            }
+
+            // 修复：最后10tick在Y+5处生成密集"陨石头部"粒子簇，模拟陨石即将砸到
+            if (this.castTick > 20) {
+                for (int i = 0; i < 8; i++) {
+                    double ox = (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
+                    double oz = (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
+                    emitter.add(StellaParticles.ID_IMPACT_WAVE, targetX + ox, targetY + 5.0, targetZ + oz, 0);
+                }
+                // 陨石核心：密集的星界光束粒子
+                for (int i = 0; i < 4; i++) {
+                    double ox = (this.evoker.getRandom().nextDouble() - 0.5) * 0.8;
+                    double oz = (this.evoker.getRandom().nextDouble() - 0.5) * 0.8;
+                    emitter.add(StellaParticles.ID_ASTRAL_BEAM, targetX + ox, targetY + 4.5, targetZ + oz, 0);
+                }
             }
         }
     }
@@ -396,17 +389,15 @@ public class SpellCastGoal extends Goal {
                 ModConstants.STARFALL_RADIUS, Level.ExplosionInteraction.NONE);
 
         // 地面爆炸粒子：在锁定位置生成大量冲击波粒子
-        for (int i = 0; i < 40; i++) {
-            double angle = goal.evoker.getRandom().nextDouble() * Math.PI * 2;
-            double r = goal.evoker.getRandom().nextDouble() * ModConstants.STARFALL_RADIUS;
-            double px = targetX + Math.cos(angle) * r;
-            double pz = targetZ + Math.sin(angle) * r;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(goal.evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_IMPACT_WAVE,
-                            px, targetY + 0.3, pz, 0));
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(goal.evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_ASTRAL_BEAM,
-                            px, targetY + 0.5, pz, 0));
+        try (ParticleEmitter emitter = new ParticleEmitter(goal.evoker)) {
+            for (int i = 0; i < 40; i++) {
+                double angle = goal.evoker.getRandom().nextDouble() * Math.PI * 2;
+                double r = goal.evoker.getRandom().nextDouble() * ModConstants.STARFALL_RADIUS;
+                double px = targetX + Math.cos(angle) * r;
+                double pz = targetZ + Math.sin(angle) * r;
+                emitter.add(StellaParticles.ID_IMPACT_WAVE, px, targetY + 0.3, pz, 0);
+                emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, targetY + 0.5, pz, 0);
+            }
         }
 
         // 屏幕震动
@@ -478,58 +469,54 @@ public class SpellCastGoal extends Goal {
         perp1 = perp1.normalize();
         Vec3 perp2 = beamDir.cross(perp1).normalize();
 
-        // ===== 光束核心线 =====
-        // 从BOSS到地面的明亮核心线，形成可见的"光柱"
-        for (int i = 0; i < 12; i++) {
-            double dist = 0.5 + i * 0.8;
-            double px = bossPos.x + beamDir.x * dist;
-            double py = bossPos.y + beamDir.y * dist;
-            double pz = bossPos.z + beamDir.z * dist;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0));
-        }
-
-        // ===== 锥形扩散粒子 =====
-        // 围绕核心线的扩散粒子，形成宽广的圆锥形光束
-        // 偏移量在垂直于beamDir的平面内，随距离线性增大形成锥形
-        for (int i = 0; i < 25; i++) {
-            double dist = 1.0 + this.evoker.getRandom().nextDouble() * 9.0;
-            double spread = dist * 0.2;
-            double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
-            double r = this.evoker.getRandom().nextDouble() * spread;
-            double offsetX = Math.cos(angle) * r;
-            double offsetY = Math.sin(angle) * r;
-            double px = bossPos.x + beamDir.x * dist + perp1.x * offsetX + perp2.x * offsetY;
-            double py = bossPos.y + beamDir.y * dist + perp1.y * offsetX + perp2.y * offsetY;
-            double pz = bossPos.z + beamDir.z * dist + perp1.z * offsetX + perp2.z * offsetY;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0));
-        }
-
-        // ===== 地面投影光斑 =====
-        // 在光束落点处生成扩散的圆形光斑，营造"光束照射地面"的效果
-        // 【范围匹配】地面光斑半径与光束锥形角度和射程匹配
-        // BOSS在Y+6处，50度倾斜，光束落点处锥形覆盖半径约 6*tan(45°) ≈ 6 格
-        // 使用 6.0 作为地面光斑半径，与BEAM_RANGE和BEAM_CONE_ANGLE一致
-        if (groundDist > 0 && groundDist < ModConstants.BEAM_RANGE) {
-            int groundParticles = 16 + this.evoker.getRandom().nextInt(8);
-            double groundSpotRadius = 6.0;
-            for (int i = 0; i < groundParticles; i++) {
-                double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
-                double r = this.evoker.getRandom().nextDouble() * groundSpotRadius;
-                double px = groundX + Math.cos(angle) * r;
-                double pz = groundZ + Math.sin(angle) * r;
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_STELLA_WISP,
-                                px, groundY + 0.05, pz, 1));
+        try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+            // ===== 光束核心线 =====
+            // 从BOSS到地面的明亮核心线，形成可见的"光柱"
+            for (int i = 0; i < 12; i++) {
+                double dist = 0.5 + i * 0.8;
+                double px = bossPos.x + beamDir.x * dist;
+                double py = bossPos.y + beamDir.y * dist;
+                double pz = bossPos.z + beamDir.z * dist;
+                emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0);
             }
-            // 中心亮点
-            for (int i = 0; i < 5; i++) {
-                double ox = (this.evoker.getRandom().nextDouble() - 0.5) * 1.0;
-                double oz = (this.evoker.getRandom().nextDouble() - 0.5) * 1.0;
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_ASTRAL_BEAM,
-                                groundX + ox, groundY + 0.1, groundZ + oz, 0));
+
+            // ===== 锥形扩散粒子 =====
+            // 围绕核心线的扩散粒子，形成宽广的圆锥形光束
+            // 偏移量在垂直于beamDir的平面内，随距离线性增大形成锥形
+            for (int i = 0; i < 25; i++) {
+                double dist = 1.0 + this.evoker.getRandom().nextDouble() * 9.0;
+                double spread = dist * 0.2;
+                double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
+                double r = this.evoker.getRandom().nextDouble() * spread;
+                double offsetX = Math.cos(angle) * r;
+                double offsetY = Math.sin(angle) * r;
+                double px = bossPos.x + beamDir.x * dist + perp1.x * offsetX + perp2.x * offsetY;
+                double py = bossPos.y + beamDir.y * dist + perp1.y * offsetX + perp2.y * offsetY;
+                double pz = bossPos.z + beamDir.z * dist + perp1.z * offsetX + perp2.z * offsetY;
+                emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0);
+            }
+
+            // ===== 地面投影光斑 =====
+            // 在光束落点处生成扩散的圆形光斑，营造"光束照射地面"的效果
+            // 【范围匹配】地面光斑半径与光束锥形角度和射程匹配
+            // BOSS在Y+6处，50度倾斜，光束落点处锥形覆盖半径约 6*tan(45°) ≈ 6 格
+            // 使用 6.0 作为地面光斑半径，与BEAM_RANGE和BEAM_CONE_ANGLE一致
+            if (groundDist > 0 && groundDist < ModConstants.BEAM_RANGE) {
+                int groundParticles = 16 + this.evoker.getRandom().nextInt(8);
+                double groundSpotRadius = 6.0;
+                for (int i = 0; i < groundParticles; i++) {
+                    double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
+                    double r = this.evoker.getRandom().nextDouble() * groundSpotRadius;
+                    double px = groundX + Math.cos(angle) * r;
+                    double pz = groundZ + Math.sin(angle) * r;
+                    emitter.add(StellaParticles.ID_STELLA_WISP, px, groundY + 0.05, pz, 1);
+                }
+                // 中心亮点
+                for (int i = 0; i < 5; i++) {
+                    double ox = (this.evoker.getRandom().nextDouble() - 0.5) * 1.0;
+                    double oz = (this.evoker.getRandom().nextDouble() - 0.5) * 1.0;
+                    emitter.add(StellaParticles.ID_ASTRAL_BEAM, groundX + ox, groundY + 0.1, groundZ + oz, 0);
+                }
             }
         }
 
@@ -645,55 +632,53 @@ public class SpellCastGoal extends Goal {
         // 轻微摆动
         double baseSway = Math.sin(this.castTick * 0.12) * 0.08;
 
-        for (int i = 0; i < linkCount; i++) {
-            double t = (i + 1) * chainLinkSpacing / effectiveDistance;
-            if (t > 1.0) break;
+        try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+            for (int i = 0; i < linkCount; i++) {
+                double t = (i + 1) * chainLinkSpacing / effectiveDistance;
+                if (t > 1.0) break;
 
-            double px = start.x + direction.x * effectiveDistance * t;
-            double py = start.y + direction.y * effectiveDistance * t;
-            double pz = start.z + direction.z * effectiveDistance * t;
+                double px = start.x + direction.x * effectiveDistance * t;
+                double py = start.y + direction.y * effectiveDistance * t;
+                double pz = start.z + direction.z * effectiveDistance * t;
 
-            // 轻微摆动
-            double swayOffset = baseSway * Math.sin(i * 0.7 + this.castTick * 0.15);
-            py += swayOffset;
+                // 轻微摆动
+                double swayOffset = baseSway * Math.sin(i * 0.7 + this.castTick * 0.15);
+                py += swayOffset;
 
-            if (isWarningPhase) {
-                // 后 1.5 秒：猩红色链环
-                // 主链环：SMOKE_PARTICLE（小而实，不像光晕）
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_DYING_EMBER, px, py, pz, 0));
-            } else {
-                // 前 1.5 秒：淡蓝色链环
-                // 主链环：SMOKE_PARTICLE（小而实）
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0));
+                if (isWarningPhase) {
+                    // 后 1.5 秒：猩红色链环
+                    // 主链环：SMOKE_PARTICLE（小而实，不像光晕）
+                    emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 0);
+                } else {
+                    // 前 1.5 秒：淡蓝色链环
+                    // 主链环：SMOKE_PARTICLE（小而实）
+                    emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0);
+                }
             }
-        }
 
-        // 连接线：在链环之间填充细粒子，增强"连续锁链"感
-        // 每 0.4 格一个，使用 STAR_PARTICLE（小星形，有实体感但不大）
-        int connectorCount = (int) (effectiveDistance / 0.4);
-        for (int i = 0; i < connectorCount; i++) {
-            double t = (i + 1) * 0.4 / effectiveDistance;
-            if (t > 1.0) break;
+            // 连接线：在链环之间填充细粒子，增强"连续锁链"感
+            // 每 0.4 格一个，使用 STAR_PARTICLE（小星形，有实体感但不大）
+            int connectorCount = (int) (effectiveDistance / 0.4);
+            for (int i = 0; i < connectorCount; i++) {
+                double t = (i + 1) * 0.4 / effectiveDistance;
+                if (t > 1.0) break;
 
-            // 避开链环位置
-            double linkPhase = (t * effectiveDistance) % chainLinkSpacing;
-            if (linkPhase < 0.15 || linkPhase > chainLinkSpacing - 0.15) continue;
+                // 避开链环位置
+                double linkPhase = (t * effectiveDistance) % chainLinkSpacing;
+                if (linkPhase < 0.15 || linkPhase > chainLinkSpacing - 0.15) continue;
 
-            double px = start.x + direction.x * effectiveDistance * t;
-            double py = start.y + direction.y * effectiveDistance * t;
-            double pz = start.z + direction.z * effectiveDistance * t;
+                double px = start.x + direction.x * effectiveDistance * t;
+                double py = start.y + direction.y * effectiveDistance * t;
+                double pz = start.z + direction.z * effectiveDistance * t;
 
-            double swayOffset = baseSway * Math.sin(t * 8 + this.castTick * 0.15);
-            py += swayOffset;
+                double swayOffset = baseSway * Math.sin(t * 8 + this.castTick * 0.15);
+                py += swayOffset;
 
-            if (isWarningPhase) {
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_DYING_EMBER, px, py, pz, 0));
-            } else {
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0));
+                if (isWarningPhase) {
+                    emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 0);
+                } else {
+                    emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0);
+                }
             }
         }
 
@@ -735,26 +720,26 @@ public class SpellCastGoal extends Goal {
             serverLevel.playSound(null, goal.fateLinkTarget.getX(), goal.fateLinkTarget.getY(), goal.fateLinkTarget.getZ(),
                     SoundEvents.ENDER_DRAGON_HURT, SoundSource.HOSTILE, 1.5F, 0.6F);
             // 斩杀特效：大量虚空火花粒子
-            for (int i = 0; i < 20; i++) {
-                double ox = (goal.evoker.getRandom().nextDouble() - 0.5) * 2.0;
-                double oy = goal.evoker.getRandom().nextDouble() * 2.0;
-                double oz = (goal.evoker.getRandom().nextDouble() - 0.5) * 2.0;
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(goal.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_VOID_SPARK,
-                                goal.fateLinkTarget.getX() + ox, goal.fateLinkTarget.getY() + oy, goal.fateLinkTarget.getZ() + oz, 0));
+            try (ParticleEmitter emitter = new ParticleEmitter(goal.evoker)) {
+                for (int i = 0; i < 20; i++) {
+                    double ox = (goal.evoker.getRandom().nextDouble() - 0.5) * 2.0;
+                    double oy = goal.evoker.getRandom().nextDouble() * 2.0;
+                    double oz = (goal.evoker.getRandom().nextDouble() - 0.5) * 2.0;
+                    emitter.add(StellaParticles.ID_VOID_SPARK, goal.fateLinkTarget.getX() + ox, goal.fateLinkTarget.getY() + oy, goal.fateLinkTarget.getZ() + oz, 0);
+                }
             }
         } else {
             // 玩家成功跑出 12 格：锁链断裂特效
             // 锁链断裂音效：玻璃碎裂，体现虚空锁链崩断
             serverLevel.playSound(null, goal.fateLinkTarget.getX(), goal.fateLinkTarget.getY(), goal.fateLinkTarget.getZ(),
                     SoundEvents.GLASS_BREAK, SoundSource.HOSTILE, 1.5F, 1.0F);
-            for (int i = 0; i < 12; i++) {
-                double ox = (goal.evoker.getRandom().nextDouble() - 0.5) * 1.5;
-                double oy = goal.evoker.getRandom().nextDouble() * 1.5;
-                double oz = (goal.evoker.getRandom().nextDouble() - 0.5) * 1.5;
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(goal.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_STELLA_WISP,
-                                goal.fateLinkTarget.getX() + ox, goal.fateLinkTarget.getY() + oy, goal.fateLinkTarget.getZ() + oz, 0));
+            try (ParticleEmitter emitter = new ParticleEmitter(goal.evoker)) {
+                for (int i = 0; i < 12; i++) {
+                    double ox = (goal.evoker.getRandom().nextDouble() - 0.5) * 1.5;
+                    double oy = goal.evoker.getRandom().nextDouble() * 1.5;
+                    double oz = (goal.evoker.getRandom().nextDouble() - 0.5) * 1.5;
+                    emitter.add(StellaParticles.ID_STELLA_WISP, goal.fateLinkTarget.getX() + ox, goal.fateLinkTarget.getY() + oy, goal.fateLinkTarget.getZ() + oz, 0);
+                }
             }
         }
     }
@@ -782,46 +767,38 @@ public class SpellCastGoal extends Goal {
         double dirX = this.starRailDirection.x;
         double dirZ = this.starRailDirection.z;
 
-        if (this.castTick < 30) {
-            // 修复：预警线使用STELLA_WISP粒子（淡紫色），间隔1格，沿方向延伸20格
-            // 粒子密度随时间递增，越接近激光爆发越密集
-            int warningDensity = 4 + this.castTick / 3;
-            for (int i = 0; i < warningDensity; i++) {
-                double dist = (i + 1) * 1.0;
-                if (dist > ModConstants.STAR_RAIL_CUT_LENGTH) break;
-                double px = originX + dirX * dist + (this.evoker.getRandom().nextDouble() - 0.5) * 0.3;
-                double pz = originZ + dirZ * dist + (this.evoker.getRandom().nextDouble() - 0.5) * 0.3;
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_STELLA_WISP,
-                                px, originY, pz, 0));
-            }
+        try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+            if (this.castTick < 30) {
+                // 修复：预警线使用STELLA_WISP粒子（淡紫色），间隔1格，沿方向延伸20格
+                // 粒子密度随时间递增，越接近激光爆发越密集
+                int warningDensity = 4 + this.castTick / 3;
+                for (int i = 0; i < warningDensity; i++) {
+                    double dist = (i + 1) * 1.0;
+                    if (dist > ModConstants.STAR_RAIL_CUT_LENGTH) break;
+                    double px = originX + dirX * dist + (this.evoker.getRandom().nextDouble() - 0.5) * 0.3;
+                    double pz = originZ + dirZ * dist + (this.evoker.getRandom().nextDouble() - 0.5) * 0.3;
+                    emitter.add(StellaParticles.ID_STELLA_WISP, px, originY, pz, 0);
+                }
 
-            // 预警音效：每 10 tick 一次滴答声
-            if (this.castTick % 10 == 0) {
-                serverLevel.playSound(null,
-                        this.starRailTarget.getX(), this.starRailTarget.getY(), this.starRailTarget.getZ(),
-                        SoundEvents.NOTE_BLOCK_HAT.value(), SoundSource.HOSTILE,
-                        0.8F, 0.8F + this.evoker.getRandom().nextFloat() * 0.4F);
-            }
-        } else {
-            // 修复：激光爆发使用ASTRAL_BEAM粒子（亮蓝色），Y在地面+0.5，宽度1.5格
-            for (int i = 0; i < 20; i++) {
-                double dist = i * 1.0;
-                if (dist > ModConstants.STAR_RAIL_CUT_LENGTH) break;
-                double px = originX + dirX * dist;
-                double pz = originZ + dirZ * dist;
-                // 激光主体：亮蓝色，宽度1.5格
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_ASTRAL_BEAM,
-                                px + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5,
-                                originY,
-                                pz + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5, 0));
-                // 激光边缘：冲击波粒子
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_IMPACT_WAVE,
-                                px + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5,
-                                originY,
-                                pz + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5, 0));
+                // 预警音效：每 10 tick 一次滴答声
+                if (this.castTick % 10 == 0) {
+                    serverLevel.playSound(null,
+                            this.starRailTarget.getX(), this.starRailTarget.getY(), this.starRailTarget.getZ(),
+                            SoundEvents.NOTE_BLOCK_HAT.value(), SoundSource.HOSTILE,
+                            0.8F, 0.8F + this.evoker.getRandom().nextFloat() * 0.4F);
+                }
+            } else {
+                // 修复：激光爆发使用ASTRAL_BEAM粒子（亮蓝色），Y在地面+0.5，宽度1.5格
+                for (int i = 0; i < 20; i++) {
+                    double dist = i * 1.0;
+                    if (dist > ModConstants.STAR_RAIL_CUT_LENGTH) break;
+                    double px = originX + dirX * dist;
+                    double pz = originZ + dirZ * dist;
+                    // 激光主体：亮蓝色，宽度1.5格
+                    emitter.add(StellaParticles.ID_ASTRAL_BEAM, px + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5, originY, pz + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5, 0);
+                    // 激光边缘：冲击波粒子
+                    emitter.add(StellaParticles.ID_IMPACT_WAVE, px + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5, originY, pz + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5, 0);
+                }
             }
         }
     }
@@ -855,13 +832,13 @@ public class SpellCastGoal extends Goal {
         }
 
         // 激光结束大爆炸粒子
-        for (int i = 0; i < 50; i++) {
-            double dist = goal.evoker.getRandom().nextDouble() * length;
-            double px = originX + dirX * dist + (goal.evoker.getRandom().nextDouble() - 0.5) * 1.0;
-            double pz = originZ + dirZ * dist + (goal.evoker.getRandom().nextDouble() - 0.5) * 1.0;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(goal.evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_ASTRAL_BEAM,
-                            px, originY + goal.evoker.getRandom().nextDouble() * 1.5, pz, 0));
+        try (ParticleEmitter emitter = new ParticleEmitter(goal.evoker)) {
+            for (int i = 0; i < 50; i++) {
+                double dist = goal.evoker.getRandom().nextDouble() * length;
+                double px = originX + dirX * dist + (goal.evoker.getRandom().nextDouble() - 0.5) * 1.0;
+                double pz = originZ + dirZ * dist + (goal.evoker.getRandom().nextDouble() - 0.5) * 1.0;
+                emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, originY + goal.evoker.getRandom().nextDouble() * 1.5, pz, 0);
+            }
         }
 
         // 屏幕震动
@@ -889,48 +866,46 @@ public class SpellCastGoal extends Goal {
             return;
         }
 
-        // 前 10 tick：傀儡被吸向 BOSS 位置（念力抓取动画）
-        if (this.castTick < 10) {
-            double lerpFactor = 0.3;
-            double targetX = this.evoker.getX();
-            double targetY = this.evoker.getY() - 1.0;
-            double targetZ = this.evoker.getZ();
-            double newX = this.throwGolem.getX() + (targetX - this.throwGolem.getX()) * lerpFactor;
-            double newY = this.throwGolem.getY() + (targetY - this.throwGolem.getY()) * lerpFactor;
-            double newZ = this.throwGolem.getZ() + (targetZ - this.throwGolem.getZ()) * lerpFactor;
-            this.throwGolem.teleportTo(newX, newY, newZ);
-            this.throwGolem.setNoGravity(true);
-            this.throwGolem.setDeltaMovement(Vec3.ZERO);
+        try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+            // 前 10 tick：傀儡被吸向 BOSS 位置（念力抓取动画）
+            if (this.castTick < 10) {
+                double lerpFactor = 0.3;
+                double targetX = this.evoker.getX();
+                double targetY = this.evoker.getY() - 1.0;
+                double targetZ = this.evoker.getZ();
+                double newX = this.throwGolem.getX() + (targetX - this.throwGolem.getX()) * lerpFactor;
+                double newY = this.throwGolem.getY() + (targetY - this.throwGolem.getY()) * lerpFactor;
+                double newZ = this.throwGolem.getZ() + (targetZ - this.throwGolem.getZ()) * lerpFactor;
+                this.throwGolem.teleportTo(newX, newY, newZ);
+                this.throwGolem.setNoGravity(true);
+                this.throwGolem.setDeltaMovement(Vec3.ZERO);
 
-            // 念力抓取粒子：傀儡周围的虚空能量
-            for (int i = 0; i < 4; i++) {
-                double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
-                double r = 0.5 + this.evoker.getRandom().nextDouble() * 0.5;
-                double px = this.throwGolem.getX() + Math.cos(angle) * r;
-                double pz = this.throwGolem.getZ() + Math.sin(angle) * r;
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_VOID_SPARK,
-                                px, this.throwGolem.getY() + this.evoker.getRandom().nextDouble() * 1.0, pz, 0));
+                // 念力抓取粒子：傀儡周围的虚空能量
+                for (int i = 0; i < 4; i++) {
+                    double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
+                    double r = 0.5 + this.evoker.getRandom().nextDouble() * 0.5;
+                    double px = this.throwGolem.getX() + Math.cos(angle) * r;
+                    double pz = this.throwGolem.getZ() + Math.sin(angle) * r;
+                    emitter.add(StellaParticles.ID_VOID_SPARK, px, this.throwGolem.getY() + this.evoker.getRandom().nextDouble() * 1.0, pz, 0);
+                }
             }
-        }
 
-        // 后 10 tick：蓄力阶段，傀儡在 BOSS 手中旋转
-        if (this.castTick >= 10) {
-            double angle = (this.castTick - 10) * 0.5;
-            double r = 1.0;
-            double px = this.evoker.getX() + Math.cos(angle) * r;
-            double pz = this.evoker.getZ() + Math.sin(angle) * r;
-            this.throwGolem.teleportTo(px, this.evoker.getY() - 1.0, pz);
+            // 后 10 tick：蓄力阶段，傀儡在 BOSS 手中旋转
+            if (this.castTick >= 10) {
+                double angle = (this.castTick - 10) * 0.5;
+                double r = 1.0;
+                double px = this.evoker.getX() + Math.cos(angle) * r;
+                double pz = this.evoker.getZ() + Math.sin(angle) * r;
+                this.throwGolem.teleportTo(px, this.evoker.getY() - 1.0, pz);
 
-            // 蓄力粒子
-            for (int i = 0; i < 6; i++) {
-                double pAngle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
-                double pr = 0.3 + this.evoker.getRandom().nextDouble() * 0.8;
-                double ppx = px + Math.cos(pAngle) * pr;
-                double ppz = pz + Math.sin(pAngle) * pr;
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_STELLA_WISP,
-                                ppx, this.evoker.getY() - 0.5 + this.evoker.getRandom().nextDouble() * 1.0, ppz, 0));
+                // 蓄力粒子
+                for (int i = 0; i < 6; i++) {
+                    double pAngle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
+                    double pr = 0.3 + this.evoker.getRandom().nextDouble() * 0.8;
+                    double ppx = px + Math.cos(pAngle) * pr;
+                    double ppz = pz + Math.sin(pAngle) * pr;
+                    emitter.add(StellaParticles.ID_STELLA_WISP, ppx, this.evoker.getY() - 0.5 + this.evoker.getRandom().nextDouble() * 1.0, ppz, 0);
+                }
             }
         }
     }
@@ -949,14 +924,15 @@ public class SpellCastGoal extends Goal {
         goal.throwGolem.setNoGravity(false);
         goal.throwGolem.setDeltaMovement(0, -2.0, 0);
 
-        // 投掷轨迹粒子
-        for (int i = 0; i < 20; i++) {
-            double t = goal.evoker.getRandom().nextDouble();
-            double px = goal.evoker.getX() + (targetX - goal.evoker.getX()) * t + (goal.evoker.getRandom().nextDouble() - 0.5) * 1.0;
-            double pz = goal.evoker.getZ() + (targetZ - goal.evoker.getZ()) * t + (goal.evoker.getRandom().nextDouble() - 0.5) * 1.0;
-            double py = goal.evoker.getY() + (targetY - goal.evoker.getY()) * t;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(goal.evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_STELLA_WISP, px, py, pz, 0));
+        try (ParticleEmitter emitter = new ParticleEmitter(goal.evoker)) {
+            // 投掷轨迹粒子
+            for (int i = 0; i < 20; i++) {
+                double t = goal.evoker.getRandom().nextDouble();
+                double px = goal.evoker.getX() + (targetX - goal.evoker.getX()) * t + (goal.evoker.getRandom().nextDouble() - 0.5) * 1.0;
+                double pz = goal.evoker.getZ() + (targetZ - goal.evoker.getZ()) * t + (goal.evoker.getRandom().nextDouble() - 0.5) * 1.0;
+                double py = goal.evoker.getY() + (targetY - goal.evoker.getY()) * t;
+                emitter.add(StellaParticles.ID_STELLA_WISP, px, py, pz, 0);
+            }
         }
 
         // 念力投掷音效：傀儡抛出时的呼啸声
@@ -985,17 +961,15 @@ public class SpellCastGoal extends Goal {
         }
 
         // 星尘爆炸粒子
-        for (int i = 0; i < 50; i++) {
-            double angle = goal.evoker.getRandom().nextDouble() * Math.PI * 2;
-            double r = goal.evoker.getRandom().nextDouble() * ModConstants.TELEKINETIC_THROW_RADIUS;
-            double px = targetX + Math.cos(angle) * r;
-            double pz = targetZ + Math.sin(angle) * r;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(goal.evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_STELLA_WISP,
-                            px, goal.throwTarget.getY() + 0.3, pz, 0));
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(goal.evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_IMPACT_WAVE,
-                            px, goal.throwTarget.getY() + 0.1, pz, 1));
+        try (ParticleEmitter emitter = new ParticleEmitter(goal.evoker)) {
+            for (int i = 0; i < 50; i++) {
+                double angle = goal.evoker.getRandom().nextDouble() * Math.PI * 2;
+                double r = goal.evoker.getRandom().nextDouble() * ModConstants.TELEKINETIC_THROW_RADIUS;
+                double px = targetX + Math.cos(angle) * r;
+                double pz = targetZ + Math.sin(angle) * r;
+                emitter.add(StellaParticles.ID_STELLA_WISP, px, goal.throwTarget.getY() + 0.3, pz, 0);
+                emitter.add(StellaParticles.ID_IMPACT_WAVE, px, goal.throwTarget.getY() + 0.1, pz, 1);
+            }
         }
 
         // 屏幕震动

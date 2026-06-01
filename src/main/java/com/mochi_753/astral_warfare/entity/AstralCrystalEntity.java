@@ -1,6 +1,6 @@
 package com.mochi_753.astral_warfare.entity;
 
-import com.mochi_753.astral_warfare.network.ClientboundLodestoneParticlePacket;
+import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -17,7 +17,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.Collections;
 
@@ -127,15 +126,14 @@ public class AstralCrystalEntity extends LivingEntity {
             //   3 = ID_IMPACT_WAVE（冲击波），2 = ID_ASTRAL_BEAM（星界光束碎裂）
             // 不直接引用 StellaParticles 常量，因为它是客户端专属类
             if (this.level() instanceof ServerLevel) {
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this,
-                        new ClientboundLodestoneParticlePacket(3,
-                                this.getX(), this.getY() + 0.5, this.getZ(), 0));
-                for (int i = 0; i < 20; i++) {
-                    PacketDistributor.sendToPlayersTrackingEntityAndSelf(this,
-                            new ClientboundLodestoneParticlePacket(2,
-                                    this.getX() + (this.random.nextDouble() - 0.5) * 1.0,
-                                    this.getY() + this.random.nextDouble() * 1.5,
-                                    this.getZ() + (this.random.nextDouble() - 0.5) * 1.0, 0));
+                try (ParticleEmitter emitter = new ParticleEmitter(this)) {
+                    emitter.add(3, this.getX(), this.getY() + 0.5, this.getZ(), 0);
+                    for (int i = 0; i < 20; i++) {
+                        emitter.add(2,
+                                this.getX() + (this.random.nextDouble() - 0.5) * 1.0,
+                                this.getY() + this.random.nextDouble() * 1.5,
+                                this.getZ() + (this.random.nextDouble() - 0.5) * 1.0, 0);
+                    }
                 }
             }
         }

@@ -4,14 +4,14 @@ import com.mochi_753.astral_warfare.attachment.ManaData;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
 import com.mochi_753.astral_warfare.entity.ai.SpellType;
 import com.mochi_753.astral_warfare.init.ModConstants;
-import com.mochi_753.astral_warfare.network.ClientboundLodestoneParticlePacket;
+import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.network.PacketDistributor;
+
 
 import java.util.List;
 
@@ -74,14 +74,15 @@ public class StellaManaSystem {
 
         if (!isWeakened() && !isFallingFromExhaustion) {
             if (evoker.tickCount % 2 == 0) {
-                for (int j = 0; j < 2; j++) {
-                    double angle = evoker.getRandom().nextDouble() * Math.PI * 2;
-                    double radius = 0.8 + evoker.getRandom().nextDouble() * 0.5;
-                    double px = evoker.getX() + Math.cos(angle) * radius;
-                    double py = evoker.getY() + evoker.getRandom().nextDouble() * 1.5;
-                    double pz = evoker.getZ() + Math.sin(angle) * radius;
-                    PacketDistributor.sendToPlayersTrackingEntityAndSelf(evoker,
-                            new ClientboundLodestoneParticlePacket(StellaParticles.ID_STELLA_WISP, px, py, pz, 1));
+                try (ParticleEmitter emitter = new ParticleEmitter(evoker)) {
+                    for (int j = 0; j < 2; j++) {
+                        double angle = evoker.getRandom().nextDouble() * Math.PI * 2;
+                        double radius = 0.8 + evoker.getRandom().nextDouble() * 0.5;
+                        double px = evoker.getX() + Math.cos(angle) * radius;
+                        double py = evoker.getY() + evoker.getRandom().nextDouble() * 1.5;
+                        double pz = evoker.getZ() + Math.sin(angle) * radius;
+                        emitter.add(StellaParticles.ID_STELLA_WISP, px, py, pz, 1);
+                    }
                 }
             }
 
@@ -111,15 +112,15 @@ public class StellaManaSystem {
     private void triggerImpactShockwave(ServerLevel level) {
         impactTriggered = true;
 
-        for (int i = 0; i < 30; i++) {
-            double angle = evoker.getRandom().nextDouble() * Math.PI * 2;
-            double radius = evoker.getRandom().nextDouble() * IMPACT_RADIUS;
-            double px = evoker.getX() + Math.cos(angle) * radius;
-            double pz = evoker.getZ() + Math.sin(angle) * radius;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_VOID_SPARK, px, evoker.getY() + 0.5, pz, 0));
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_IMPACT_WAVE, px, evoker.getY() + 0.3, pz, 0));
+        try (ParticleEmitter emitter = new ParticleEmitter(evoker)) {
+            for (int i = 0; i < 30; i++) {
+                double angle = evoker.getRandom().nextDouble() * Math.PI * 2;
+                double radius = evoker.getRandom().nextDouble() * IMPACT_RADIUS;
+                double px = evoker.getX() + Math.cos(angle) * radius;
+                double pz = evoker.getZ() + Math.sin(angle) * radius;
+                emitter.add(StellaParticles.ID_VOID_SPARK, px, evoker.getY() + 0.5, pz, 0);
+                emitter.add(StellaParticles.ID_IMPACT_WAVE, px, evoker.getY() + 0.3, pz, 0);
+            }
         }
 
         AABB impactBox = evoker.getBoundingBox().inflate(IMPACT_RADIUS);
@@ -160,26 +161,26 @@ public class StellaManaSystem {
             evoker.setCurrentMana(newMana);
 
             if (evoker.getRandom().nextFloat() < 0.3F) {
-                for (AstralCrystalEntity crystal : nearbyCrystals) {
-                    PacketDistributor.sendToPlayersTrackingEntityAndSelf(evoker,
-                            new ClientboundLodestoneParticlePacket(StellaParticles.ID_ASTRAL_BEAM,
-                                    crystal.getX(), crystal.getY() + 0.5, crystal.getZ(), 1));
-                }
-                for (StarcoreGolemEntity golem : nearbyGolems) {
-                    Vec3 golemPos = golem.position().add(0, 0.8, 0);
-                    Vec3 bossPos = evoker.position().add(0, 0.8, 0);
-                    Vec3 dir = bossPos.subtract(golemPos);
-                    double dist = dir.length();
-                    if (dist < 0.5) continue;
-                    dir = dir.normalize();
-                    int particleCount = (int) (dist / 1.5);
-                    for (int i = 0; i < particleCount; i++) {
-                        double t = (i + 0.5) / particleCount;
-                        double px = golemPos.x + dir.x * dist * t + (evoker.getRandom().nextDouble() - 0.5) * 0.3;
-                        double py = golemPos.y + dir.y * dist * t + (evoker.getRandom().nextDouble() - 0.5) * 0.3;
-                        double pz = golemPos.z + dir.z * dist * t + (evoker.getRandom().nextDouble() - 0.5) * 0.3;
-                        PacketDistributor.sendToPlayersTrackingEntityAndSelf(evoker,
-                                new ClientboundLodestoneParticlePacket(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 1));
+                try (ParticleEmitter emitter = new ParticleEmitter(evoker)) {
+                    for (AstralCrystalEntity crystal : nearbyCrystals) {
+                        emitter.add(StellaParticles.ID_ASTRAL_BEAM,
+                                crystal.getX(), crystal.getY() + 0.5, crystal.getZ(), 1);
+                    }
+                    for (StarcoreGolemEntity golem : nearbyGolems) {
+                        Vec3 golemPos = golem.position().add(0, 0.8, 0);
+                        Vec3 bossPos = evoker.position().add(0, 0.8, 0);
+                        Vec3 dir = bossPos.subtract(golemPos);
+                        double dist = dir.length();
+                        if (dist < 0.5) continue;
+                        dir = dir.normalize();
+                        int particleCount = (int) (dist / 1.5);
+                        for (int i = 0; i < particleCount; i++) {
+                            double t = (i + 0.5) / particleCount;
+                            double px = golemPos.x + dir.x * dist * t + (evoker.getRandom().nextDouble() - 0.5) * 0.3;
+                            double py = golemPos.y + dir.y * dist * t + (evoker.getRandom().nextDouble() - 0.5) * 0.3;
+                            double pz = golemPos.z + dir.z * dist * t + (evoker.getRandom().nextDouble() - 0.5) * 0.3;
+                            emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 1);
+                        }
                     }
                 }
             }

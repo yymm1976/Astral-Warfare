@@ -3,7 +3,7 @@ package com.mochi_753.astral_warfare.entity;
 import com.mochi_753.astral_warfare.AstralWarfare;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
 import com.mochi_753.astral_warfare.init.ModConstants;
-import com.mochi_753.astral_warfare.network.ClientboundLodestoneParticlePacket;
+import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -17,7 +17,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.network.PacketDistributor;
+
 
 import java.util.List;
 
@@ -63,12 +63,13 @@ public class StellaTransitionStateMachine {
         // 转阶段升空情景：BOSS升空，虚空能量释放，玻璃碎裂
         // 只保留 VOID_SPARK（虚空能量释放）+ REVERSE_PORTAL（原版紫色能量扩散），删除 STELLA_WISP、TRANSITION_BURST，降低密度
         if (evoker.getRandom().nextFloat() < 0.4F) {
-            for (int i = 0; i < 2; i++) {
-                double px = evoker.getX() + (evoker.getRandom().nextDouble() - 0.5) * 3.0;
-                double py = evoker.getY() + evoker.getRandom().nextDouble() * 2.0;
-                double pz = evoker.getZ() + (evoker.getRandom().nextDouble() - 0.5) * 3.0;
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_VOID_SPARK, px, py, pz, 0));
+            try (ParticleEmitter emitter = new ParticleEmitter(evoker)) {
+                for (int i = 0; i < 2; i++) {
+                    double px = evoker.getX() + (evoker.getRandom().nextDouble() - 0.5) * 3.0;
+                    double py = evoker.getY() + evoker.getRandom().nextDouble() * 2.0;
+                    double pz = evoker.getZ() + (evoker.getRandom().nextDouble() - 0.5) * 3.0;
+                    emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 0);
+                }
             }
             // 原版反向传送门粒子：转阶段的紫色能量释放
             level.sendParticles(net.minecraft.core.particles.ParticleTypes.REVERSE_PORTAL,
@@ -123,17 +124,17 @@ public class StellaTransitionStateMachine {
                 golem -> golem.isAlive());
 
         for (StarcoreGolemEntity golem : golems) {
-            for (int i = 0; i < 20; i++) {
-                double angle = evoker.getRandom().nextDouble() * Math.PI * 2;
-                double r = evoker.getRandom().nextDouble() * 2.0;
-                double px = golem.getX() + Math.cos(angle) * r;
-                double pz = golem.getZ() + Math.sin(angle) * r;
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(golem,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_VOID_SPARK,
-                                px, golem.getY() + evoker.getRandom().nextDouble() * 1.5, pz, 0));
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(golem,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_IMPACT_WAVE,
-                                px, golem.getY() + 0.3, pz, 0));
+            try (ParticleEmitter emitter = new ParticleEmitter(golem)) {
+                for (int i = 0; i < 20; i++) {
+                    double angle = evoker.getRandom().nextDouble() * Math.PI * 2;
+                    double r = evoker.getRandom().nextDouble() * 2.0;
+                    double px = golem.getX() + Math.cos(angle) * r;
+                    double pz = golem.getZ() + Math.sin(angle) * r;
+                    emitter.add(StellaParticles.ID_VOID_SPARK,
+                            px, golem.getY() + evoker.getRandom().nextDouble() * 1.5, pz, 0);
+                    emitter.add(StellaParticles.ID_IMPACT_WAVE,
+                            px, golem.getY() + 0.3, pz, 0);
+                }
             }
             level.playSound(null, golem.getX(), golem.getY(), golem.getZ(),
                     SoundEvents.GENERIC_EXPLODE, SoundSource.HOSTILE, 1.5F, 1.0F);
@@ -160,13 +161,14 @@ public class StellaTransitionStateMachine {
                 evoker.getX(), evoker.getY() + 0.5, evoker.getZ(),
                 10, 2.0, 0.3, 2.0, 0.05);
 
-        for (int i = 0; i < 12; i++) {
-            double angle = evoker.getRandom().nextDouble() * Math.PI * 2;
-            double r = evoker.getRandom().nextDouble() * radius;
-            double px = evoker.getX() + Math.cos(angle) * r;
-            double pz = evoker.getZ() + Math.sin(angle) * r;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_IMPACT_WAVE, px, evoker.getY() + 0.5, pz, 1));
+        try (ParticleEmitter emitter = new ParticleEmitter(evoker)) {
+            for (int i = 0; i < 12; i++) {
+                double angle = evoker.getRandom().nextDouble() * Math.PI * 2;
+                double r = evoker.getRandom().nextDouble() * radius;
+                double px = evoker.getX() + Math.cos(angle) * r;
+                double pz = evoker.getZ() + Math.sin(angle) * r;
+                emitter.add(StellaParticles.ID_IMPACT_WAVE, px, evoker.getY() + 0.5, pz, 1);
+            }
         }
     }
 

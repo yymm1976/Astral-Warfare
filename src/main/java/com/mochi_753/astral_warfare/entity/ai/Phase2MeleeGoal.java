@@ -4,6 +4,7 @@ import com.mochi_753.astral_warfare.init.ModEffects;
 import com.mochi_753.astral_warfare.entity.StellaEvokerEntity;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
 import com.mochi_753.astral_warfare.network.ClientboundLodestoneParticlePacket;
+import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -12,7 +13,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 // ═══════════════════════════════════════════════════════════════════════
 // 二阶段三段普攻 AI Goal（Phase2MeleeGoal）
@@ -214,20 +214,20 @@ public class Phase2MeleeGoal extends Goal {
         this.evoker.getLookControl().setLookAt(this.target, 180.0F, 180.0F);
 
         // 蓄力粒子：虚空能量在BOSS手部聚集（从2个增加到4个）
-        for (int i = 0; i < 4; i++) {
-            double px = this.evoker.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.0;
-            double py = this.evoker.getY() + 1.5 + this.evoker.getRandom().nextDouble() * 0.5;
-            double pz = this.evoker.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.0;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_VOID_SPARK, px, py, pz, 0));
-        }
-        // 新增：星穹微光环绕蓄力
-        for (int i = 0; i < 2; i++) {
-            double px = this.evoker.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.2;
-            double py = this.evoker.getY() + 1.0 + this.evoker.getRandom().nextDouble() * 0.8;
-            double pz = this.evoker.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.2;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_STELLA_WISP, px, py, pz, 1));
+        try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+            for (int i = 0; i < 4; i++) {
+                double px = this.evoker.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.0;
+                double py = this.evoker.getY() + 1.5 + this.evoker.getRandom().nextDouble() * 0.5;
+                double pz = this.evoker.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.0;
+                emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 0);
+            }
+            // 新增：星穹微光环绕蓄力
+            for (int i = 0; i < 2; i++) {
+                double px = this.evoker.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.2;
+                double py = this.evoker.getY() + 1.0 + this.evoker.getRandom().nextDouble() * 0.8;
+                double pz = this.evoker.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.2;
+                emitter.add(StellaParticles.ID_STELLA_WISP, px, py, pz, 1);
+            }
         }
 
         // 原版附魔粒子：蓄力时的符文飞入效果（仪式感，数量加倍）
@@ -273,26 +273,26 @@ public class Phase2MeleeGoal extends Goal {
 
         // 全程：弧形刃光（IMPACT_WAVE），5道连斩，每道10分段
         // 最外圈距离 1.5 + 4*1.5 = 7.5，与 SLASH_DAMAGE_RANGE 一致
-        for (int slash = 0; slash < 5; slash++) {
-            double slashDist = 1.5 + slash * 1.5;
-            int arcSegments = 10;
-            for (int i = 0; i < arcSegments; i++) {
-                double arcAngle = baseYaw + (i / (double) arcSegments - 0.5) * Math.PI * 0.9;
-                double px = this.evoker.getX() + Math.cos(arcAngle) * slashDist;
-                double py = this.evoker.getY() + 0.8 + (slash == 1 ? 0.3 : 0);
-                double pz = this.evoker.getZ() + Math.sin(arcAngle) * slashDist;
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_IMPACT_WAVE, px, py, pz, slash));
+        try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+            for (int slash = 0; slash < 5; slash++) {
+                double slashDist = 1.5 + slash * 1.5;
+                int arcSegments = 10;
+                for (int i = 0; i < arcSegments; i++) {
+                    double arcAngle = baseYaw + (i / (double) arcSegments - 0.5) * Math.PI * 0.9;
+                    double px = this.evoker.getX() + Math.cos(arcAngle) * slashDist;
+                    double py = this.evoker.getY() + 0.8 + (slash == 1 ? 0.3 : 0);
+                    double pz = this.evoker.getZ() + Math.sin(arcAngle) * slashDist;
+                    emitter.add(StellaParticles.ID_IMPACT_WAVE, px, py, pz, slash);
+                }
             }
-        }
-        // 新增：虚空火花尾随刃光
-        for (int i = 0; i < 3; i++) {
-            double angle = baseYaw + (this.evoker.getRandom().nextDouble() - 0.5) * Math.PI * 0.6;
-            double dist = 2.0 + this.evoker.getRandom().nextDouble() * 4.0;
-            double px = this.evoker.getX() + Math.cos(angle) * dist;
-            double pz = this.evoker.getZ() + Math.sin(angle) * dist;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_VOID_SPARK, px, this.evoker.getY() + 0.8, pz, 0));
+            // 新增：虚空火花尾随刃光
+            for (int i = 0; i < 3; i++) {
+                double angle = baseYaw + (this.evoker.getRandom().nextDouble() - 0.5) * Math.PI * 0.6;
+                double dist = 2.0 + this.evoker.getRandom().nextDouble() * 4.0;
+                double px = this.evoker.getX() + Math.cos(angle) * dist;
+                double pz = this.evoker.getZ() + Math.sin(angle) * dist;
+                emitter.add(StellaParticles.ID_VOID_SPARK, px, this.evoker.getY() + 0.8, pz, 0);
+            }
         }
 
         if (this.stateTimer >= SLASH_DURATION_TICKS) {
@@ -314,40 +314,35 @@ public class Phase2MeleeGoal extends Goal {
             double newZ = this.evoker.getZ() + toTarget.z * dashDist;
 
             // 瞬移路径残影（从4个增加到8个，更密集）
-            for (int i = 0; i < 8; i++) {
-                double t = i / 8.0;
-                double px = this.evoker.getX() + toTarget.x * dashDist * t;
-                double pz = this.evoker.getZ() + toTarget.z * dashDist * t;
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_STELLA_WISP,
-                                px, this.evoker.getY() + 1.0, pz, 0));
-                // 新增：虚空火花残影
-                if (i % 2 == 0) {
-                    PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                            new ClientboundLodestoneParticlePacket(StellaParticles.ID_VOID_SPARK,
-                                    px, this.evoker.getY() + 0.8, pz, 1));
+            try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+                for (int i = 0; i < 8; i++) {
+                    double t = i / 8.0;
+                    double px = this.evoker.getX() + toTarget.x * dashDist * t;
+                    double pz = this.evoker.getZ() + toTarget.z * dashDist * t;
+                    emitter.add(StellaParticles.ID_STELLA_WISP, px, this.evoker.getY() + 1.0, pz, 0);
+                    // 新增：虚空火花残影
+                    if (i % 2 == 0) {
+                        emitter.add(StellaParticles.ID_VOID_SPARK, px, this.evoker.getY() + 0.8, pz, 1);
+                    }
                 }
-            }
 
-            this.evoker.teleportTo(newX, this.evoker.getY(), newZ);
+                this.evoker.teleportTo(newX, this.evoker.getY(), newZ);
 
-            // 落点爆发（从3个增加到8个，更大范围）
-            for (int i = 0; i < 8; i++) {
-                double px = newX + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
-                double py = this.evoker.getY() + 1.0 + this.evoker.getRandom().nextDouble() * 0.8;
-                double pz = newZ + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_TRANSITION_BURST, px, py, pz, 0));
-            }
-            // 新增：落点冲击波
-            for (int i = 0; i < 6; i++) {
-                double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
-                double r = this.evoker.getRandom().nextDouble() * 1.5;
-                double px = newX + Math.cos(angle) * r;
-                double pz = newZ + Math.sin(angle) * r;
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_IMPACT_WAVE,
-                                px, this.evoker.getY() + 0.3, pz, 0));
+                // 落点爆发（从3个增加到8个，更大范围）
+                for (int i = 0; i < 8; i++) {
+                    double px = newX + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
+                    double py = this.evoker.getY() + 1.0 + this.evoker.getRandom().nextDouble() * 0.8;
+                    double pz = newZ + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
+                    emitter.add(StellaParticles.ID_TRANSITION_BURST, px, py, pz, 0);
+                }
+                // 新增：落点冲击波
+                for (int i = 0; i < 6; i++) {
+                    double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
+                    double r = this.evoker.getRandom().nextDouble() * 1.5;
+                    double px = newX + Math.cos(angle) * r;
+                    double pz = newZ + Math.sin(angle) * r;
+                    emitter.add(StellaParticles.ID_IMPACT_WAVE, px, this.evoker.getY() + 0.3, pz, 0);
+                }
             }
         }
 
@@ -380,14 +375,15 @@ public class Phase2MeleeGoal extends Goal {
         }
 
         // 掌击冲击波
-        for (int i = 0; i < 4; i++) {
-            double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
-            double r = this.evoker.getRandom().nextDouble() * 0.8;
-            double px = this.evoker.getX() + Math.cos(angle) * r;
-            double py = this.evoker.getY() + 0.8 + this.evoker.getRandom().nextDouble() * 0.6;
-            double pz = this.evoker.getZ() + Math.sin(angle) * r;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_IMPACT_WAVE, px, py, pz, 0));
+        try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+            for (int i = 0; i < 4; i++) {
+                double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
+                double r = this.evoker.getRandom().nextDouble() * 0.8;
+                double px = this.evoker.getX() + Math.cos(angle) * r;
+                double py = this.evoker.getY() + 0.8 + this.evoker.getRandom().nextDouble() * 0.6;
+                double pz = this.evoker.getZ() + Math.sin(angle) * r;
+                emitter.add(StellaParticles.ID_IMPACT_WAVE, px, py, pz, 0);
+            }
         }
 
         // 星界突进掌音效：末影人瞬移+重击组合，体现突进的爆发力
@@ -407,12 +403,13 @@ public class Phase2MeleeGoal extends Goal {
     private void tickBackstabVanish(ServerLevel level) {
         if (this.stateTimer == 1) {
             // 碎裂闪光
-            for (int i = 0; i < 6; i++) {
-                double px = this.evoker.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
-                double py = this.evoker.getY() + this.evoker.getRandom().nextDouble() * 2.0;
-                double pz = this.evoker.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_TRANSITION_BURST, px, py, pz, 0));
+            try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+                for (int i = 0; i < 6; i++) {
+                    double px = this.evoker.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
+                    double py = this.evoker.getY() + this.evoker.getRandom().nextDouble() * 2.0;
+                    double pz = this.evoker.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
+                    emitter.add(StellaParticles.ID_TRANSITION_BURST, px, py, pz, 0);
+                }
             }
             // 原版烟雾消散
             level.sendParticles(net.minecraft.core.particles.ParticleTypes.POOF,
@@ -472,39 +469,36 @@ public class Phase2MeleeGoal extends Goal {
         Vec3 toTarget = this.target.position().subtract(this.evoker.position()).normalize();
 
         // 贯穿轨迹（从8个增加到15个，更长更华丽）
-        for (int i = 0; i < 15; i++) {
-            double t = i / 15.0;
-            double px = this.evoker.getX() + toTarget.x * t * 3.0;
-            double py = this.evoker.getY() + 1.0 + (this.evoker.getRandom().nextDouble() - 0.5) * 0.5;
-            double pz = this.evoker.getZ() + toTarget.z * t * 3.0;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0));
-            // 新增：虚空火花混合轨迹
-            if (i % 3 == 0) {
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                        new ClientboundLodestoneParticlePacket(StellaParticles.ID_VOID_SPARK, px, py, pz, 2));
+        try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+            for (int i = 0; i < 15; i++) {
+                double t = i / 15.0;
+                double px = this.evoker.getX() + toTarget.x * t * 3.0;
+                double py = this.evoker.getY() + 1.0 + (this.evoker.getRandom().nextDouble() - 0.5) * 0.5;
+                double pz = this.evoker.getZ() + toTarget.z * t * 3.0;
+                emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0);
+                // 新增：虚空火花混合轨迹
+                if (i % 3 == 0) {
+                    emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 2);
+                }
             }
-        }
 
-        // 刺入点爆发（从6个增加到12个，更大范围）
-        for (int i = 0; i < 12; i++) {
-            double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
-            double r = this.evoker.getRandom().nextDouble() * 1.2;
-            double px = this.target.getX() + Math.cos(angle) * r;
-            double py = this.target.getY() + 1.0 + this.evoker.getRandom().nextDouble() * 0.8;
-            double pz = this.target.getZ() + Math.sin(angle) * r;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_IMPACT_WAVE, px, py, pz, 0));
-        }
-        // 新增：刺入点星形爆发
-        for (int i = 0; i < 6; i++) {
-            double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
-            double r = 0.5 + this.evoker.getRandom().nextDouble() * 1.0;
-            double px = this.target.getX() + Math.cos(angle) * r;
-            double pz = this.target.getZ() + Math.sin(angle) * r;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_TRANSITION_BURST,
-                            px, this.target.getY() + 1.2, pz, 0));
+            // 刺入点爆发（从6个增加到12个，更大范围）
+            for (int i = 0; i < 12; i++) {
+                double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
+                double r = this.evoker.getRandom().nextDouble() * 1.2;
+                double px = this.target.getX() + Math.cos(angle) * r;
+                double py = this.target.getY() + 1.0 + this.evoker.getRandom().nextDouble() * 0.8;
+                double pz = this.target.getZ() + Math.sin(angle) * r;
+                emitter.add(StellaParticles.ID_IMPACT_WAVE, px, py, pz, 0);
+            }
+            // 新增：刺入点星形爆发
+            for (int i = 0; i < 6; i++) {
+                double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
+                double r = 0.5 + this.evoker.getRandom().nextDouble() * 1.0;
+                double px = this.target.getX() + Math.cos(angle) * r;
+                double pz = this.target.getZ() + Math.sin(angle) * r;
+                emitter.add(StellaParticles.ID_TRANSITION_BURST, px, this.target.getY() + 1.2, pz, 0);
+            }
         }
 
         // 背刺贯穿音效：三叉戟刺入+凋灵破坏，体现虚空长矛的贯穿力
@@ -525,12 +519,13 @@ public class Phase2MeleeGoal extends Goal {
         this.evoker.getLookControl().setLookAt(this.target, 180.0F, 180.0F);
 
         // 虚空能量聚集
-        for (int i = 0; i < 2; i++) {
-            double px = this.evoker.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 0.5;
-            double py = this.evoker.getY() + 1.5 + this.evoker.getRandom().nextDouble() * 0.5;
-            double pz = this.evoker.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 0.5;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_VOID_SPARK, px, py, pz, 0));
+        try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+            for (int i = 0; i < 2; i++) {
+                double px = this.evoker.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 0.5;
+                double py = this.evoker.getY() + 1.5 + this.evoker.getRandom().nextDouble() * 0.5;
+                double pz = this.evoker.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 0.5;
+                emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 0);
+            }
         }
 
         // 原版传送门粒子：虚空吸入效果
@@ -554,13 +549,14 @@ public class Phase2MeleeGoal extends Goal {
                 double tpZ = this.evoker.getZ() + toTarget.z * 2.0;
 
                 // 拉扯线：虚空火花
-                for (int i = 0; i < 8; i++) {
-                    double t = i / 8.0;
-                    double px = this.target.getX() + (this.evoker.getX() - this.target.getX()) * t;
-                    double pz = this.target.getZ() + (this.evoker.getZ() - this.target.getZ()) * t;
-                    double py = this.target.getY() + 1.0 + (this.evoker.getRandom().nextDouble() - 0.5) * 0.5;
-                    PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                            new ClientboundLodestoneParticlePacket(StellaParticles.ID_VOID_SPARK, px, py, pz, 0));
+                try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+                    for (int i = 0; i < 8; i++) {
+                        double t = i / 8.0;
+                        double px = this.target.getX() + (this.evoker.getX() - this.target.getX()) * t;
+                        double pz = this.target.getZ() + (this.evoker.getZ() - this.target.getZ()) * t;
+                        double py = this.target.getY() + 1.0 + (this.evoker.getRandom().nextDouble() - 0.5) * 0.5;
+                        emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 0);
+                    }
                 }
 
                 if (this.target instanceof Player player) {
@@ -598,12 +594,13 @@ public class Phase2MeleeGoal extends Goal {
         }
 
         // 冲击波核心
-        for (int i = 0; i < 6; i++) {
-            double px = this.evoker.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
-            double py = this.evoker.getY() + 1.0 + (this.evoker.getRandom().nextDouble() - 0.5) * 1.0;
-            double pz = this.evoker.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_IMPACT_WAVE, px, py, pz, 0));
+        try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+            for (int i = 0; i < 6; i++) {
+                double px = this.evoker.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
+                double py = this.evoker.getY() + 1.0 + (this.evoker.getRandom().nextDouble() - 0.5) * 1.0;
+                double pz = this.evoker.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
+                emitter.add(StellaParticles.ID_IMPACT_WAVE, px, py, pz, 0);
+            }
         }
 
         // 拉人重拳音效：铁砧砸地+重击组合，体现虚空重拳的破坏力

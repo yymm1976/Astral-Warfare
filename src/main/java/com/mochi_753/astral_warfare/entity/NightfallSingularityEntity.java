@@ -2,7 +2,7 @@ package com.mochi_753.astral_warfare.entity;
 
 import com.mochi_753.astral_warfare.init.ModEffects;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
-import com.mochi_753.astral_warfare.network.ClientboundLodestoneParticlePacket;
+import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -13,8 +13,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.network.PacketDistributor;
-
 import java.util.List;
 import java.util.UUID;
 
@@ -149,6 +147,8 @@ public class NightfallSingularityEntity extends Entity {
         //   4. 喷流（Y轴方向）：上下两束紫色粒子束
         //
         // 所有粒子都有朝向核心的运动，增强"吸入"感
+        // 使用 ParticleEmitter 批量发送粒子包，减少网络开销
+        try (ParticleEmitter emitter = new ParticleEmitter(this)) {
 
         // === 1. 事件视界核心（每tick 3-5个密集暗色粒子）===
         // 核心粒子密集且暗，像"吞噬光线的黑洞"
@@ -159,9 +159,7 @@ public class NightfallSingularityEntity extends Entity {
             double pz = this.getZ() + Math.sin(angle) * r;
             double py = this.getY() + 0.5 + (this.random.nextDouble() - 0.5) * 0.3;
             // 使用DYING_EMBER（暗红色烟雾）作为核心，因为颜色深沉接近黑色
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_DYING_EMBER,
-                            px, py, pz, 2));
+            emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 2);
         }
 
         // === 2. 吸积盘（每tick 5-8个亮紫粒子，环形旋转）===
@@ -174,9 +172,7 @@ public class NightfallSingularityEntity extends Entity {
             double pz = this.getZ() + Math.sin(angle) * r;
             double py = this.getY() + 0.5 + (this.random.nextDouble() - 0.5) * 0.15;
             // 使用VOID_SPARK variant=1（亮紫品红），像炽热的吸积盘
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_VOID_SPARK,
-                            px, py, pz, 1));
+            emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 1);
         }
 
         // === 3. 引力透镜环（每tick 2-3个稀疏紫色粒子）===
@@ -187,9 +183,7 @@ public class NightfallSingularityEntity extends Entity {
             double px = this.getX() + Math.cos(angle) * r;
             double pz = this.getZ() + Math.sin(angle) * r;
             double py = this.getY() + 0.5 + (this.random.nextDouble() - 0.5) * 0.4;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_VOID_SPARK,
-                            px, py, pz, 0));
+            emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 0);
         }
 
         // === 4. 喷流（每2tick生成，上下两束紫色粒子柱）===
@@ -198,20 +192,20 @@ public class NightfallSingularityEntity extends Entity {
             double jetR = this.random.nextDouble() * 0.5;
             double jetAngle = this.random.nextDouble() * Math.PI * 2;
             double jetH = 1.0 + this.random.nextDouble() * 2.0;
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_VOID_SPARK,
-                            this.getX() + Math.cos(jetAngle) * jetR,
-                            this.getY() + 0.5 + jetH,
-                            this.getZ() + Math.sin(jetAngle) * jetR,
-                            2));
+            emitter.add(StellaParticles.ID_VOID_SPARK,
+                    this.getX() + Math.cos(jetAngle) * jetR,
+                    this.getY() + 0.5 + jetH,
+                    this.getZ() + Math.sin(jetAngle) * jetR,
+                    2);
             // 下喷流
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this,
-                    new ClientboundLodestoneParticlePacket(StellaParticles.ID_VOID_SPARK,
-                            this.getX() + Math.cos(jetAngle + 0.5) * jetR,
-                            this.getY() + 0.5 - jetH,
-                            this.getZ() + Math.sin(jetAngle + 0.5) * jetR,
-                            2));
+            emitter.add(StellaParticles.ID_VOID_SPARK,
+                    this.getX() + Math.cos(jetAngle + 0.5) * jetR,
+                    this.getY() + 0.5 - jetH,
+                    this.getZ() + Math.sin(jetAngle + 0.5) * jetR,
+                    2);
         }
+
+        } // end ParticleEmitter
 
         // 扫描计数器：每 4 tick 执行一次高消耗的 getEntitiesOfClass
         scanTimer++;
