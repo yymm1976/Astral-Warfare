@@ -122,6 +122,11 @@ repositories {
         name = "RedlanceMinecraft"
         url = uri("https://repo.redlance.org/public")
     }
+    // GeckoLib：实体动画框架
+    maven {
+        name = "GeckoLib"
+        url = uri("https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/")
+    }
 }
 
 dependencies {
@@ -135,6 +140,9 @@ dependencies {
     // PAL（Player Animation Library）：玩家动画系统
     // 官方坐标：com.zigythebird.playeranim:PlayerAnimationLibNeo
     implementation("com.zigythebird.playeranim:PlayerAnimationLibNeo:1.1.4+mc.1.21.1")
+    // GeckoLib：实体动画框架（模型 + 骨骼动画驱动）
+    // 4.7.6 不存在于 Maven 仓库，4.7.3 是当前最新可用版本
+    implementation("software.bernie.geckolib:geckolib-neoforge-1.21.1:4.7.3")
 }
 
 tasks.named("createMinecraftArtifacts") {

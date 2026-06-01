@@ -14,6 +14,12 @@ import com.mochi_753.astral_warfare.network.ClientboundStellaManaPacket;
 import com.mochi_753.astral_warfare.network.ClientboundStellaManaRemovePacket;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.util.GeckoLibUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.minecraft.core.BlockPos;
@@ -49,8 +55,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import java.util.List;
 
 // 星穹唤星者 - BOSS 实体
-// 继承 AbstractIllager（灾厄村民基类），完美兼容原版 IllagerModel 的动画系统
-// 包括双手交叉（CROSSED）、施法举手（SPELLCASTING）等灾厄村民专属姿态
+// 继承 AbstractIllager（灾厄村民基类），保留 Raid 免疫等逻辑
+// 实现 GeoEntity 接口，使用 GeckoLib 驱动骨骼动画（替代原版 IllagerModel 手动映射）
 //
 // 核心机制：
 //   一阶段（法师形态）：法术轰炸 + 法力枯竭坠落 + 水晶联动回蓝
@@ -58,7 +64,7 @@ import java.util.List;
 //   死亡演出：5 秒下跪内爆 → 爆炸消散 → 战利品掉落 + 全服公告
 //
 // Raid 安全：重写所有突袭相关方法返回 false，确保 BOSS 不会参与原版村庄袭击
-public class StellaEvokerEntity extends AbstractIllager {
+public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StellaEvokerEntity.class);
 
@@ -108,6 +114,44 @@ public class StellaEvokerEntity extends AbstractIllager {
     );
 
     private int anchorCheckTimer = 0;
+
+    // ==================== GeckoLib 动画系统 ====================
+
+    // 动画实例缓存：GeckoLib 要求每个 GeoEntity 实例拥有独立的缓存
+    // 用于存储动画状态、控制器数据等，避免多实体间动画状态串扰
+    private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
+
+    // 一阶段待机动画的 RawAnimation 定义
+    // 对应 animations/stella_evoker_idle_phase1.animation.json 中的 stella_evoker_idle_phase1
+    // GeckoLib 4.7.3：使用 thenLoop() 而非 then(name, LoopType.LOOP)
+    private static final RawAnimation IDLE_PHASE1_ANIM = RawAnimation.begin()
+            .thenLoop("stella_evoker_idle_phase1");
+
+    // GeckoLib 动画控制器注册
+    // 当前仅注册一阶段待机动画控制器，后续 Phase 可扩展攻击动画控制器
+    // AnimationController 构造函数：(animatable, name, transitionTicks, stateHandler)
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "idle_controller", 10, state -> {
+            // 一阶段待机：播放浮动呼吸动画
+            // 后续可在此处根据战斗阶段、施法状态等条件切换动画
+            state.getController().setAnimation(IDLE_PHASE1_ANIM);
+            return software.bernie.geckolib.animation.PlayState.CONTINUE;
+        }));
+    }
+
+    // 返回动画实例缓存（GeoEntity 接口要求）
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return geoCache;
+    }
+
+    // 返回当前 tick 数（GeoEntity 接口要求）
+    // GeckoLib 使用此值驱动动画时间轴
+    @Override
+    public double getTick(Object entity) {
+        return this.tickCount;
+    }
 
     // 施法 AI Goal：包可见，供组件访问
     SpellCastGoal spellCastGoal;
@@ -160,22 +204,11 @@ public class StellaEvokerEntity extends AbstractIllager {
 
     // ==================== AbstractIllager 必须实现的方法 ====================
 
-    // 返回灾厄村民手臂姿态，决定模型动画
-    // 一阶段施法时举手（SPELLCASTING），二阶段攻击时持武器（ATTACKING），其余交叉双手（CROSSED）
+    // 返回灾厄村民手臂姿态（AbstractIllager 抽象方法，必须实现）
+    // GeckoLib 接管动画驱动后，此方法不再影响模型渲染
+    // 保留 CROSSED 作为默认姿态，确保 AbstractIllager 父类逻辑不会异常
     @Override
     public AbstractIllager.IllagerArmPose getArmPose() {
-        if (isDying() || isTransitioning()) {
-            return IllagerArmPose.NEUTRAL;
-        }
-        if (isGateSurging()) {
-            return IllagerArmPose.SPELLCASTING;
-        }
-        if (getCombatPhase() == PHASE_2_MELEE) {
-            return IllagerArmPose.ATTACKING;
-        }
-        if (this.spellCastGoal != null && this.spellCastGoal.isCasting()) {
-            return IllagerArmPose.SPELLCASTING;
-        }
         return IllagerArmPose.CROSSED;
     }
 
