@@ -121,6 +121,11 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
     // 用于存储动画状态、控制器数据等，避免多实体间动画状态串扰
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
 
+    // 当前攻击动画名称，由 AI Goal 在各攻击状态开始时设置，动画播完后清除
+    // public：Phase2MeleeGoal 在 entity.ai 子包中，Java 包可见性不跨子包
+    // null = 无攻击动画播放中，idle_controller 接管
+    public String currentAttackAnim = null;
+
     // 一阶段待机动画的 RawAnimation 定义
     // 对应 animations/stella_evoker_idle_phase1.animation.json 中的 stella_evoker_idle_phase1
     // GeckoLib 4.7.3：使用 thenLoop() 而非 then(name, LoopType.LOOP)
@@ -139,13 +144,48 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
     private static final RawAnimation DEATH_ANIM = RawAnimation.begin()
             .thenPlay("stella_evoker_death");
 
+    // 弦斩动画：右臂蓄力后横扫，身体微转
+    private static final RawAnimation SLASH_ANIM = RawAnimation.begin()
+            .thenPlay("stella_evoker_slash");
+
+    // 突进掌动画：后仰蓄力→前倾刺出
+    private static final RawAnimation THRUST_ANIM = RawAnimation.begin()
+            .thenPlay("stella_evoker_thrust");
+
+    // 背刺动画：蹲伏→消失→出现→双手穿刺
+    private static final RawAnimation BACKSTAB_ANIM = RawAnimation.begin()
+            .thenPlay("stella_evoker_backstab");
+
     // GeckoLib 动画控制器注册
-    // idle_controller 根据实体状态切换动画：
+    // attack_controller 优先级高于 idle_controller：
+    //   currentAttackAnim 非空时播放对应攻击动画（硬切，过渡时间 0）
+    //   攻击动画播完后 currentAttackAnim 被清除，idle_controller 接管
+    //
+    // idle_controller 根据实体状态切换待机动画：
     //   isDying() → 播放死亡动画（跪地→内爆），播完后 STOP 保持最后一帧
     //   getCombatPhase() == PHASE_2_MELEE → 播放二阶段地面待机（持武器、扫视）
     //   否则 → 播放一阶段悬浮待机（浮动呼吸）
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        // 攻击控制器：过渡时间 0（出招瞬间硬切，不放过渡）
+        controllers.add(new AnimationController<>(this, "attack_controller", 0, state -> {
+            if (this.currentAttackAnim != null) {
+                RawAnimation anim = switch (this.currentAttackAnim) {
+                    case "stella_evoker_slash" -> SLASH_ANIM;
+                    case "stella_evoker_thrust" -> THRUST_ANIM;
+                    case "stella_evoker_backstab" -> BACKSTAB_ANIM;
+                    default -> null;
+                };
+                if (anim != null) {
+                    state.getController().setAnimation(anim);
+                    return software.bernie.geckolib.animation.PlayState.CONTINUE;
+                }
+            }
+            // 无攻击动画：让 idle_controller 接管
+            return software.bernie.geckolib.animation.PlayState.STOP;
+        }));
+
+        // 待机控制器：过渡时间 10 tick（平滑切换）
         controllers.add(new AnimationController<>(this, "idle_controller", 10, state -> {
             if (this.isDying()) {
                 // 死亡动画：一次性播放，播完后保持最后一帧（PlayState.STOP）
