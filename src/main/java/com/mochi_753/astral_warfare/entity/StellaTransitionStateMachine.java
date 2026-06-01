@@ -142,7 +142,8 @@ public class StellaTransitionStateMachine {
         float radius = 8.0F;
         AABB impactBox = evoker.getBoundingBox().inflate(radius);
         List<LivingEntity> targets = level.getEntitiesOfClass(LivingEntity.class, impactBox,
-                entity -> entity != evoker && entity.isAlive());
+                entity -> entity != evoker && entity.isAlive()
+                        && !(entity instanceof StarcoreGolemEntity));
 
         for (LivingEntity target : targets) {
             Vec3 knockbackDir = target.position().subtract(evoker.position()).normalize();

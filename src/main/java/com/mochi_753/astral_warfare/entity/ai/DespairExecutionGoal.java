@@ -3,6 +3,7 @@ package com.mochi_753.astral_warfare.entity.ai;
 import com.mochi_753.astral_warfare.init.ModEffects;
 import com.mochi_753.astral_warfare.init.ModConstants;
 import com.mochi_753.astral_warfare.entity.StellaEvokerEntity;
+import com.mochi_753.astral_warfare.entity.StarcoreGolemEntity;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
 import com.mochi_753.astral_warfare.network.ClientboundScreenShakePacket;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
@@ -48,6 +49,8 @@ public class DespairExecutionGoal extends Goal {
     private int stateTimer = 0;
     private Player targetPlayer = null;
     private int cooldownTimer = 0;
+    // 击飞标记：确保击飞+伤害+禁锢只执行一次，避免每tick重复造成10倍伤害
+    private boolean hasLaunched = false;
     private static final int COOLDOWN_TICKS = ModConstants.EXECUTION_COOLDOWN_TICKS;
     private static final int WINDUP_TICKS = ModConstants.EXECUTION_WINDUP_TICKS;
     private static final float LAUNCH_DAMAGE = ModConstants.EXECUTION_LAUNCH_DAMAGE;
@@ -105,12 +108,20 @@ public class DespairExecutionGoal extends Goal {
     public void start() {
         this.state = State.WINDUP;
         this.stateTimer = 0;
+        this.hasLaunched = false;
     }
 
     @Override
     public void tick() {
         if (this.targetPlayer == null || !this.targetPlayer.isAlive()) {
+            // 目标死亡或丢失：清除禁锢后回到 IDLE
+            if (this.targetPlayer != null && this.targetPlayer.hasEffect(ModEffects.VOID_ENTRAPMENT)) {
+                this.targetPlayer.removeEffect(ModEffects.VOID_ENTRAPMENT);
+            }
             this.state = State.IDLE;
+            this.stateTimer = 0;
+            this.cooldownTimer = COOLDOWN_TICKS / 2;
+            this.targetPlayer = null;
             return;
         }
 
@@ -129,11 +140,15 @@ public class DespairExecutionGoal extends Goal {
         }
     }
 
-    // 前摇预警阶段：BOSS周围虚空能量剧烈聚集
-    // 设计意图：给玩家1.5秒的闪避窗口，跑出15格范围即可完全躲避
-    // 加强版：更密集的螺旋能量、更明显的地面预警圈
+    // 前摇预警阶段：BOSS向玩家移动，同时虚空能量剧烈聚集
+    // 设计意图：给玩家1.5秒的闪避窗口，但BOSS会主动接近
+    // 【修复】前摇期间BOSS应向玩家移动，而非原地站桩
+    //   之前只 setLookAt 不移动，导致BOSS站着不动等玩家跑掉
     private void tickWindup(ServerLevel level) {
         this.evoker.getLookControl().setLookAt(this.targetPlayer, 180.0F, 180.0F);
+
+        // 前摇期间主动向玩家移动，确保能进入击飞范围
+        this.evoker.getNavigation().moveTo(this.targetPlayer, 1.2);
 
         double progress = (double) this.stateTimer / WINDUP_TICKS;
 
@@ -199,50 +214,59 @@ public class DespairExecutionGoal extends Goal {
 
     // 击飞阶段：将范围内玩家击飞到空中+伤害，施加虚空禁锢
     // 非锁头：只有LAUNCH_RANGE内的玩家才会被击飞
-    // 精简原则：只保留 TRANSITION_BURST（击飞爆发）+ EXPLOSION（原版爆炸闪光）
+    // 【修复】使用 hasLaunched 标记确保击飞+伤害+禁锢只执行一次
+    //   之前每tick都执行击飞+伤害，10tick内造成10倍伤害（150→15）
     private void tickLaunching(ServerLevel level) {
         if (this.targetPlayer != null && this.targetPlayer.isAlive()) {
             double distToTarget = this.evoker.distanceTo(this.targetPlayer);
 
             if (distToTarget <= LAUNCH_RANGE) {
-                // 击飞：向上抛射 + 伤害
-                this.targetPlayer.setDeltaMovement(0, 1.8, 0);
-                this.targetPlayer.hurt(level.damageSources().indirectMagic(this.evoker, this.evoker),
-                        LAUNCH_DAMAGE);
-                this.targetPlayer.hurtMarked = true;
+                // 击飞只执行一次：设置向上速度 + 伤害 + 禁锢
+                if (!this.hasLaunched) {
+                    this.hasLaunched = true;
+                    this.targetPlayer.setDeltaMovement(0, 1.8, 0);
+                    this.targetPlayer.hurt(level.damageSources().indirectMagic(this.evoker, this.evoker),
+                            LAUNCH_DAMAGE);
+                    this.targetPlayer.hurtMarked = true;
 
-                if (!this.targetPlayer.hasEffect(ModEffects.VOID_ENTRAPMENT)) {
-                    this.targetPlayer.addEffect(new MobEffectInstance(
-                            ModEffects.VOID_ENTRAPMENT,
-                            80, 0, false, true, true
-                    ));
-                }
-
-                // 击飞爆发粒子
-                try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
-                    for (int i = 0; i < 12; i++) {
-                        double px = this.targetPlayer.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
-                        double py = this.targetPlayer.getY() + this.evoker.getRandom().nextDouble() * 1.5;
-                        double pz = this.targetPlayer.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
-                        emitter.add(StellaParticles.ID_TRANSITION_BURST, px, py, pz, 0);
+                    if (!this.targetPlayer.hasEffect(ModEffects.VOID_ENTRAPMENT)) {
+                        this.targetPlayer.addEffect(new MobEffectInstance(
+                                ModEffects.VOID_ENTRAPMENT,
+                                80, 0, false, true, true
+                        ));
                     }
-                } // auto-flush on close
-                // 原版爆炸粒子：击飞瞬间的爆炸闪光
-                level.sendParticles(net.minecraft.core.particles.ParticleTypes.EXPLOSION,
-                        this.targetPlayer.getX(), this.targetPlayer.getY() + 1.0, this.targetPlayer.getZ(),
-                        1, 0.0, 0.0, 0.0, 0.0);
 
-                level.playSound(null, this.targetPlayer.getX(), this.targetPlayer.getY(), this.targetPlayer.getZ(),
-                        SoundEvents.GENERIC_EXPLODE, SoundSource.HOSTILE, 1.5F, 1.0F);
+                    // 击飞爆发粒子
+                    try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+                        for (int i = 0; i < 12; i++) {
+                            double px = this.targetPlayer.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
+                            double py = this.targetPlayer.getY() + this.evoker.getRandom().nextDouble() * 1.5;
+                            double pz = this.targetPlayer.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
+                            emitter.add(StellaParticles.ID_TRANSITION_BURST, px, py, pz, 0);
+                        }
+                    } // auto-flush on close
+                    // 原版爆炸粒子：击飞瞬间的爆炸闪光
+                    level.sendParticles(net.minecraft.core.particles.ParticleTypes.EXPLOSION,
+                            this.targetPlayer.getX(), this.targetPlayer.getY() + 1.0, this.targetPlayer.getZ(),
+                            1, 0.0, 0.0, 0.0, 0.0);
+
+                    level.playSound(null, this.targetPlayer.getX(), this.targetPlayer.getY(), this.targetPlayer.getZ(),
+                            SoundEvents.GENERIC_EXPLODE, SoundSource.HOSTILE, 1.5F, 1.0F);
+                }
             } else {
-                // 玩家跑出范围：终结技落空，进入半冷却
-                this.state = State.COOLDOWN;
+                // 玩家跑出范围：终结技落空，清除禁锢效果，进入冷却
+                if (this.targetPlayer.hasEffect(ModEffects.VOID_ENTRAPMENT)) {
+                    this.targetPlayer.removeEffect(ModEffects.VOID_ENTRAPMENT);
+                }
+                this.state = State.IDLE;
                 this.stateTimer = 0;
                 this.cooldownTimer = COOLDOWN_TICKS / 2;
+                this.targetPlayer = null;
                 return;
             }
         }
 
+        // 击飞后持续悬浮：防止玩家因重力下落
         if (this.targetPlayer != null && this.targetPlayer.getDeltaMovement().y < 0) {
             this.targetPlayer.setDeltaMovement(0, 0, 0);
             this.targetPlayer.hurtMarked = true;
@@ -345,12 +369,10 @@ public class DespairExecutionGoal extends Goal {
         }
     }
 
-    // 下刺阶段：解除禁锢并下刺砸地
+    // 下刺阶段：下刺砸地，落地瞬间解除禁锢
+    // 【修复】禁锢在落地瞬间解除，而非下刺开始时
+    //   之前 stateTimer==1 就解除禁锢，玩家在空中就自由了，体验不对
     private void tickSlamming(ServerLevel level) {
-        if (this.stateTimer == 1) {
-            this.targetPlayer.removeEffect(ModEffects.VOID_ENTRAPMENT);
-        }
-
         this.evoker.setNoGravity(false);
         this.evoker.setDeltaMovement(0, -3.0, 0);
 
@@ -382,15 +404,20 @@ public class DespairExecutionGoal extends Goal {
 
         if (this.evoker.onGround()) {
             executeSlamImpact(level);
+            // 砸地完成后直接回到 IDLE，释放 MOVE/LOOK 标志
+            // 之前通过 COOLDOWN 状态持有 MOVE/LOOK 标志导致 BOSS 站桩5秒
             this.state = State.IDLE;
+            this.stateTimer = 0;
             this.cooldownTimer = COOLDOWN_TICKS;
             this.targetPlayer = null;
         }
     }
 
-    // 冷却阶段：终结技落空后的短暂冷却，等待冷却结束后回到 IDLE
+    // 冷却阶段：终结技落空后的短暂冷却
+    // 【修复】移除双重 stateTimer 递增（tick()第119行已递增，此处不再重复）
+    // 【修复】COOLDOWN 不再持有 MOVE/LOOK 标志，避免 BOSS 站桩
+    //   目前此状态仅作为安全兜底，正常流程已改为直接回到 IDLE
     private void tickCooldown(ServerLevel level) {
-        this.stateTimer++;
         if (this.cooldownTimer > 0) {
             this.cooldownTimer--;
         }
@@ -404,6 +431,12 @@ public class DespairExecutionGoal extends Goal {
     // 砸地冲击阶段：长戟砸地，冲击波扩散
     // 精简原则：只保留 IMPACT_WAVE（冲击波扩散）+ EXPLOSION_EMITTER（原版持续爆炸）+ LARGE_SMOKE（原版浓密烟尘）
     private void executeSlamImpact(ServerLevel level) {
+        // 落地瞬间解除禁锢：玩家在BOSS砸到地面时恢复自由
+        // 此时玩家在空中，解除禁锢后会因重力下落，被BOSS砸落
+        if (this.targetPlayer != null && this.targetPlayer.hasEffect(ModEffects.VOID_ENTRAPMENT)) {
+            this.targetPlayer.removeEffect(ModEffects.VOID_ENTRAPMENT);
+        }
+
         // 原版爆炸发射器：砸地中心的持续爆炸震撼感
         level.sendParticles(net.minecraft.core.particles.ParticleTypes.EXPLOSION_EMITTER,
                 this.evoker.getX(), this.evoker.getY() + 0.5, this.evoker.getZ(),
@@ -426,12 +459,13 @@ public class DespairExecutionGoal extends Goal {
             this.targetPlayer.setDeltaMovement(
                     this.targetPlayer.getDeltaMovement().add(0, 0.8, 0)
             );
-            this.targetPlayer.removeEffect(ModEffects.VOID_ENTRAPMENT);
         }
 
         AABB impactBox = this.evoker.getBoundingBox().inflate(SLAM_RADIUS);
+        // 排除BOSS自身、主目标玩家、星核傀儡（友军不受伤）
         List<LivingEntity> targets = level.getEntitiesOfClass(LivingEntity.class, impactBox,
-                entity -> entity != this.evoker && entity.isAlive() && entity != this.targetPlayer);
+                entity -> entity != this.evoker && entity.isAlive() && entity != this.targetPlayer
+                        && !(entity instanceof StarcoreGolemEntity));
 
         for (LivingEntity target : targets) {
             target.hurt(level.damageSources().indirectMagic(this.evoker, this.evoker), ModConstants.EXECUTION_SLAM_SPLASH_DAMAGE);
@@ -509,6 +543,11 @@ public class DespairExecutionGoal extends Goal {
     public void stop() {
         this.state = State.IDLE;
         this.stateTimer = 0;
+        // 【修复】异常终止时必须清除玩家身上的虚空禁锢
+        // 之前 stop() 不清除禁锢，导致玩家在终结技被打断后仍被定身4秒
+        if (this.targetPlayer != null && this.targetPlayer.hasEffect(ModEffects.VOID_ENTRAPMENT)) {
+            this.targetPlayer.removeEffect(ModEffects.VOID_ENTRAPMENT);
+        }
         if (this.evoker.getCombatPhase() == StellaEvokerEntity.PHASE_2_MELEE) {
             this.evoker.setNoGravity(false);
         }

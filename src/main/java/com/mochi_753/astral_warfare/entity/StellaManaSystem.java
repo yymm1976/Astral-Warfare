@@ -124,8 +124,10 @@ public class StellaManaSystem {
         }
 
         AABB impactBox = evoker.getBoundingBox().inflate(IMPACT_RADIUS);
+        // 排除BOSS自身和星核傀儡（友军不受伤）
         List<LivingEntity> targets = level.getEntitiesOfClass(LivingEntity.class, impactBox,
-                entity -> entity != evoker && entity.isAlive());
+                entity -> entity != evoker && entity.isAlive()
+                        && !(entity instanceof StarcoreGolemEntity));
 
         for (LivingEntity target : targets) {
             Vec3 knockbackDir = target.position().subtract(evoker.position()).normalize();

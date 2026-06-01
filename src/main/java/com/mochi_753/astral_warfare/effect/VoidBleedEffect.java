@@ -37,16 +37,25 @@ public class VoidBleedEffect extends MobEffect {
             // 虚空流血是虚空本源的力量，与魔法体系无关
             entity.hurt(ModDamageTypes.voidBleed(serverLevel), damage);
 
-            // 虚空流血粒子：暗红色虚空火花从身体散发
+            // 虚空流血粒子：暗红色余烬 + 虚空火花从身体散发
+            // 每2秒触发一次，粒子数量适中，不刷屏但有明显视觉反馈
             if (entity instanceof Player || entity.level().random.nextFloat() < 0.5F) {
                 try (ParticleEmitter emitter = new ParticleEmitter(entity)) {
-                    for (int i = 0; i < 3; i++) {
+                    // 暗红色余烬：从身体周围缓缓上升
+                    for (int i = 0; i < 4; i++) {
                         double angle = entity.level().random.nextDouble() * Math.PI * 2;
-                        double r = 0.3 + entity.level().random.nextDouble() * 0.4;
+                        double r = 0.3 + entity.level().random.nextDouble() * 0.5;
                         double px = entity.getX() + Math.cos(angle) * r;
                         double py = entity.getY() + entity.level().random.nextDouble() * 1.5;
                         double pz = entity.getZ() + Math.sin(angle) * r;
                         emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 0);
+                    }
+                    // 虚空火花：偶尔闪烁的紫色能量点，体现虚空侵蚀
+                    for (int i = 0; i < 2; i++) {
+                        double px = entity.getX() + (entity.level().random.nextDouble() - 0.5) * 0.8;
+                        double py = entity.getY() + 0.5 + entity.level().random.nextDouble() * 1.0;
+                        double pz = entity.getZ() + (entity.level().random.nextDouble() - 0.5) * 0.8;
+                        emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 0);
                     }
                 }
             }

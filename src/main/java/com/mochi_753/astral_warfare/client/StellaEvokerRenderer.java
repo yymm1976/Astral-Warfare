@@ -56,11 +56,24 @@ public class StellaEvokerRenderer extends MobRenderer<StellaEvokerEntity, Stella
      * StellaEvoker 专用 HumanoidModel 子类
      * 重写 setupAnim 以手动映射 IllagerArmPose 到手臂旋转
      * HumanoidModel 不原生支持 IllagerArmPose，需在此手动处理
+     *
+     * 【优化】使用 lerp 插值实现姿态间的平滑过渡，消除动作僵硬感
+     *   之前每帧直接设置目标角度，姿态切换是瞬间跳变
+     *   现在每帧以 0.3 的速率向目标角度趋近，过渡约 3-5 帧完成
      */
     public static class StellaEvokerModel extends HumanoidModel<StellaEvokerEntity> {
 
+        // lerp 插值速率：0.3 = 每帧趋近30%，约3帧完成过渡
+        // 值越大过渡越快（1.0=瞬间），值越小过渡越慢（0.1=很慢）
+        private static final float LERP_SPEED = 0.3F;
+
         public StellaEvokerModel(net.minecraft.client.model.geom.ModelPart root) {
             super(root);
+        }
+
+        // 线性插值：从 current 向 target 以 speed 速率趋近
+        private float lerp(float current, float target, float speed) {
+            return current + (target - current) * speed;
         }
 
         @Override
@@ -70,36 +83,57 @@ public class StellaEvokerRenderer extends MobRenderer<StellaEvokerEntity, Stella
 
             var armPose = entity.getArmPose();
 
+            // 计算目标角度（根据当前姿态）
+            float targetRightX, targetRightY, targetLeftX, targetLeftY;
+
             switch (armPose) {
                 case SPELLCASTING:
-                    this.rightArm.xRot = -2.0F;
-                    this.rightArm.yRot = -0.3F;
-                    this.leftArm.xRot = -2.0F;
-                    this.leftArm.yRot = 0.3F;
+                    targetRightX = -2.0F;
+                    targetRightY = -0.3F;
+                    targetLeftX = -2.0F;
+                    targetLeftY = 0.3F;
                     break;
                 case ATTACKING:
-                    this.rightArm.xRot = -1.5F;
-                    this.rightArm.yRot = 0.0F;
-                    this.leftArm.xRot = -0.5F;
-                    this.leftArm.yRot = 0.5F;
+                    // 攻击姿态：加入基于 limbSwing 的微弱摆动，模拟战斗呼吸感
+                    float swingOffset = (float) Math.sin(ageInTicks * 0.1F) * 0.05F;
+                    targetRightX = -1.5F + swingOffset;
+                    targetRightY = 0.0F;
+                    targetLeftX = -0.5F + swingOffset * 0.5F;
+                    targetLeftY = 0.5F;
                     break;
                 case CROSSED:
-                    this.rightArm.xRot = -0.5F;
-                    this.rightArm.yRot = 0.4F;
-                    this.leftArm.xRot = -0.5F;
-                    this.leftArm.yRot = -0.4F;
+                    targetRightX = -0.5F;
+                    targetRightY = 0.4F;
+                    targetLeftX = -0.5F;
+                    targetLeftY = -0.4F;
                     break;
                 default:
+                    // NEUTRAL：保持 super.setupAnim() 的默认值（自然下垂）
+                    targetRightX = this.rightArm.xRot;
+                    targetRightY = this.rightArm.yRot;
+                    targetLeftX = this.leftArm.xRot;
+                    targetLeftY = this.leftArm.yRot;
                     break;
             }
 
+            // 死亡演出特殊姿态：覆盖目标角度
             if (entity.isDying()) {
-                this.rightArm.xRot = -1.2F;
-                this.rightArm.yRot = 0.3F;
-                this.leftArm.xRot = -1.2F;
-                this.leftArm.yRot = -0.3F;
-                this.head.xRot = 0.5F;
-                this.body.xRot = 0.3F;
+                targetRightX = -1.2F;
+                targetRightY = 0.3F;
+                targetLeftX = -1.2F;
+                targetLeftY = -0.3F;
+            }
+
+            // lerp 插值：从当前角度平滑过渡到目标角度
+            this.rightArm.xRot = lerp(this.rightArm.xRot, targetRightX, LERP_SPEED);
+            this.rightArm.yRot = lerp(this.rightArm.yRot, targetRightY, LERP_SPEED);
+            this.leftArm.xRot = lerp(this.leftArm.xRot, targetLeftX, LERP_SPEED);
+            this.leftArm.yRot = lerp(this.leftArm.yRot, targetLeftY, LERP_SPEED);
+
+            // 死亡演出：头部和身体前倾也使用 lerp
+            if (entity.isDying()) {
+                this.head.xRot = lerp(this.head.xRot, 0.5F, LERP_SPEED);
+                this.body.xRot = lerp(this.body.xRot, 0.3F, LERP_SPEED);
             }
         }
     }

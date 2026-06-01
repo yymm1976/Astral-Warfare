@@ -79,13 +79,13 @@ public class Phase2MeleeGoal extends Goal {
     private int pathRecalcTimer = 0;
 
     // 各阶段持续时间
-    private static final int SLASH_DELAY_TICKS = 10;
-    private static final int THRUST_DASH_TICKS = 5;
-    private static final int BACKSTAB_VANISH_TICKS = 6;
-    private static final int PULL_WINDUP_TICKS = 10;
-    // 弦斩持续帧：10tick动画，首tick伤害判定，全程弧形刃光粒子
-    // 从 8 增大到 10，延长弦斩动画展示时间
-    private static final int SLASH_DURATION_TICKS = 10;
+    // 【调整】整体放慢三段普攻节奏，增加打击感和可反应窗口
+    private static final int SLASH_DELAY_TICKS = 15;
+    private static final int THRUST_DASH_TICKS = 8;
+    private static final int BACKSTAB_VANISH_TICKS = 10;
+    private static final int PULL_WINDUP_TICKS = 15;
+    // 弦斩持续帧：延长动画展示时间，让玩家能看清斩击
+    private static final int SLASH_DURATION_TICKS = 15;
 
     // 伤害值（二阶段伤害大幅加强）
     private static final float SLASH_DAMAGE = 16.0F;
