@@ -25,4 +25,13 @@ public class ModSounds {
                     ResourceLocation.fromNamespaceAndPath(AstralWarfare.MOD_ID, "stella_evoker_phase1")
             )
     );
+
+    // 二阶段战斗 BGM：Ashen Catacomb
+    // 转阶段时由 StellaBattleMusic 自动交叉淡入淡出切换
+    public static final Supplier<SoundEvent> STELLA_EVOKER_PHASE2 = SOUND_EVENTS.register(
+            "stella_evoker_phase2",
+            () -> SoundEvent.createVariableRangeEvent(
+                    ResourceLocation.fromNamespaceAndPath(AstralWarfare.MOD_ID, "stella_evoker_phase2")
+            )
+    );
 }

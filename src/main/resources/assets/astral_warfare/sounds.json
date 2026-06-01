@@ -6,5 +6,13 @@
         "stream": true
       }
     ]
+  },
+  "stella_evoker_phase2": {
+    "sounds": [
+      {
+        "name": "astral_warfare:stella_evoker_phase2",
+        "stream": true
+      }
+    ]
   }
 }

@@ -127,14 +127,26 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
     private static final RawAnimation IDLE_PHASE1_ANIM = RawAnimation.begin()
             .thenLoop("stella_evoker_idle_phase1");
 
+    // 死亡动画的 RawAnimation 定义
+    // 对应 animations/stella_evoker_death.animation.json 中的 stella_evoker_death
+    // 使用 thenPlay() 播放一次性动画（不循环），播完后保持在最后一帧
+    private static final RawAnimation DEATH_ANIM = RawAnimation.begin()
+            .thenPlay("stella_evoker_death");
+
     // GeckoLib 动画控制器注册
-    // 当前仅注册一阶段待机动画控制器，后续 Phase 可扩展攻击动画控制器
-    // AnimationController 构造函数：(animatable, name, transitionTicks, stateHandler)
+    // idle_controller 根据实体状态切换动画：
+    //   isDying() → 播放死亡动画（跪地→内爆），播完后 STOP 保持最后一帧
+    //   否则 → 播放一阶段待机浮动动画
+    // 后续可扩展二阶段待机、攻击动画等
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "idle_controller", 10, state -> {
-            // 一阶段待机：播放浮动呼吸动画
-            // 后续可在此处根据战斗阶段、施法状态等条件切换动画
+            if (this.isDying()) {
+                // 死亡动画：一次性播放，播完后保持最后一帧（PlayState.STOP）
+                state.getController().setAnimation(DEATH_ANIM);
+                return software.bernie.geckolib.animation.PlayState.STOP;
+            }
+            // 一阶段待机：循环浮动呼吸动画
             state.getController().setAnimation(IDLE_PHASE1_ANIM);
             return software.bernie.geckolib.animation.PlayState.CONTINUE;
         }));
