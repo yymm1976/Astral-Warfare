@@ -9,6 +9,7 @@ import com.mochi_753.astral_warfare.init.ModCreativeTabs;
 import com.mochi_753.astral_warfare.init.ModEffects;
 import com.mochi_753.astral_warfare.init.ModEntities;
 import com.mochi_753.astral_warfare.init.ModItems;
+import com.mochi_753.astral_warfare.init.ModSounds;
 import com.mochi_753.astral_warfare.network.ModPayloads;
 import com.mochi_753.astral_warfare.worldgen.ModStructures;
 import net.neoforged.api.distmarker.Dist;
@@ -35,6 +36,7 @@ public class AstralWarfare {
         ModStructures.STRUCTURE_TYPES.register(modEventBus);
         ModStructures.STRUCTURE_PIECE_TYPES.register(modEventBus);
         ModCreativeTabs.CREATIVE_MODE_TABS.register(modEventBus);
+        ModSounds.SOUND_EVENTS.register(modEventBus);
 
         // 监听实体属性创建事件，为自定义实体注册属性（生命值、移速等）
         modEventBus.addListener(ModEntities::onEntityAttributeCreation);

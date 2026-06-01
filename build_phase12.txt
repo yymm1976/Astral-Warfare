@@ -1,0 +1,233 @@
+﻿To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.2.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :generateModMetadata UP-TO-DATE
+> Task :createMinecraftArtifacts UP-TO-DATE
+
+> Task :compileJava
+.\gradlew.bat : C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\as
+tral_warfare\client\StellaBattleMusic.java:184: 閿欒: 鎵句笉鍒扮鍙?    private static
+ class BattleBgmSoundInstance extends net.minecraft.client.sounds.AbstractTicka
+bleSoundInstance {
+所在位置 行:1 字符: 39
++ ... 杨铭\Desktop\1.21.1-BOSS"; .\gradlew.bat build --no-daemon 2>&1 | Out-F ...
++                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (C:\Users\鏉ㄩ摥\De...SoundInstance { 
+   :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+                                                                               
+    ^
+  绗﹀彿:   绫?AbstractTickableSoundInstance
+  浣嶇疆: 绋嬪簭鍖?net.minecraft.client.sounds
+C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\cli
+ent\StellaBattleMusic.java:81: 閿欒: 鎵句笉鍒扮鍙?            if (currentBgm != null 
+&& currentBgm.isStopped()) {
+                                                ^
+  绗﹀彿:   鏂规硶 isStopped()
+  浣嶇疆: 绫诲瀷涓築attleBgmSoundInstance鐨勫彉閲?currentBgm
+C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\cli
+ent\StellaBattleMusic.java:99: 閿欒: 鎵句笉鍒扮鍙?            if (currentBgm == null 
+|| currentBgm.isStopped()) {
+                                                ^
+  绗﹀彿:   鏂规硶 isStopped()
+  浣嶇疆: 绫诲瀷涓築attleBgmSoundInstance鐨勫彉閲?currentBgm
+C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\cli
+ent\StellaBattleMusic.java:160: 閿欒: 涓嶅吋瀹圭殑绫诲瀷: BattleBgmSoundInstance鏃犳硶杞崲涓篠o
+undInstance
+            mc.getSoundManager().stop(currentBgm);
+                                      ^
+C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\cli
+ent\StellaBattleMusic.java:168: 閿欒: 涓嶅吋瀹圭殑绫诲瀷: BattleBgmSoundInstance鏃犳硶杞崲涓篠o
+undInstance
+        mc.getSoundManager().play(currentBgm);
+                                  ^
+C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\cli
+ent\StellaBattleMusic.java:175: 閿欒: 涓嶅吋瀹圭殑绫诲瀷: BattleBgmSoundInstance鏃犳硶杞崲涓篠o
+undInstance
+            mc.getSoundManager().stop(currentBgm);
+                                      ^
+C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\cli
+ent\StellaBattleMusic.java:195: 閿欒: 鎵句笉鍒扮鍙?            this.volume = volume;
+                ^
+  绗﹀彿: 鍙橀噺 volume
+C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\cli
+ent\StellaBattleMusic.java:198: 閿欒: 鎵句笉鍒扮鍙?            this.looping = true;
+                ^
+  绗﹀彿: 鍙橀噺 looping
+C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\cli
+ent\StellaBattleMusic.java:200: 閿欒: 鎵句笉鍒扮鍙?            this.delay = 0;
+                ^
+  绗﹀彿: 鍙橀噺 delay
+C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\cli
+ent\StellaBattleMusic.java:209: 閿欒: 鏂规硶涓嶄細瑕嗙洊鎴栧疄鐜拌秴绫诲瀷鐨勬柟娉?        @Override
+        ^
+C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\cli
+ent\StellaBattleMusic.java:212: 閿欒: 鎵句笉鍒扮鍙?            if (this.volume < this
+.targetVolume) {
+                    ^
+  绗﹀彿: 鍙橀噺 volume
+C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\cli
+ent\StellaBattleMusic.java:213: 閿欒: 鎵句笉鍒扮鍙?                this.volume = Math
+.min(this.volume + 0.05F, this.targetVolume);
+                    ^
+  绗﹀彿: 鍙橀噺 volume
+C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\cli
+ent\StellaBattleMusic.java:213: 閿欒: 鎵句笉鍒扮鍙?                this.volume = Math
+.min(this.volume + 0.05F, this.targetVolume);
+                                           ^
+  绗﹀彿: 鍙橀噺 volume
+C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\cli
+ent\StellaBattleMusic.java:214: 閿欒: 鎵句笉鍒扮鍙?            } else if (this.volume
+ > this.targetVolume) {
+                           ^
+  绗﹀彿: 鍙橀噺 volume
+C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\cli
+ent\StellaBattleMusic.java:215: 閿欒: 鎵句笉鍒扮鍙?                this.volume = Math
+.max(this.volume - 0.05F, this.targetVolume);
+                    ^
+  绗﹀彿: 鍙橀噺 volume
+C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\cli
+ent\StellaBattleMusic.java:215: 閿欒: 鎵句笉鍒扮鍙?                this.volume = Math
+.max(this.volume - 0.05F, this.targetVolume);
+                                           ^
+  绗﹀彿: 鍙橀噺 volume
+C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\cli
+ent\StellaEvokerModel.java:33: 璀﹀憡: [removal] GeoModel 涓殑 getTextureResource(T
+) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?    public ResourceLocation getTextureResource(StellaEvokerE
+ntity animatable) {
+                            ^
+  鍏朵腑, T鏄被鍨嬪彉閲?
+    T鎵╁睍宸插湪绫?GeoModel涓０鏄庣殑GeoAnimatable
+C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\cli
+ent\StellaEvokerModel.java:28: 璀﹀憡: [removal] GeoModel 涓殑 getModelResource(T) 
+宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?    public ResourceLocation getModelResource(StellaEvokerEntit
+y animatable) {
+                            ^
+  鍏朵腑, T鏄被鍨嬪彉閲?
+    T鎵╁睍宸插湪绫?GeoModel涓０鏄庣殑GeoAnimatable
+娉? C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\
+entity\AstralCrystalEntity.java浣跨敤鎴栬鐩栦簡宸茶繃鏃剁殑 API銆?
+娉? 鏈夊叧璇︾粏淇℃伅, 璇蜂娇鐢?-Xlint:deprecation 閲嶆柊缂栬瘧銆?
+娉? 鏌愪簺娑堟伅宸茬粡杩囩畝鍖? 璇蜂娇鐢?-Xdiags:verbose 閲嶆柊缂栬瘧浠ヨ幏寰楀畬鏁磋緭鍑?
+16 涓敊璇?
+2 涓鍛?
+
+> Task :compileJava FAILED
+
+[Incubating] Problems report is available at: file:///C:/Users/%E6%9D%A8%E9%93%AD/Desktop/1.21.1-BOSS/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava'.
+> Compilation failed; see the compiler output below.
+  娉? C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfar
+e\entity\AstralCrystalEntity.java浣跨敤鎴栬鐩栦簡宸茶繃鏃剁殑 API銆?
+  娉? 鏈夊叧璇︾粏淇℃伅, 璇蜂娇鐢?-Xlint:deprecation 閲嶆柊缂栬瘧銆?
+  C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\c
+lient\StellaBattleMusic.java:160: 閿欒: 涓嶅吋瀹圭殑绫诲瀷: BattleBgmSoundInstance鏃犳硶杞崲涓
+篠oundInstance
+              mc.getSoundManager().stop(currentBgm);
+                                        ^
+  C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\c
+lient\StellaBattleMusic.java:168: 閿欒: 涓嶅吋瀹圭殑绫诲瀷: BattleBgmSoundInstance鏃犳硶杞崲涓
+篠oundInstance
+          mc.getSoundManager().play(currentBgm);
+                                    ^
+  C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\c
+lient\StellaBattleMusic.java:175: 閿欒: 涓嶅吋瀹圭殑绫诲瀷: BattleBgmSoundInstance鏃犳硶杞崲涓
+篠oundInstance
+              mc.getSoundManager().stop(currentBgm);
+                                        ^
+  C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\c
+lient\StellaBattleMusic.java:184: 閿欒: 鎵句笉鍒扮鍙?      private static class Battl
+eBgmSoundInstance extends net.minecraft.client.sounds.AbstractTickableSoundInst
+ance {
+                                                                               
+      ^
+    绗﹀彿:   绫?AbstractTickableSoundInstance
+    浣嶇疆: 绋嬪簭鍖?net.minecraft.client.sounds
+  C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\c
+lient\StellaBattleMusic.java:209: 閿欒: 鏂规硶涓嶄細瑕嗙洊鎴栧疄鐜拌秴绫诲瀷鐨勬柟娉?          @Overri
+de
+          ^
+  C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\c
+lient\StellaEvokerModel.java:33: 璀﹀憡: [removal] GeoModel 涓殑 getTextureResource
+(T) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?      public ResourceLocation getTextureResource(StellaEvo
+kerEntity animatable) {
+                              ^
+    鍏朵腑, T鏄被鍨嬪彉閲?
+      T鎵╁睍宸插湪绫?GeoModel涓０鏄庣殑GeoAnimatable
+  C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\c
+lient\StellaEvokerModel.java:28: 璀﹀憡: [removal] GeoModel 涓殑 getModelResource(T
+) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?      public ResourceLocation getModelResource(StellaEvokerE
+ntity animatable) {
+                              ^
+    鍏朵腑, T鏄被鍨嬪彉閲?
+      T鎵╁睍宸插湪绫?GeoModel涓０鏄庣殑GeoAnimatable
+  娉? 鏌愪簺娑堟伅宸茬粡杩囩畝鍖? 璇蜂娇鐢?-Xdiags:verbose 閲嶆柊缂栬瘧浠ヨ幏寰楀畬鏁磋緭鍑?
+  C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\c
+lient\StellaBattleMusic.java:195: 閿欒: 鎵句笉鍒扮鍙?              this.volume = volu
+me;
+                  ^
+    绗﹀彿: 鍙橀噺 volume
+  C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\c
+lient\StellaBattleMusic.java:198: 閿欒: 鎵句笉鍒扮鍙?              this.looping = tru
+e;
+                  ^
+    绗﹀彿: 鍙橀噺 looping
+  C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\c
+lient\StellaBattleMusic.java:200: 閿欒: 鎵句笉鍒扮鍙?              this.delay = 0;
+                  ^
+    绗﹀彿: 鍙橀噺 delay
+  C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\c
+lient\StellaBattleMusic.java:212: 閿欒: 鎵句笉鍒扮鍙?              if (this.volume < 
+this.targetVolume) {
+                      ^
+    绗﹀彿: 鍙橀噺 volume
+  C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\c
+lient\StellaBattleMusic.java:213: 閿欒: 鎵句笉鍒扮鍙?                  this.volume = 
+Math.min(this.volume + 0.05F, this.targetVolume);
+                      ^
+    绗﹀彿: 鍙橀噺 volume
+  C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\c
+lient\StellaBattleMusic.java:213: 閿欒: 鎵句笉鍒扮鍙?                  this.volume = 
+Math.min(this.volume + 0.05F, this.targetVolume);
+                                             ^
+    绗﹀彿: 鍙橀噺 volume
+  C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\c
+lient\StellaBattleMusic.java:214: 閿欒: 鎵句笉鍒扮鍙?              } else if (this.vo
+lume > this.targetVolume) {
+                             ^
+    绗﹀彿: 鍙橀噺 volume
+  C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\c
+lient\StellaBattleMusic.java:215: 閿欒: 鎵句笉鍒扮鍙?                  this.volume = 
+Math.max(this.volume - 0.05F, this.targetVolume);
+                      ^
+    绗﹀彿: 鍙橀噺 volume
+  C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\c
+lient\StellaBattleMusic.java:215: 閿欒: 鎵句笉鍒扮鍙?                  this.volume = 
+Math.max(this.volume - 0.05F, this.targetVolume);
+                                             ^
+    绗﹀彿: 鍙橀噺 volume
+  C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\c
+lient\StellaBattleMusic.java:81: 閿欒: 鎵句笉鍒扮鍙?              if (currentBgm != n
+ull && currentBgm.isStopped()) {
+                                                  ^
+    绗﹀彿:   鏂规硶 isStopped()
+    浣嶇疆: 绫诲瀷涓築attleBgmSoundInstance鐨勫彉閲?currentBgm
+  C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\src\main\java\com\mochi_753\astral_warfare\c
+lient\StellaBattleMusic.java:99: 閿欒: 鎵句笉鍒扮鍙?              if (currentBgm == n
+ull || currentBgm.isStopped()) {
+                                                  ^
+    绗﹀彿:   鏂规硶 isStopped()
+    浣嶇疆: 绫诲瀷涓築attleBgmSoundInstance鐨勫彉閲?currentBgm
+  16 涓敊璇?
+  2 涓鍛?
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to generate a Build Scan (powered by Develocity).
+
+BUILD FAILED in 16s
+3 actionable tasks: 1 executed, 2 up-to-date

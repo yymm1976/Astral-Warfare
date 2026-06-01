@@ -1,0 +1,10 @@
+{
+  "stella_evoker_phase1": {
+    "sounds": [
+      {
+        "name": "astral_warfare:stella_evoker_phase1",
+        "stream": true
+      }
+    ]
+  }
+}
