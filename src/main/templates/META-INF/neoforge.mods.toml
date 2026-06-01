@@ -11,9 +11,6 @@ description = '''
 Astral Warfare - An epic boss fight mod featuring the Stella Evoker.
 '''
 
-[[mixins]]
-config = "${mod_id}.mixins.json"
-
 [[accessTransformers]]
 file = "META-INF/accesstransformer.cfg"
 

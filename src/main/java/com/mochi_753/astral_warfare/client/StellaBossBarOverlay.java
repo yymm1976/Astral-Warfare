@@ -101,8 +101,16 @@ public class StellaBossBarOverlay {
         // 通过 BossHealthOverlay.events 获取当前活跃 BossBar 数量
         // 在整合包环境中，其他模组可能也有 BossBar，必须动态计算避免重叠
         // Access Transformer 使 events 字段可公开访问
+        // 防御性 try-catch：若 NeoForge/Mojang 更新中 events 字段名变更，
+        // NoSuchFieldError 是 Error 子类，必须 catch(Throwable) 而非 catch(Exception)
+        // 降级策略：bossBarCount=0，法力条渲染在屏幕顶部，不会崩溃
         BossHealthOverlay bossOverlay = mc.gui.getBossOverlay();
-        int bossBarCount = bossOverlay.events.size();
+        int bossBarCount;
+        try {
+            bossBarCount = bossOverlay.events.size();
+        } catch (Throwable t) {
+            bossBarCount = 0;
+        }
         int baseY = BOSS_BAR_TOP_OFFSET + bossBarCount * BOSS_BAR_SPACING;
         int x = (screenWidth - BAR_WIDTH) / 2;
 
