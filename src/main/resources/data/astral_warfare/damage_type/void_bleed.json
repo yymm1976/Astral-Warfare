@@ -2,5 +2,5 @@
   "exhaustion": 0.0,
   "message_id": "astral_warfare.void_bleed",
   "scaling": "never",
-  "effects": "wither"
+  "effects": "hurt"
 }
