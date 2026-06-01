@@ -41,3 +41,5 @@ eclipse*.txt
 .classpath
 .project
 .settings/
+
+software/

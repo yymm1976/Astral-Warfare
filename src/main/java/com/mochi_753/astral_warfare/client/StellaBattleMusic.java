@@ -203,11 +203,14 @@ public class StellaBattleMusic {
     }
 
     // 根据战斗阶段选择对应的 SoundEvent
+    // 【修复】交换一阶段和二阶段的 BGM 分配
+    // 原先 PHASE_2_MELEE → PHASE2 曲目，否则 → PHASE1 曲目
+    // 用户反馈两阶段 BGM 播反了，交换返回值
     private static SoundEvent getSoundForPhase(int phase) {
         if (phase == StellaEvokerEntity.PHASE_2_MELEE) {
-            return ModSounds.STELLA_EVOKER_PHASE2.get();
+            return ModSounds.STELLA_EVOKER_PHASE1.get();
         }
-        return ModSounds.STELLA_EVOKER_PHASE1.get();
+        return ModSounds.STELLA_EVOKER_PHASE2.get();
     }
 
     // 启动指定阶段的 BGM
