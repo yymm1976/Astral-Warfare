@@ -13,7 +13,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -382,10 +381,10 @@ public class SpellCastGoal extends Goal {
         double targetZ = goal.starfallLockedPos.z;
         double targetY = goal.starfallLockedPos.y;
 
-        // 爆炸视觉效果：在锁定位置爆炸，模拟陨石砸中地面
-        // 修复：从 Y+10 改为 Y+1，爆炸效果应在地面而非空中
-        serverLevel.explode(goal.evoker, targetX, targetY + 1.0, targetZ,
-                ModConstants.STARFALL_RADIUS, Level.ExplosionInteraction.NONE);
+        // 爆炸视觉效果：纯粒子+音效替代 level.explode()
+        // level.explode() 即使使用 ExplosionInteraction.NONE 仍会对范围内所有实体
+        // （包括 StarcoreGolemEntity 傀儡）造成伤害和击退，违反"BOSS技能不得伤害傀儡"约束
+        // 手动伤害逻辑已在下方 AABB 中精确控制，只对 Player 生效
 
         // 地面爆炸粒子：在锁定位置生成大量冲击波粒子
         try (ParticleEmitter emitter = new ParticleEmitter(goal.evoker)) {
@@ -938,11 +937,9 @@ public class SpellCastGoal extends Goal {
         serverLevel.playSound(null, goal.evoker.getX(), goal.evoker.getY(), goal.evoker.getZ(),
                 SoundEvents.ENDER_DRAGON_FLAP, SoundSource.HOSTILE, 1.5F, 0.6F);
 
-        // 延迟爆炸：傀儡落地后触发爆炸
-        // 使用简单方案：直接在目标位置生成爆炸效果和伤害
-        // 因为傀儡下落需要时间，我们直接在目标位置施加效果
-        serverLevel.explode(goal.evoker, targetX, goal.throwTarget.getY(), targetZ,
-                ModConstants.TELEKINETIC_THROW_RADIUS, Level.ExplosionInteraction.NONE);
+        // 延迟爆炸视觉效果：纯粒子+音效替代 level.explode()
+        // level.explode() 即使 ExplosionInteraction.NONE 仍会对傀儡造成伤害
+        // 手动伤害逻辑已在下方 AABB 中精确控制，只对 Player 生效
 
         // 爆炸伤害
         AABB explosionBox = new AABB(
