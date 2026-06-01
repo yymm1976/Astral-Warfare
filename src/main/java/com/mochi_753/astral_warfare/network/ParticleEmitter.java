@@ -48,21 +48,31 @@ public class ParticleEmitter implements AutoCloseable {
 
     // 发送当前收集的粒子批次
     // 空批次时不发送网络包，避免浪费带宽
+    // try-catch：网络发送失败时静默丢弃当前批次，不破坏调用方事务
     public void flush() {
         if (currentBatch.isEmpty() || currentTypeId < 0) {
             return;
         }
-        PacketDistributor.sendToPlayersTrackingEntityAndSelf(
-                trackingEntity,
-                new ClientboundParticleBatchPacket(currentTypeId, new ArrayList<>(currentBatch))
-        );
+        try {
+            PacketDistributor.sendToPlayersTrackingEntityAndSelf(
+                    trackingEntity,
+                    new ClientboundParticleBatchPacket(currentTypeId, new ArrayList<>(currentBatch))
+            );
+        } catch (Throwable t) {
+            // 网络发送失败，静默丢弃当前批次
+        }
         currentBatch.clear();
         currentTypeId = -1;
     }
 
     // AutoCloseable 实现：确保在 try-with-resources 中自动 flush
+    // try-catch：网络异常时静默丢弃，不破坏调用方事务
     @Override
     public void close() {
-        flush();
+        try {
+            flush();
+        } catch (Throwable t) {
+            // 网络异常时静默丢弃，不破坏调用方事务
+        }
     }
 }

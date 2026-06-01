@@ -411,6 +411,20 @@ public class DespairExecutionGoal extends Goal {
             this.cooldownTimer = COOLDOWN_TICKS;
             this.targetPlayer = null;
         }
+
+        // 超时兜底：BOSS 卡空中 3 秒以上，强制退出终结技
+        // 正常下刺落地时间 < 1 秒，60 tick 远超此值
+        // 场景：BOSS 被传送至高空、卡在方块中等异常情况
+        if (this.stateTimer > 60) {
+            if (this.targetPlayer != null && this.targetPlayer.hasEffect(ModEffects.VOID_ENTRAPMENT)) {
+                this.targetPlayer.removeEffect(ModEffects.VOID_ENTRAPMENT);
+            }
+            this.state = State.IDLE;
+            this.stateTimer = 0;
+            this.cooldownTimer = COOLDOWN_TICKS / 2;
+            this.evoker.setNoGravity(false);
+            this.targetPlayer = null;
+        }
     }
 
     // 冷却阶段：终结技落空后的短暂冷却
@@ -462,10 +476,10 @@ public class DespairExecutionGoal extends Goal {
         }
 
         AABB impactBox = this.evoker.getBoundingBox().inflate(SLAM_RADIUS);
-        // 排除BOSS自身、主目标玩家、星核傀儡（友军不受伤）
+        // 排除BOSS自身、主目标玩家、星核傀儡（友军不受伤）、玩家（玩家由下方 Player 循环单独处理，避免双伤）
         List<LivingEntity> targets = level.getEntitiesOfClass(LivingEntity.class, impactBox,
                 entity -> entity != this.evoker && entity.isAlive() && entity != this.targetPlayer
-                        && !(entity instanceof StarcoreGolemEntity));
+                        && !(entity instanceof StarcoreGolemEntity) && !(entity instanceof Player));
 
         for (LivingEntity target : targets) {
             target.hurt(level.damageSources().indirectMagic(this.evoker, this.evoker), ModConstants.EXECUTION_SLAM_SPLASH_DAMAGE);
