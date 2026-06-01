@@ -9,11 +9,13 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.tick.ClientTickEvent;
-import com.zigythebird.playeranim.PlayerAnimationAccess;
-import com.zigythebird.playeranim.PlayerAnimationFactory;
-import com.zigythebird.playeranim.PlayerAnimationController;
-import com.zigythebird.playeranim.animation.PlayState;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import com.zigythebird.playeranim.api.PlayerAnimationAccess;
+import com.zigythebird.playeranim.api.PlayerAnimationFactory;
+import com.zigythebird.playeranim.animation.PlayerAnimationController;
+import com.zigythebird.playeranimcore.enums.PlayState;
+import com.zigythebird.playeranimcore.animation.layered.modifier.AbstractFadeModifier;
+import com.zigythebird.playeranimcore.easing.EasingType;
 
 // 虚空禁锢玩家动画处理器
 // 使用 PAL（Player Animation Library）在客户端播放"悬浮挣扎"姿态
@@ -74,23 +76,28 @@ public class PlayerAnimationHandler {
     }
 
     // 播放虚空禁锢动画
-    // replaceWithFade：带淡入淡出过渡的动画切换
-    // 5 tick = 0.25 秒的过渡时间，避免肢体瞬跳
+    // replaceAnimationWithFade：PAL 的带淡入淡出过渡的动画替换方法
+    // AbstractFadeModifier.standardFadeIn(5, LINEAR)：5 tick 线性淡入，避免肢体瞬跳
     private static void playAnimation(AbstractClientPlayer player) {
         PlayerAnimationController controller = (PlayerAnimationController)
                 PlayerAnimationAccess.getPlayerAnimationLayer(player, ANIMATION_LAYER);
         if (controller != null) {
-            controller.replaceWithFade(VOID_ENTRAPMENT_ANIM, 5, 5);
+            controller.replaceAnimationWithFade(
+                    AbstractFadeModifier.standardFadeIn(5, EasingType.LINEAR),
+                    VOID_ENTRAPMENT_ANIM
+            );
         }
     }
 
-    // 停止虚空禁锢动画，平滑过渡回默认姿态
-    // 传入 null 表示回到默认姿态，5 tick 淡出过渡
+    // 停止虚空禁锢动画
+    // 使用 AnimationController.stop() 立即停止动画
+    // PAL 的 replaceAnimationWithFade 不支持传入 null 作为目标动画，
+    // 因此无法实现淡出过渡，直接 stop() 是最安全的方式
     private static void stopAnimation(AbstractClientPlayer player) {
         PlayerAnimationController controller = (PlayerAnimationController)
                 PlayerAnimationAccess.getPlayerAnimationLayer(player, ANIMATION_LAYER);
         if (controller != null) {
-            controller.replaceWithFade(null, 5, 5);
+            controller.stop();
         }
     }
 }

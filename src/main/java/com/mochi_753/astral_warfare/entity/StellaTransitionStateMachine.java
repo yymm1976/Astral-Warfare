@@ -26,7 +26,7 @@ import java.util.List;
 public class StellaTransitionStateMachine {
 
     private static final int TRANSITION_DURATION_TICKS = ModConstants.TRANSITION_DURATION_TICKS;
-    private static final double TRANSITION_TARGET_HEIGHT = 8.0;
+    private static final double TRANSITION_TARGET_HEIGHT = ModConstants.TRANSITION_TARGET_HEIGHT;
 
     private final StellaEvokerEntity evoker;
     private int transitionTimer = 0;

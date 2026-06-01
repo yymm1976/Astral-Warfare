@@ -26,6 +26,8 @@ public final class ModConstants {
 
     // 转阶段演出持续时间（tick）
     public static final int TRANSITION_DURATION_TICKS = 60;
+    // 转阶段升空目标高度（格）
+    public static final double TRANSITION_TARGET_HEIGHT = 8.0;
     // 死亡演出持续时间（tick）
     public static final int DYING_DURATION_TICKS = 100;
     // 二阶段移动速度倍率
@@ -109,6 +111,8 @@ public final class ModConstants {
     // 星门涌动：脉冲范围
     // 从 5.0 增大到 8.0，扩大星门涌动覆盖范围
     public static final double SURGE_PULSE_RADIUS = 8.0;
+    // 星门涌动：环特效半径
+    public static final double SURGE_RING_RADIUS = 3.0;
 
     // 星轨切割：激光伤害
     // 修复：从16.0F提升到24.0F（再加强50%），配合magic伤害源绕过盔甲
@@ -155,4 +159,17 @@ public final class ModConstants {
     public static final float EXECUTION_SLAM_RADIUS = 8.0F;
     // 砸地溅射伤害
     public static final float EXECUTION_SLAM_SPLASH_DAMAGE = 18.0F;
+
+    // ==================== 夜幕黑洞 ====================
+
+    // 奇点吸引力公式的基础强度系数
+    // 公式：pullStrength = min(MAX_PULL_STRENGTH, PULL_STRENGTH_FACTOR / effectiveDistSq)
+    public static final double PULL_STRENGTH_FACTOR = 2.0;
+
+    // ==================== 死亡演出 ====================
+
+    // 死亡爆炸粒子数量
+    public static final int DEATH_EXPLOSION_PARTICLE_COUNT = 40;
+    // 死亡爆炸粒子扩散半径
+    public static final double DEATH_EXPLOSION_RADIUS = 6.0;
 }

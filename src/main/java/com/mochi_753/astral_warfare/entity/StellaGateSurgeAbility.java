@@ -29,7 +29,7 @@ public class StellaGateSurgeAbility {
     // 【范围匹配】使用 ModConstants.SURGE_PULSE_RADIUS = 8.0，与特效扩散范围一致
     private static final double GATE_SURGE_WAVE_RADIUS = ModConstants.SURGE_PULSE_RADIUS;
     private static final float GATE_SURGE_WAVE_DAMAGE = ModConstants.SURGE_PULSE_DAMAGE;
-    private static final double GATE_SURGE_RING_RADIUS = 3.0;
+    private static final double GATE_SURGE_RING_RADIUS = ModConstants.SURGE_RING_RADIUS;
 
     private final StellaEvokerEntity evoker;
     private boolean gateSurgeTriggered = false;

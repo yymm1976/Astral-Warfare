@@ -1,5 +1,6 @@
 package com.mochi_753.astral_warfare.entity;
 
+import com.mochi_753.astral_warfare.init.ModConstants;
 import com.mochi_753.astral_warfare.init.ModEffects;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
@@ -264,7 +265,7 @@ public class NightfallSingularityEntity extends Entity {
                 double distSq = dx * dx + dy * dy + dz * dz;
                 if (distSq > 0.01) {
                     double effectiveDistSq = Math.max(distSq, MIN_DIST_SQ);
-                    double pullStrength = Math.min(MAX_PULL_STRENGTH, 2.0 / effectiveDistSq);
+                    double pullStrength = Math.min(MAX_PULL_STRENGTH, ModConstants.PULL_STRENGTH_FACTOR / effectiveDistSq);
                     double invDist = 1.0 / Math.sqrt(effectiveDistSq);
                     // 获取当前速度并直接计算新速度，避免中间 Vec3 对象
                     Vec3 cur = player.getDeltaMovement();

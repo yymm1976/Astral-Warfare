@@ -96,9 +96,9 @@ public class StellaDyingStateMachine {
                 15, 1.5, 0.5, 1.5, 0.05);
         // 大范围爆炸粒子
         try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
-            for (int i = 0; i < 40; i++) {
+            for (int i = 0; i < ModConstants.DEATH_EXPLOSION_PARTICLE_COUNT; i++) {
                 double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
-                double r = this.evoker.getRandom().nextDouble() * 6.0;
+                double r = this.evoker.getRandom().nextDouble() * ModConstants.DEATH_EXPLOSION_RADIUS;
                 double px = this.evoker.getX() + Math.cos(angle) * r;
                 double pz = this.evoker.getZ() + Math.sin(angle) * r;
                 // 冲击波（大爆炸变体）：死亡爆炸
