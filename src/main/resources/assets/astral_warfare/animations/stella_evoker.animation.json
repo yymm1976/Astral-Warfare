@@ -1,7 +1,5 @@
 {
-  "format_version": "1.8.0",
-  "animations": {
-    "stella_evoker_idle_phase1": {
+  "stella_evoker_idle_phase1": {
       "loop": true,
       "animation_length": 2.5,
       "bones": {
@@ -490,4 +488,3 @@
       }
     }
   }
-}

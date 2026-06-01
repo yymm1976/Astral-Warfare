@@ -21,18 +21,17 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import java.util.EnumSet;
 import java.util.List;
 
-// ═══════════════════════════════════════════════════════════════════════
 // 终结技 AI Goal（DespairExecutionGoal）
 // ═══════════════════════════════════════════════════════════════════════
 //
 // 【这是BOSS的特殊处决技，不是三段普攻！】
 //
-// 终结技流程：前摇预警→击飞→瞬移上方→蓄力→下刺砸地
-//   0. WINDUP：明显的前摇蓄力，BOSS周围虚空能量聚集，给玩家闪避窗口
-//   1. LAUNCHING：将范围内玩家击飞到空中+伤害，施加虚空禁锢（定身悬浮）
-//   2. TELEPORTING：BOSS瞬移到玩家正上方
-//   3. CHARGING：凝结虚空长戟蓄力
-//   4. SLAMMING：解除禁锢，下刺砸地，地面崩裂
+// 终结技流程：冲刺到玩家身前→击飞到高空+禁锢→瞬移到玩家上方→凝聚长戟→下刺砸地
+//   0. WINDUP：BOSS高速冲刺到玩家身前，虚空能量聚集，给玩家短暂闪避窗口
+//   1. LAUNCHING：将范围内玩家击飞到高空+伤害，施加虚空禁锢（定身悬浮，无法下落）
+//   2. TELEPORTING：BOSS瞬移到被禁锢玩家正上方
+//   3. CHARGING：凝结虚空长戟蓄力，BOSS悬浮在玩家上方
+//   4. SLAMMING：下刺砸地，长戟贯穿到地面，落地瞬间解除禁锢
 //
 // 【非锁头设计】
 //   前摇结束后，只有5格范围内的玩家才会被击飞
@@ -139,15 +138,14 @@ public class DespairExecutionGoal extends Goal {
         }
     }
 
-    // 前摇预警阶段：BOSS向玩家移动，同时虚空能量剧烈聚集
-    // 设计意图：给玩家1.5秒的闪避窗口，但BOSS会主动接近
-    // 【修复】前摇期间BOSS应向玩家移动，而非原地站桩
-    //   之前只 setLookAt 不移动，导致BOSS站着不动等玩家跑掉
+    // 冲刺阶段：BOSS高速冲向玩家身前，同时虚空能量聚集
+    // 设计意图：给玩家短暂闪避窗口，但BOSS会高速接近
+    // 冲刺速度 1.8 比普通移动快 50%，确保能进入击飞范围
     private void tickWindup(ServerLevel level) {
         this.evoker.getLookControl().setLookAt(this.targetPlayer, 180.0F, 180.0F);
 
-        // 前摇期间主动向玩家移动，确保能进入击飞范围
-        this.evoker.getNavigation().moveTo(this.targetPlayer, 1.2);
+        // 冲刺期间高速向玩家移动，确保能进入击飞范围
+        this.evoker.getNavigation().moveTo(this.targetPlayer, 1.8);
 
         double progress = (double) this.stateTimer / WINDUP_TICKS;
 
@@ -211,10 +209,9 @@ public class DespairExecutionGoal extends Goal {
         }
     }
 
-    // 击飞阶段：将范围内玩家击飞到空中+伤害，施加虚空禁锢
-    // 非锁头：只有LAUNCH_RANGE内的玩家才会被击飞
-    // 【修复】使用 hasLaunched 标记确保击飞+伤害+禁锢只执行一次
-    //   之前每tick都执行击飞+伤害，10tick内造成10倍伤害（150→15）
+    // 击飞阶段：将范围内玩家击飞到高空+伤害，施加虚空禁锢
+    // 禁锢使玩家无法下落，悬浮在空中等待BOSS瞬移到上方
+    // 使用 hasLaunched 标记确保击飞+伤害+禁锢只执行一次
     private void tickLaunching(ServerLevel level) {
         if (this.targetPlayer != null && this.targetPlayer.isAlive()) {
             double distToTarget = this.evoker.distanceTo(this.targetPlayer);
@@ -223,15 +220,17 @@ public class DespairExecutionGoal extends Goal {
                 // 击飞只执行一次：设置向上速度 + 伤害 + 禁锢
                 if (!this.hasLaunched) {
                     this.hasLaunched = true;
-                    this.targetPlayer.setDeltaMovement(0, 1.8, 0);
+                    // 击飞到高空：2.5 格/tick 向上速度，约飞到 8-10 格高度
+                    this.targetPlayer.setDeltaMovement(0, 2.5, 0);
                     this.targetPlayer.hurt(level.damageSources().indirectMagic(this.evoker, this.evoker),
                             LAUNCH_DAMAGE);
                     this.targetPlayer.hurtMarked = true;
 
+                    // 施加虚空禁锢：120 tick（6秒），确保玩家悬浮到BOSS下刺落地
                     if (!this.targetPlayer.hasEffect(ModEffects.VOID_ENTRAPMENT)) {
                         this.targetPlayer.addEffect(new MobEffectInstance(
                                 ModEffects.VOID_ENTRAPMENT,
-                                80, 0, false, true, true
+                                120, 0, false, true, true
                         ));
                     }
 
@@ -472,12 +471,13 @@ public class DespairExecutionGoal extends Goal {
                     EXECUTION_DAMAGE
             );
             spawnHalberdImpactTrail(level, this.targetPlayer);
-            this.targetPlayer.knockback(2.5F,
+            this.targetPlayer.knockback(1.5F,
                     this.evoker.getX() - this.targetPlayer.getX(),
                     this.evoker.getZ() - this.targetPlayer.getZ()
             );
+            // 轻微向上弹起，不致于飞太高脱离仇恨
             this.targetPlayer.setDeltaMovement(
-                    this.targetPlayer.getDeltaMovement().add(0, 0.8, 0)
+                    this.targetPlayer.getDeltaMovement().add(0, 0.3, 0)
             );
         }
 
