@@ -151,21 +151,22 @@ public class NightfallSingularityEntity extends Entity {
         // 使用 ParticleEmitter 批量发送粒子包，减少网络开销
         try (ParticleEmitter emitter = new ParticleEmitter(this)) {
 
-        // === 1. 事件视界核心（每tick 3-5个密集暗色粒子）===
+        // === 1. 事件视界核心（每tick 8个密集暗色粒子，半径2.0）===
         // 核心粒子密集且暗，像"吞噬光线的黑洞"
-        for (int i = 0; i < 3; i++) {
+        // 使用DYING_EMBER variant=2（极暗近黑色），半径从0.3扩大到2.0
+        for (int i = 0; i < 8; i++) {
             double angle = this.random.nextDouble() * Math.PI * 2;
-            double r = this.random.nextDouble() * 0.3;
+            double r = this.random.nextDouble() * 2.0;
             double px = this.getX() + Math.cos(angle) * r;
             double pz = this.getZ() + Math.sin(angle) * r;
-            double py = this.getY() + 0.5 + (this.random.nextDouble() - 0.5) * 0.3;
-            // 使用DYING_EMBER（暗红色烟雾）作为核心，因为颜色深沉接近黑色
+            double py = this.getY() + 0.5 + (this.random.nextDouble() - 0.5) * 0.5;
             emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 2);
         }
 
-        // === 2. 吸积盘（每tick 5-8个亮紫粒子，环形旋转）===
+        // === 2. 吸积盘（每tick 15-24个亮紫粒子，环形旋转，密度×3）===
         // 吸积盘是黑洞最亮的部分，用亮紫色+较大粒子
-        int accretionCount = 5 + this.random.nextInt(4);
+        // 亮度+50%：使用更亮的品红色
+        int accretionCount = 15 + this.random.nextInt(10);
         for (int i = 0; i < accretionCount; i++) {
             double angle = this.random.nextDouble() * Math.PI * 2;
             double r = 0.3 + this.random.nextDouble() * 2.2;
@@ -176,7 +177,29 @@ public class NightfallSingularityEntity extends Entity {
             emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 1);
         }
 
-        // === 3. 引力透镜环（每tick 2-3个稀疏紫色粒子）===
+        // === 3. 纯黑核心柱（每2tick生成，使用LARGE_SMOKE）===
+        // 核心柱：纯黑烟雾从黑洞中心向上/下喷出，增强"吞噬"感
+        if (this.tickCount % 2 == 0) {
+            for (int i = 0; i < 5; i++) {
+                double jetR = this.random.nextDouble() * 0.8;
+                double jetAngle = this.random.nextDouble() * Math.PI * 2;
+                double jetH = this.random.nextDouble() * 1.5;
+                // 上方核心柱
+                emitter.add(StellaParticles.ID_DYING_EMBER,
+                        this.getX() + Math.cos(jetAngle) * jetR,
+                        this.getY() + 0.5 + jetH,
+                        this.getZ() + Math.sin(jetAngle) * jetR,
+                        2);
+                // 下方核心柱
+                emitter.add(StellaParticles.ID_DYING_EMBER,
+                        this.getX() + Math.cos(jetAngle + 0.5) * jetR,
+                        this.getY() + 0.5 - jetH,
+                        this.getZ() + Math.sin(jetAngle + 0.5) * jetR,
+                        2);
+            }
+        }
+
+        // === 4. 引力透镜环（每tick 2-3个稀疏紫色粒子）===
         // 外围环带，稀疏但有层次感
         if (this.random.nextFloat() < 0.5F) {
             double angle = this.random.nextDouble() * Math.PI * 2;
@@ -187,7 +210,7 @@ public class NightfallSingularityEntity extends Entity {
             emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 0);
         }
 
-        // === 4. 喷流（每2tick生成，上下两束紫色粒子柱）===
+        // === 5. 喷流（每2tick生成，上下两束紫色粒子柱）===
         if (this.tickCount % 2 == 0) {
             // 上喷流
             double jetR = this.random.nextDouble() * 0.5;

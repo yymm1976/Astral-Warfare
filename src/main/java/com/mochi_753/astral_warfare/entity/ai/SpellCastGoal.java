@@ -14,6 +14,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import org.joml.Vector3f;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
@@ -158,11 +159,13 @@ public class SpellCastGoal extends Goal {
         this.beamDamageTimer = 0;
 
         // 施法动画：BOSS 举手→下挥，增强法术释放的视觉反馈
+        // 先清除旧值再设置，强制 GeckoLib 重新播放动画（而非继续上次残留帧）
+        this.evoker.currentAttackAnim = null;
         this.evoker.currentAttackAnim = "stella_evoker_spell_cast";
 
         // 星命锁链：记录目标玩家和起始位置
         if (this.currentSpell == SpellType.FATE_LINK) {
-            Player target = this.evoker.level().getNearestPlayer(this.evoker, 64.0);
+            Player target = findNearestSurvivalPlayer();
             if (target != null) {
                 this.fateLinkTarget = target;
                 this.fateLinkOrigin = target.position();
@@ -175,7 +178,7 @@ public class SpellCastGoal extends Goal {
         // 非锁头设计：保存施法开始时玩家的位置，爆炸在此固定位置
         // 玩家可以通过走位躲避陨石，而不是被追踪
         if (this.currentSpell == SpellType.STARFALL_MATRIX) {
-            Player target = this.evoker.level().getNearestPlayer(this.evoker, 64.0);
+            Player target = findNearestSurvivalPlayer();
             if (target != null) {
                 this.starfallTarget = target;
                 this.starfallLockedPos = target.position();
@@ -191,7 +194,7 @@ public class SpellCastGoal extends Goal {
 
         // 星轨切割：锁定目标玩家，计算激光方向
         if (this.currentSpell == SpellType.STAR_RAIL_CUT) {
-            Player target = this.evoker.level().getNearestPlayer(this.evoker, 64.0);
+            Player target = findNearestSurvivalPlayer();
             if (target != null) {
                 this.starRailTarget = target;
                 Vec3 toTarget = target.position().subtract(this.evoker.position());
@@ -223,7 +226,7 @@ public class SpellCastGoal extends Goal {
                     this.nextCastAttempt = 40 + this.evoker.getRandom().nextInt(20);
                 } else {
                     this.throwGolem = golems.get(0);
-                    this.throwTarget = serverLevel.getNearestPlayer(this.evoker, 64.0);
+                    this.throwTarget = findNearestSurvivalPlayer(serverLevel);
                     if (this.throwTarget == null) {
                         this.currentSpell = null;
                     }
@@ -233,7 +236,7 @@ public class SpellCastGoal extends Goal {
 
         // 星轨迷宫：以目标玩家位置为网格中心
         if (this.currentSpell == SpellType.STAR_TRACK_MAZE) {
-            Player target = this.evoker.level().getNearestPlayer(this.evoker, 64.0);
+            Player target = findNearestSurvivalPlayer();
             if (target != null) {
                 this.mazeCenter = target.position();
                 this.mazeActiveGroup = 0;
@@ -332,6 +335,25 @@ public class SpellCastGoal extends Goal {
         return this.cooldowns.getOrDefault(spell, 0);
     }
 
+    // 查找最近的非创造/非旁观模式玩家
+    // getNearestPlayer 不自动过滤创造模式，需手动搜索
+    // 统一过滤逻辑：BOSS 不应追踪无法攻击的玩家
+    private Player findNearestSurvivalPlayer() {
+        return findNearestSurvivalPlayer(null);
+    }
+
+    private Player findNearestSurvivalPlayer(ServerLevel serverLevel) {
+        var level = serverLevel != null ? serverLevel : this.evoker.level();
+        var players = level.getEntitiesOfClass(
+                Player.class,
+                this.evoker.getBoundingBox().inflate(64.0),
+                player -> player.isAlive() && !player.isCreative() && !player.isSpectator()
+        );
+        if (players.isEmpty()) return null;
+        players.sort((a, b) -> Double.compare(this.evoker.distanceToSqr(a), this.evoker.distanceToSqr(b)));
+        return players.get(0);
+    }
+
     // ==================== 法术效果实现 ====================
 
     // 策略模式：通过 SpellType.executor 统一调用各法术的执行逻辑
@@ -415,9 +437,9 @@ public class SpellCastGoal extends Goal {
         // （包括 StarcoreGolemEntity 傀儡）造成伤害和击退，违反"BOSS技能不得伤害傀儡"约束
         // 手动伤害逻辑已在下方 AABB 中精确控制，只对 Player 生效
 
-        // 地面爆炸粒子：在锁定位置生成大量冲击波粒子
+        // 地面爆炸粒子：在锁定位置生成大量冲击波粒子（密度×3）
         try (ParticleEmitter emitter = new ParticleEmitter(goal.evoker)) {
-            for (int i = 0; i < 40; i++) {
+            for (int i = 0; i < 120; i++) {
                 double angle = goal.evoker.getRandom().nextDouble() * Math.PI * 2;
                 double r = goal.evoker.getRandom().nextDouble() * ModConstants.STARFALL_RADIUS;
                 double px = targetX + Math.cos(angle) * r;
@@ -431,16 +453,19 @@ public class SpellCastGoal extends Goal {
         PacketDistributor.sendToPlayersTrackingEntityAndSelf(goal.evoker,
                 new ClientboundScreenShakePacket(2.0F, 15, 0.1F));
 
-        // 手动伤害：以锁定位置为中心，范围内的玩家受到伤害
+        // 手动伤害：以锁定位置为中心，范围内的生物受到伤害
         // 非锁头：伤害判定基于位置而非追踪特定玩家
+        // 排除 BOSS 自身和 StarcoreGolemEntity（BOSS技能不得伤害傀儡）
         AABB explosionBox = new AABB(
                 targetX - ModConstants.STARFALL_RADIUS, targetY - ModConstants.STARFALL_RADIUS, targetZ - ModConstants.STARFALL_RADIUS,
                 targetX + ModConstants.STARFALL_RADIUS, targetY + ModConstants.STARFALL_RADIUS, targetZ + ModConstants.STARFALL_RADIUS
         );
-        List<Player> targets = serverLevel.getEntitiesOfClass(Player.class, explosionBox,
-                player -> player.isAlive() && !player.isSpectator());
-        for (Player p : targets) {
-            p.hurt(serverLevel.damageSources().indirectMagic(goal.evoker, goal.evoker), ModConstants.STARFALL_DAMAGE);
+        List<LivingEntity> targets = serverLevel.getEntitiesOfClass(LivingEntity.class, explosionBox,
+                entity -> entity.isAlive() && !entity.isSpectator()
+                        && entity != goal.evoker
+                        && !(entity instanceof StarcoreGolemEntity));
+        for (LivingEntity t : targets) {
+            t.hurt(serverLevel.damageSources().indirectMagic(goal.evoker, goal.evoker), ModConstants.STARFALL_DAMAGE);
         }
     }
 
@@ -475,7 +500,7 @@ public class SpellCastGoal extends Goal {
         // 计算光束落点（射线与地面的交点）
         // 地面高度近似取最近玩家的Y坐标，无玩家时取BOSS的Y-6
         double groundY;
-        Player nearestPlayer = serverLevel.getNearestPlayer(this.evoker, 64.0);
+        Player nearestPlayer = findNearestSurvivalPlayer(serverLevel);
         if (nearestPlayer != null) {
             groundY = nearestPlayer.getY();
         } else {
@@ -529,7 +554,7 @@ public class SpellCastGoal extends Goal {
             // BOSS在Y+6处，50度倾斜，光束落点处锥形覆盖半径约 6*tan(45°) ≈ 6 格
             // 使用 6.0 作为地面光斑半径，与BEAM_RANGE和BEAM_CONE_ANGLE一致
             if (groundDist > 0 && groundDist < ModConstants.BEAM_RANGE) {
-                int groundParticles = 16 + this.evoker.getRandom().nextInt(8);
+                int groundParticles = 48 + this.evoker.getRandom().nextInt(16);
                 double groundSpotRadius = 6.0;
                 for (int i = 0; i < groundParticles; i++) {
                     double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
@@ -564,13 +589,16 @@ public class SpellCastGoal extends Goal {
 
             // 使用当前光束方向判定锥形范围
             // 与isInCone不同，此处使用计算出的旋转光束方向而非实体的getLookAngle()
+            // 排除 BOSS 自身和 StarcoreGolemEntity
             AABB beamBox = this.evoker.getBoundingBox().inflate(ModConstants.BEAM_RANGE);
-            List<Player> targets = serverLevel.getEntitiesOfClass(Player.class, beamBox,
-                    player -> player.isAlive() && !player.isSpectator()
-                            && this.evoker.distanceTo(player) <= ModConstants.BEAM_RANGE
-                            && isInConeWithDir(this.evoker.position(), player, beamDir, ModConstants.BEAM_CONE_ANGLE));
+            List<LivingEntity> targets = serverLevel.getEntitiesOfClass(LivingEntity.class, beamBox,
+                    entity -> entity.isAlive() && !entity.isSpectator()
+                            && entity != this.evoker
+                            && !(entity instanceof StarcoreGolemEntity)
+                            && this.evoker.distanceTo(entity) <= ModConstants.BEAM_RANGE
+                            && isInConeWithDir(this.evoker.position(), entity, beamDir, ModConstants.BEAM_CONE_ANGLE));
 
-            for (Player target : targets) {
+            for (LivingEntity target : targets) {
                 // 使用魔法伤害源绕过盔甲减免
                 target.hurt(serverLevel.damageSources().indirectMagic(this.evoker, this.evoker), ModConstants.BEAM_DAMAGE);
             }
@@ -585,7 +613,7 @@ public class SpellCastGoal extends Goal {
     // 使用指定方向判定锥形范围
     // 与isInCone不同，此方法使用计算出的光束方向而非实体的getLookAngle()
     // 因为星界发散光束是旋转扫射的，方向由sweepAngle计算得出
-    private boolean isInConeWithDir(Vec3 origin, Player target, Vec3 coneDir, double coneAngleDeg) {
+    private boolean isInConeWithDir(Vec3 origin, LivingEntity target, Vec3 coneDir, double coneAngleDeg) {
         Vec3 toTarget = target.position().subtract(origin).normalize();
         double dot = coneDir.dot(toTarget);
         double angle = Math.acos(Math.max(-1.0, Math.min(1.0, dot)));
@@ -598,7 +626,7 @@ public class SpellCastGoal extends Goal {
     private void spawnSingularity() {
         if (!(this.evoker.level() instanceof ServerLevel serverLevel)) return;
 
-        Player target = serverLevel.getNearestPlayer(this.evoker, 64.0);
+        Player target = findNearestSurvivalPlayer(serverLevel);
         if (target == null) return;
 
         // 修复：在玩家附近（6-10 格偏移）生成黑洞，给玩家反应时间
@@ -674,11 +702,12 @@ public class SpellCastGoal extends Goal {
 
                 if (isWarningPhase) {
                     // 后 1.5 秒：鲜红色链环（variant=1 更鲜红，替换暗紫红 variant=0）
-                    emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 1);
+                    // variant=3：短生命周期（5 tick），快速消散不拖影
+                    emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 3);
                 } else {
                     // 前 1.5 秒：淡蓝色链环
-                    // 主链环：SMOKE_PARTICLE（小而实）
-                    emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0);
+                    // 主链环：SMOKE_PARTICLE（小而实），variant=3 短生命周期
+                    emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 3);
                 }
             }
 
@@ -701,9 +730,9 @@ public class SpellCastGoal extends Goal {
                 py += swayOffset;
 
                 if (isWarningPhase) {
-                    emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 1);
+                    emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 3);
                 } else {
-                    emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0);
+                    emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 3);
                 }
             }
         }
@@ -753,7 +782,7 @@ public class SpellCastGoal extends Goal {
         double distFromOrigin = goal.fateLinkTarget.position().distanceTo(goal.fateLinkOrigin);
 
         if (distFromOrigin < FATE_LINK_MAX_DIST) {
-            // 玩家未能跑出 12 格：受到 20 点魔法斩杀伤害（绕过盔甲）
+            // 玩家未能跑出 12 格：受到魔法斩杀伤害（绕过盔甲）
             goal.fateLinkTarget.hurt(
                     serverLevel.damageSources().indirectMagic(goal.evoker, goal.evoker),
                     FATE_LINK_DAMAGE
@@ -833,8 +862,9 @@ public class SpellCastGoal extends Goal {
                 }
             } else {
                 // 修复：激光爆发使用ASTRAL_BEAM粒子（亮蓝色），Y在地面+0.5，宽度1.5格
-                for (int i = 0; i < 20; i++) {
-                    double dist = i * 1.0;
+                // 粒子间隔从1.0格缩短到0.3格，密度×3提升激光可见度
+                for (int i = 0; i < 60; i++) {
+                    double dist = i * 0.3;
                     if (dist > ModConstants.STAR_RAIL_CUT_LENGTH) break;
                     double px = originX + dirX * dist;
                     double pz = originZ + dirZ * dist;
@@ -868,10 +898,12 @@ public class SpellCastGoal extends Goal {
                 Math.max(originX, endX) + width, originY + 3.0, Math.max(originZ, endZ) + width
         );
 
-        List<Player> targets = serverLevel.getEntitiesOfClass(Player.class, laserBox,
-                player -> player.isAlive() && !player.isSpectator());
+        List<LivingEntity> targets = serverLevel.getEntitiesOfClass(LivingEntity.class, laserBox,
+                entity -> entity.isAlive() && !entity.isSpectator()
+                        && entity != goal.evoker
+                        && !(entity instanceof StarcoreGolemEntity));
 
-        for (Player target : targets) {
+        for (LivingEntity target : targets) {
             target.hurt(serverLevel.damageSources().indirectMagic(goal.evoker, goal.evoker), ModConstants.STAR_RAIL_CUT_DAMAGE);
         }
 
@@ -996,10 +1028,12 @@ public class SpellCastGoal extends Goal {
                 goal.throwTarget.getY() + ModConstants.TELEKINETIC_THROW_RADIUS,
                 targetZ + ModConstants.TELEKINETIC_THROW_RADIUS
         );
-        List<Player> targets = serverLevel.getEntitiesOfClass(Player.class, explosionBox,
-                player -> player.isAlive() && !player.isSpectator());
-        for (Player p : targets) {
-            p.hurt(serverLevel.damageSources().indirectMagic(goal.evoker, goal.evoker), ModConstants.TELEKINETIC_THROW_DAMAGE);
+        List<LivingEntity> targets = serverLevel.getEntitiesOfClass(LivingEntity.class, explosionBox,
+                entity -> entity.isAlive() && !entity.isSpectator()
+                        && entity != goal.evoker
+                        && !(entity instanceof StarcoreGolemEntity));
+        for (LivingEntity t : targets) {
+            t.hurt(serverLevel.damageSources().indirectMagic(goal.evoker, goal.evoker), ModConstants.TELEKINETIC_THROW_DAMAGE);
         }
 
         // 星尘爆炸粒子
@@ -1083,9 +1117,13 @@ public class SpellCastGoal extends Goal {
                     double z = cz + row * MAZE_CELL_SIZE;
 
                     if (isActive) {
-                        // 激活列：蓝色发光粒子（交点密集 + 额外亮度）
+                        // 激活列：蓝色发光粒子（交点密集×3 + 额外亮度）
                         emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.1, z, 0);
                         emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.1, z, 1);
+                        emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.15, z, 0);
+                        emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.15, z, 1);
+                        emitter.add(StellaParticles.ID_VOID_TWINKLE, x, cy + 0.2, z, 1);
+                        emitter.add(StellaParticles.ID_VOID_TWINKLE, x, cy + 0.2, z, 1);
                     } else {
                         // 非激活列：暗色稀疏粒子
                         if ((row + halfGrid) % 2 == 0) {
@@ -1108,10 +1146,12 @@ public class SpellCastGoal extends Goal {
                         x - MAZE_CELL_SIZE * 0.4, cy - 1.0, cz - halfGrid * MAZE_CELL_SIZE,
                         x + MAZE_CELL_SIZE * 0.4, cy + 2.0, cz + halfGrid * MAZE_CELL_SIZE
                 );
-                List<Player> hitPlayers = serverLevel.getEntitiesOfClass(Player.class, colBox,
-                        p -> p.isAlive() && !p.isSpectator());
-                for (Player player : hitPlayers) {
-                    player.hurt(serverLevel.damageSources().indirectMagic(this.evoker, this.evoker), MAZE_DAMAGE);
+                List<LivingEntity> hitEntities = serverLevel.getEntitiesOfClass(LivingEntity.class, colBox,
+                        entity -> entity.isAlive() && !entity.isSpectator()
+                                && entity != this.evoker
+                                && !(entity instanceof StarcoreGolemEntity));
+                for (LivingEntity entity : hitEntities) {
+                    entity.hurt(serverLevel.damageSources().indirectMagic(this.evoker, this.evoker), MAZE_DAMAGE);
                 }
             }
         }

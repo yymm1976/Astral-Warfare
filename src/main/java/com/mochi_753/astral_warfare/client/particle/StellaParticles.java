@@ -134,6 +134,18 @@ public class StellaParticles {
                 .spawn(level, x, y, z);
     }
 
+    // 星界光束粒子短生命周期变体：12 tick，用于星命锁链链环，快速消散不拖影
+    public static void spawnAstralBeamShort(ClientLevel level, double x, double y, double z) {
+        WorldParticleBuilder.create(LodestoneParticleTypes.SPARK_PARTICLE)
+                .setColorData(ColorParticleData.create(ASTRAL_START, ASTRAL_END).build())
+                .setScaleData(GenericParticleData.create(0.55f, 0.02f).setEasing(Easing.QUINTIC_OUT).build())
+                .setTransparencyData(GenericParticleData.create(0.65f, 0.15f).setEasing(Easing.QUINTIC_OUT).build())
+                .setLifetime(12)
+                .setFullBrightLighting()
+                .addMotion(0, 0.03, 0)
+                .spawn(level, x, y, z);
+    }
+
     // 冲击波粒子：橙红+紫色，向外扩散（增强版：更小更快更亮，像刀刃闪光）
     // variant 参数用于区分不同方向的刃光
     public static void spawnImpactWave(ClientLevel level, double x, double y, double z, int variant) {
@@ -151,15 +163,17 @@ public class StellaParticles {
     }
 
     // 死亡余烬粒子：暗红+紫色，缓慢飘散（增强版：颜色更暗，像烧焦的余烬）
-    public static void spawnDyingEmber(ClientLevel level, double x, double y, double z) {
+    // variant=3: 短生命周期变体（5 tick），用于星命锁链连接线，快速消散不拖影
+    public static void spawnDyingEmber(ClientLevel level, double x, double y, double z, int variant) {
         double driftX = (level.random.nextDouble() - 0.5) * 0.01;
         double driftY = 0.005 + level.random.nextDouble() * 0.015;
         double driftZ = (level.random.nextDouble() - 0.5) * 0.01;
+        int lifetime = variant == 3 ? 5 : 50;
         WorldParticleBuilder.create(LodestoneParticleTypes.SMOKE_PARTICLE)
                 .setColorData(ColorParticleData.create(EMBER_START, EMBER_END).build())
                 .setScaleData(GenericParticleData.create(0.4f, 0.01f).setEasing(Easing.QUINTIC_OUT).build())
                 .setTransparencyData(GenericParticleData.create(0.65f, 0.1f).setEasing(Easing.CUBIC_OUT).build())
-                .setLifetime(50)
+                .setLifetime(lifetime)
                 .addMotion(driftX, driftY, driftZ)
                 .spawn(level, x, y, z);
     }
@@ -251,7 +265,7 @@ public class StellaParticles {
             case ID_VOID_SPARK -> spawnVoidSpark(level, x, y, z, extraData);
             case ID_ASTRAL_BEAM -> spawnAstralBeam(level, x, y, z);
             case ID_IMPACT_WAVE -> spawnImpactWave(level, x, y, z, extraData);
-            case ID_DYING_EMBER -> spawnDyingEmber(level, x, y, z);
+            case ID_DYING_EMBER -> spawnDyingEmber(level, x, y, z, extraData);
             case ID_TRANSITION_BURST -> spawnTransitionBurst(level, x, y, z);
             case ID_VOID_TWINKLE -> spawnVoidTwinkle(level, x, y, z, extraData);
             case ID_VOID_THREAD -> spawnVoidThread(level, x, y, z, extraData);

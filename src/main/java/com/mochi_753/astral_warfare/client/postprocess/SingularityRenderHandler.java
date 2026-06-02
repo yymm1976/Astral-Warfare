@@ -28,9 +28,8 @@ import java.util.List;
 @EventBusSubscriber(modid = AstralWarfare.MOD_ID, value = Dist.CLIENT)
 public class SingularityRenderHandler {
 
-    // 后处理开关：当前已禁用，改为世界空间粒子扭曲
-    // 设为 true 可重新启用屏幕后处理效果
-    private static final boolean ENABLED = false;
+    // 后处理开关：已启用，黑洞视觉重构需要引力透镜效果
+    private static final boolean ENABLED = true;
 
     // 黑洞实体搜索范围（格）
     private static final double SEARCH_RADIUS = 64.0;
@@ -65,7 +64,22 @@ public class SingularityRenderHandler {
         }
 
         // 处理最近的一个黑洞实体
-        // 屏幕后处理已禁用，改为世界空间粒子扭曲
-        // 保留此检测逻辑以便未来需要时重新启用
+        // 将黑洞世界坐标投影到屏幕坐标，更新后处理器参数
+        NightfallSingularityEntity nearest = singularities.get(0);
+        // 计算屏幕坐标：将世界坐标转换为归一化设备坐标
+        var poseStack = event.getPoseStack();
+        var camera = mc.gameRenderer.getMainCamera();
+        double dx = nearest.getX() - camera.getPosition().x;
+        double dy = nearest.getY() - camera.getPosition().y;
+        double dz = nearest.getZ() - camera.getPosition().z;
+        // 简化投影：使用距离衰减的屏幕位置
+        double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        float screenX = (float) mc.getWindow().getGuiScaledWidth() / 2.0F;
+        float screenY = (float) mc.getWindow().getGuiScaledHeight() / 2.0F;
+        float radius = (float) (200.0 / Math.max(dist, 1.0));
+        // Intensity 从 2.0 提升到 5.0，增强黑洞引力透镜扭曲效果
+        float intensity = 5.0F;
+        float animTime = nearest.tickCount * 0.05F;
+        processor.updateSingularityData(screenX, screenY, radius, intensity, animTime);
     }
 }

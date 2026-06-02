@@ -84,7 +84,19 @@ public class StellaFlyingMoveControl extends MoveControl {
                     this.mob.distanceTo(cachedTarget) <= TARGET_SEARCH_RANGE) {
                 // 缓存目标仍有效
             } else {
-                cachedTarget = this.mob.level().getNearestPlayer(this.mob, TARGET_SEARCH_RANGE);
+                // 过滤创造模式和旁观模式玩家：BOSS 不应追踪无法攻击的玩家
+                // getNearestPlayer 不自动过滤创造模式，需手动搜索
+                var players = this.mob.level().getEntitiesOfClass(
+                        net.minecraft.world.entity.player.Player.class,
+                        this.mob.getBoundingBox().inflate(TARGET_SEARCH_RANGE),
+                        player -> player.isAlive() && !player.isCreative() && !player.isSpectator()
+                );
+                if (!players.isEmpty()) {
+                    players.sort((a, b) -> Double.compare(this.mob.distanceToSqr(a), this.mob.distanceToSqr(b)));
+                    cachedTarget = players.get(0);
+                } else {
+                    cachedTarget = null;
+                }
             }
         }
 

@@ -175,21 +175,20 @@ public class Phase2MeleeGoal extends Goal {
         double distToTarget = this.evoker.distanceTo(this.target);
 
         // 【近战冷却期走位优化】
-        // 冷却期：不再满速冲向玩家，改为侧向环绕走位
-        // 效果：BOSS 在三段连招之间会踱步/绕圈，而非贴脸干瞪眼
+        // 冷却期：慢速直线走向玩家（非螃蟹式横移 strafe）
+        // 效果：BOSS 在三段连招之间会慢步逼近，有行走动画，而非滑步
         if (this.comboCooldownTimer > 0) {
             this.evoker.getNavigation().stop();
-            // 侧向环绕：strafe(forwardSpeed, strafeSpeed)
-            // forward=0.5 缓慢靠近，strafe=±1.0 侧向移动
-            // 每 40 tick 随机切换环绕方向，避免一直绕同一侧
-            if (this.evoker.tickCount % 40 == 0) {
-                this.strafeDirection = this.evoker.getRandom().nextBoolean() ? 1.0F : -1.0F;
-            }
-            this.evoker.getMoveControl().strafe(0.5F, this.strafeDirection);
+            // 慢速直线走：setWantedPosition + 低速度 0.4
+            // 替代 strafe()：strafe 是原版横向平移，不转身体不迈腿，像螃蟹滑行
+            this.evoker.getMoveControl().setWantedPosition(
+                    this.target.getX(), this.target.getY(), this.target.getZ(), 0.4);
+            this.evoker.isWalking = true;
             return;
         }
 
         // 非冷却期：满速追击玩家
+        this.evoker.isWalking = true;
         pathRecalcTimer--;
         if (pathRecalcTimer <= 0) {
             pathRecalcTimer = 4 + this.evoker.getRandom().nextInt(4);
@@ -217,6 +216,7 @@ public class Phase2MeleeGoal extends Goal {
             this.state = State.SLASH_DELAY;
             this.stateTimer = 0;
             this.evoker.getNavigation().stop();
+            this.evoker.isWalking = false;
         }
     }
 
@@ -699,6 +699,7 @@ public class Phase2MeleeGoal extends Goal {
         this.evoker.setInvisible(false);
         // 清除攻击动画，让 idle_controller 接管
         this.evoker.currentAttackAnim = null;
+        this.evoker.isWalking = false;
     }
 
     @Override

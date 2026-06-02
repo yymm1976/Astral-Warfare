@@ -126,6 +126,10 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
     // null = 无攻击动画播放中，idle_controller 接管
     public String currentAttackAnim = null;
 
+    // 行走动画标记：由 Phase2MeleeGoal 在冷却期/追击期设置
+    // idle_controller 检测此标记切换到 walk 动画
+    public boolean isWalking = false;
+
     // 一阶段待机动画的 RawAnimation 定义
     // 对应 animations/stella_evoker_idle_phase1.animation.json 中的 stella_evoker_idle_phase1
     // GeckoLib 4.7.3：使用 thenLoop() 而非 then(name, LoopType.LOOP)
@@ -172,6 +176,10 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
     private static final RawAnimation EXECUTION_LAUNCH_ANIM = RawAnimation.begin()
             .thenPlay("stella_evoker_execution_launch");
 
+    // 行走动画：身体前倾8°，双腿交替±20°摆动
+    private static final RawAnimation WALK_ANIM = RawAnimation.begin()
+            .thenLoop("stella_evoker_walk");
+
     // GeckoLib 动画控制器注册
     // attack_controller 优先级高于 idle_controller：
     //   isTransitioning() → 播放转阶段动画（硬切，过渡时间 0）
@@ -198,8 +206,12 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
                 return software.bernie.geckolib.animation.PlayState.CONTINUE;
             }
             if (this.getCombatPhase() == PHASE_2_MELEE) {
-                // 二阶段待机：地面站立姿态，持武器手臂 + 头部扫视 + 重心交替
-                state.getController().setAnimation(IDLE_PHASE2_ANIM);
+                // 二阶段：行走时播放 walk 动画，站立时播放 idle_phase2
+                if (this.isWalking) {
+                    state.getController().setAnimation(WALK_ANIM);
+                } else {
+                    state.getController().setAnimation(IDLE_PHASE2_ANIM);
+                }
                 return software.bernie.geckolib.animation.PlayState.CONTINUE;
             }
             // 一阶段待机：悬浮浮动呼吸动画
