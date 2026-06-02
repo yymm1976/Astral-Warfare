@@ -4,6 +4,7 @@ import com.mochi_753.astral_warfare.client.particle.StellaParticles;
 import com.mochi_753.astral_warfare.entity.ai.GolemMoveToBossGoal;
 import com.mochi_753.astral_warfare.init.ModConstants;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -113,6 +114,23 @@ public class StarcoreGolemEntity extends Monster {
         // 被攻击后清除目标，确保傀儡不会反击
         this.setTarget(null);
         return result;
+    }
+
+    // 【M1修复】充能延迟状态持久化到 NBT
+    // 原先 chargeDelayTimer 和 chargeScheduled 未保存，区块卸载重载后充能倒计时丢失
+    // 导致傀儡永久处于未充能状态，无法再变为充能
+    @Override
+    public void addAdditionalSaveData(CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+        tag.putInt("ChargeDelayTimer", this.chargeDelayTimer);
+        tag.putBoolean("ChargeScheduled", this.chargeScheduled);
+    }
+
+    @Override
+    public void readAdditionalSaveData(CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        this.chargeDelayTimer = tag.getInt("ChargeDelayTimer");
+        this.chargeScheduled = tag.getBoolean("ChargeScheduled");
     }
 
     private static final ResourceLocation CHARGED_SPEED_MODIFIER_ID =

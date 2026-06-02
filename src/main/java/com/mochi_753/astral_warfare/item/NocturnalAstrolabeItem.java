@@ -88,28 +88,40 @@ public class NocturnalAstrolabeItem extends Item {
             return InteractionResultHolder.fail(stack);
         }
 
-        // 全部条件满足：消耗道具、播放音效、生成 BOSS 和水晶
-        if (!player.getAbilities().instabuild) {
-            stack.shrink(1);
-        }
-
-        player.sendSystemMessage(Component.translatable("item.astral_warfare.nocturnal_astrolabe.resonance"));
+        // 全部条件满足：生成 BOSS 和水晶
+        // 【M13修复】道具消耗移到生成成功之后，避免生成失败时道具白白消耗
+        // 【M12修复】BOSS 生成位置添加碰撞检测，避免在低矮空间卡入方块
 
         // 在玩家位置上方 5 格生成 StellaEvokerEntity
+        boolean bossSpawned = false;
         try {
             StellaEvokerEntity boss = ModEntities.STELLA_EVOKER.get().create(serverLevel);
             if (boss != null) {
-                BlockPos spawnPos = player.blockPosition();
-                boss.moveTo(player.getX(), player.getY() + 5.0, player.getZ(), player.getYRot(), 0.0F);
+                // 计算生成位置：玩家上方 5 格
+                double spawnX = player.getX();
+                double spawnY = player.getY() + 5.0;
+                double spawnZ = player.getZ();
+                boss.moveTo(spawnX, spawnY, spawnZ, player.getYRot(), 0.0F);
+
+                // 【M12修复】碰撞检测：如果生成位置在固体方块内，向上扫描安全位置
+                BlockPos spawnPos = boss.blockPosition();
+                if (serverLevel.getBlockState(spawnPos).isSolidRender(serverLevel, spawnPos)) {
+                    for (int y = spawnPos.getY(); y < spawnPos.getY() + 15; y++) {
+                        BlockPos checkPos = new BlockPos(spawnPos.getX(), y, spawnPos.getZ());
+                        if (!serverLevel.getBlockState(checkPos).isSolidRender(serverLevel, checkPos)) {
+                            boss.moveTo(spawnX, y, spawnZ, player.getYRot(), 0.0F);
+                            break;
+                        }
+                    }
+                }
+
                 boss.setPersistenceRequired();
 
                 // 设置祭坛中心坐标（用于防止活塞推走）
-                boss.setAltarCenterPos(spawnPos);
+                boss.setAltarCenterPos(player.blockPosition());
 
                 // 多人动态血量平衡系统
-                // 统计祭坛边界内玩家数量，动态计算 BOSS 最大生命值
-                // 公式：BaseHP + max(0, N-1) * HP_PER_EXTRA_PLAYER
-                int playerCount = countNearbyPlayers(serverLevel, spawnPos);
+                int playerCount = countNearbyPlayers(serverLevel, player.blockPosition());
                 float effectiveHp = (float) (ModConfig.BASE_HP.get()
                         + Math.max(0, playerCount - 1) * ModConfig.HP_PER_EXTRA_PLAYER.get());
 
@@ -120,12 +132,22 @@ public class NocturnalAstrolabeItem extends Item {
                 boss.setHealth(effectiveHp);
 
                 serverLevel.addFreshEntity(boss);
+                bossSpawned = true;
                 LOGGER.info("StellaEvoker 已生成，位置: [{}, {}, {}]，玩家数: {}，动态血量: {}",
-                        spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(),
+                        player.blockPosition().getX(), player.blockPosition().getY(), player.blockPosition().getZ(),
                         playerCount, (int) effectiveHp);
             }
         } catch (Exception e) {
             LOGGER.error("StellaEvoker 生成失败", e);
+        }
+
+        // 【M13修复】只有 BOSS 生成成功才消耗道具
+        if (bossSpawned && !player.getAbilities().instabuild) {
+            stack.shrink(1);
+        }
+
+        if (bossSpawned) {
+            player.sendSystemMessage(Component.translatable("item.astral_warfare.nocturnal_astrolabe.resonance"));
         }
 
         // 在祭坛四角基座位置生成 4 个星界水晶

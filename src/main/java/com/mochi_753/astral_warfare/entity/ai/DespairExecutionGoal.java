@@ -105,7 +105,13 @@ public class DespairExecutionGoal extends Goal {
                 player -> player.isAlive() && !player.isSpectator()
         );
 
+        // 【M6修复】按距离排序选最近玩家，而非取列表第一个
+        // getEntitiesOfClass 不保证按距离排序，原先 get(0) 可能选中远处玩家
         if (!nearbyPlayers.isEmpty()) {
+            nearbyPlayers.sort((a, b) -> Double.compare(
+                    this.evoker.distanceToSqr(a),
+                    this.evoker.distanceToSqr(b)
+            ));
             this.targetPlayer = nearbyPlayers.get(0);
             return true;
         }
@@ -590,9 +596,6 @@ public class DespairExecutionGoal extends Goal {
                 SoundEvents.ANVIL_LAND, SoundSource.HOSTILE, 1.5F, 0.6F);
         level.playSound(null, this.evoker.getX(), this.evoker.getY(), this.evoker.getZ(),
                 SoundEvents.WITHER_BREAK_BLOCK, SoundSource.HOSTILE, 1.5F, 0.8F);
-
-        PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
-                new ClientboundScreenShakePacket(0.8F, 10, 0.08F));
     }
 
     @Override

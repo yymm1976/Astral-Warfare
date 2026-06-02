@@ -1,5 +1,6 @@
 package com.mochi_753.astral_warfare.client;
 
+import com.mochi_753.astral_warfare.AstralWarfare;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.RandomSource;
 import net.neoforged.api.distmarker.Dist;
@@ -14,7 +15,7 @@ import net.neoforged.neoforge.client.event.ViewportEvent;
 //
 // 使用方式：服务端发送 ClientboundScreenShakePacket → 客户端调用 triggerShake()
 // 震动参数：intensity（强度）+ duration（持续tick）+ falloff（每tick衰减）
-@EventBusSubscriber(modid = "astral_warfare", value = Dist.CLIENT)
+@EventBusSubscriber(modid = AstralWarfare.MOD_ID, value = Dist.CLIENT)
 public class ScreenShakeManager {
 
     private static float intensity = 0;

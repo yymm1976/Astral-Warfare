@@ -98,11 +98,14 @@ public class StellaEvokerRenderer extends GeoEntityRenderer<StellaEvokerEntity> 
     private static class VoidHalberdLayer extends GeoRenderLayer<StellaEvokerEntity> {
 
         private final net.minecraft.client.renderer.entity.ItemRenderer itemRenderer;
+        // 【L17修复】缓存 ItemStack 为字段，避免每帧 new ItemStack() 造成 GC 压力
+        private final ItemStack halberdStack;
 
         public VoidHalberdLayer(GeoEntityRenderer<StellaEvokerEntity> renderer,
                                 EntityRendererProvider.Context context) {
             super(renderer);
             this.itemRenderer = context.getItemRenderer();
+            this.halberdStack = new ItemStack(ModItems.VOID_HALBERD.get());
         }
 
         @Override
@@ -121,9 +124,7 @@ public class StellaEvokerRenderer extends GeoEntityRenderer<StellaEvokerEntity> 
             poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(-90.0F));
             poseStack.scale(0.9F, 0.9F, 0.9F);
 
-            ItemStack halberd = new ItemStack(ModItems.VOID_HALBERD.get());
-
-            this.itemRenderer.renderStatic(entity, halberd, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND,
+            this.itemRenderer.renderStatic(entity, this.halberdStack, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND,
                     false, poseStack, bufferSource, entity.level(), 15728880,
                     OverlayTexture.NO_OVERLAY,
                     entity.getId() + 1);

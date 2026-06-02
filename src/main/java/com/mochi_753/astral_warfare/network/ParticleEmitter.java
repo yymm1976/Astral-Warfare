@@ -58,8 +58,10 @@ public class ParticleEmitter implements AutoCloseable {
                     trackingEntity,
                     new ClientboundParticleBatchPacket(currentTypeId, new ArrayList<>(currentBatch))
             );
-        } catch (Throwable t) {
+        } catch (Exception t) {
             // 网络发送失败，静默丢弃当前批次
+            // 【L15修复】改为 catch(Exception)，不再吞没 OutOfMemoryError 等 Error
+            // OOM 等严重错误应向上传播，让 JVM 有机会处理
         }
         currentBatch.clear();
         currentTypeId = -1;
@@ -71,7 +73,7 @@ public class ParticleEmitter implements AutoCloseable {
     public void close() {
         try {
             flush();
-        } catch (Throwable t) {
+        } catch (Exception t) {
             // 网络异常时静默丢弃，不破坏调用方事务
         }
     }

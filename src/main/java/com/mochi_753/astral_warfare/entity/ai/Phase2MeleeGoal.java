@@ -449,9 +449,12 @@ public class Phase2MeleeGoal extends Goal {
             if (this.target != null && this.target.isAlive()) {
                 double distToTarget = this.evoker.distanceTo(this.target);
                 if (distToTarget <= BACKSTAB_MAX_RANGE) {
-                    Vec3 targetLook = this.target.getLookAngle();
-                    double behindX = this.target.getX() - targetLook.x * 1.0;
-                    double behindZ = this.target.getZ() - targetLook.z * 1.0;
+                    // 【L3修复】改用 yaw（水平朝向）计算"背后"位置，而非 lookAngle
+                    // lookAngle 在玩家仰视/俯视时水平分量趋近 0，导致 BOSS 传送到脚下而非背后
+                    // yaw 只包含水平朝向，不受俯仰角影响
+                    float yawRad = this.target.getYRot() * ((float) Math.PI / 180F);
+                    double behindX = this.target.getX() - Math.sin(yawRad) * 1.0;
+                    double behindZ = this.target.getZ() + Math.cos(yawRad) * 1.0;
                     this.evoker.teleportTo(behindX, this.target.getY(), behindZ);
                     // 传送碰撞检测：如果卡在固体方块中，向上扫描安全位置
                     net.minecraft.core.BlockPos tpPos = this.evoker.blockPosition();

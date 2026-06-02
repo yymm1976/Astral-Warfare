@@ -49,9 +49,15 @@ public record ClientboundParticleBatchPacket(int particleTypeId, List<ParticleEn
     }
 
     // 解码：按相同顺序读取数据
+    // 【M10修复】添加 count 上限验证，防止恶意/损坏包导致 OOM
+    private static final int MAX_PARTICLES_PER_BATCH = 512;
+
     private static ClientboundParticleBatchPacket decode(RegistryFriendlyByteBuf buf) {
         int particleTypeId = buf.readInt();
         int count = buf.readInt();
+        if (count < 0 || count > MAX_PARTICLES_PER_BATCH) {
+            throw new IllegalArgumentException("Invalid particle batch count: " + count);
+        }
         List<ParticleEntry> entries = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
             entries.add(new ParticleEntry(
