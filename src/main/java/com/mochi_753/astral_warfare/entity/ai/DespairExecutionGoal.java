@@ -167,8 +167,14 @@ public class DespairExecutionGoal extends Goal {
     private void tickWindup(ServerLevel level) {
         this.evoker.getLookControl().setLookAt(this.targetPlayer, 180.0F, 180.0F);
 
-        // 冲刺期间高速向玩家移动，确保能进入击飞范围
-        this.evoker.getNavigation().moveTo(this.targetPlayer, 1.8);
+        // 【蓄力期站桩修复】
+        // 前 10 tick（0.5 秒）：以 0.6 慢速向玩家走两步，营造"逼近"感
+        // 剩余 20 tick（1 秒）：完全静止，只播放蓄力粒子，像"读大招"
+        if (this.stateTimer < 10) {
+            this.evoker.getNavigation().moveTo(this.targetPlayer, 0.6);
+        } else {
+            this.evoker.getNavigation().stop();
+        }
 
         double progress = (double) this.stateTimer / WINDUP_TICKS;
 

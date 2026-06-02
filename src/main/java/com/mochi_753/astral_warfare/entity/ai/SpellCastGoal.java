@@ -8,9 +8,11 @@ import com.mochi_753.astral_warfare.init.ModEntities;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import com.mochi_753.astral_warfare.network.ClientboundScreenShakePacket;
+import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import org.joml.Vector3f;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
@@ -644,9 +646,8 @@ public class SpellCastGoal extends Goal {
                 py += swayOffset;
 
                 if (isWarningPhase) {
-                    // 后 1.5 秒：猩红色链环
-                    // 主链环：SMOKE_PARTICLE（小而实，不像光晕）
-                    emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 0);
+                    // 后 1.5 秒：鲜红色链环（variant=1 更鲜红，替换暗紫红 variant=0）
+                    emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 1);
                 } else {
                     // 前 1.5 秒：淡蓝色链环
                     // 主链环：SMOKE_PARTICLE（小而实）
@@ -673,10 +674,28 @@ public class SpellCastGoal extends Goal {
                 py += swayOffset;
 
                 if (isWarningPhase) {
-                    emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 0);
+                    emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 1);
                 } else {
                     emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0);
                 }
+            }
+        }
+
+        // 【预警色修复】预警阶段：每 3 tick 朝玩家身上发射纯红色粒子包裹
+        // 使用 DustParticleOptions(RGB(255,0,0), 尺寸) 让玩家身体周围明显变红
+        if (isWarningPhase && this.castTick % 3 == 0) {
+            double targetX = this.fateLinkTarget.getX();
+            double targetY = this.fateLinkTarget.getY();
+            double targetZ = this.fateLinkTarget.getZ();
+            DustParticleOptions redDust = new DustParticleOptions(
+                    new Vector3f(1.0F, 0.0F, 0.0F), 1.2F);
+            for (int i = 0; i < 4; i++) {
+                double ox = (this.evoker.getRandom().nextDouble() - 0.5) * 0.8;
+                double oy = this.evoker.getRandom().nextDouble() * 1.8;
+                double oz = (this.evoker.getRandom().nextDouble() - 0.5) * 0.8;
+                serverLevel.sendParticles(redDust,
+                        targetX + ox, targetY + oy, targetZ + oz,
+                        1, 0.0, 0.1, 0.0, 0.0);
             }
         }
 

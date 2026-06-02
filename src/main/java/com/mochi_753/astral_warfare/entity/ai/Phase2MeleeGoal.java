@@ -65,6 +65,8 @@ public class Phase2MeleeGoal extends Goal {
     // 三段连招冷却：30tick = 1.5秒（连招间短暂停顿，不应长时间站桩）
     private int comboCooldownTimer = 0;
     private static final int COMBO_COOLDOWN = 30;
+    // 冷却期侧向环绕方向：1.0=右绕，-1.0=左绕
+    private float strafeDirection = 1.0F;
     // 拉人冷却：60tick = 3秒
     private int pullCooldownTimer = 0;
     private static final int PULL_COOLDOWN = 60;
@@ -170,7 +172,24 @@ public class Phase2MeleeGoal extends Goal {
         // 面向目标
         this.evoker.getLookControl().setLookAt(this.target, 30.0F, 30.0F);
 
-        // 持续寻路到目标：优先使用导航系统，失败时回退到直接移动
+        double distToTarget = this.evoker.distanceTo(this.target);
+
+        // 【近战冷却期走位优化】
+        // 冷却期：不再满速冲向玩家，改为侧向环绕走位
+        // 效果：BOSS 在三段连招之间会踱步/绕圈，而非贴脸干瞪眼
+        if (this.comboCooldownTimer > 0) {
+            this.evoker.getNavigation().stop();
+            // 侧向环绕：strafe(forwardSpeed, strafeSpeed)
+            // forward=0.5 缓慢靠近，strafe=±1.0 侧向移动
+            // 每 40 tick 随机切换环绕方向，避免一直绕同一侧
+            if (this.evoker.tickCount % 40 == 0) {
+                this.strafeDirection = this.evoker.getRandom().nextBoolean() ? 1.0F : -1.0F;
+            }
+            this.evoker.getMoveControl().strafe(0.5F, this.strafeDirection);
+            return;
+        }
+
+        // 非冷却期：满速追击玩家
         pathRecalcTimer--;
         if (pathRecalcTimer <= 0) {
             pathRecalcTimer = 4 + this.evoker.getRandom().nextInt(4);
@@ -178,19 +197,15 @@ public class Phase2MeleeGoal extends Goal {
             if (path != null) {
                 this.evoker.getNavigation().moveTo(path, 1.0);
             } else {
-                // 回退方案：导航失败时直接设置移动目标位置
-                // MoveControl 会直线走向目标，不绕障碍，但至少保证 BOSS 会追人
                 this.evoker.getNavigation().stop();
                 this.evoker.getMoveControl().setWantedPosition(
                         this.target.getX(), this.target.getY(), this.target.getZ(), 1.0);
             }
         }
 
-        double distToTarget = this.evoker.distanceTo(this.target);
-
         // 判断是否进入拉人（远距离10-35格）
         if (distToTarget > PULL_MIN_DIST && distToTarget < PULL_MAX_DIST
-                && this.pullCooldownTimer <= 0 && this.comboCooldownTimer <= 0) {
+                && this.pullCooldownTimer <= 0) {
             this.state = State.PULL_WINDUP;
             this.stateTimer = 0;
             this.evoker.getNavigation().stop();
@@ -198,7 +213,7 @@ public class Phase2MeleeGoal extends Goal {
         }
 
         // 判断是否进入三段连招（近距离5格内）
-        if (distToTarget <= ATTACK_REACH && this.comboCooldownTimer <= 0) {
+        if (distToTarget <= ATTACK_REACH) {
             this.state = State.SLASH_DELAY;
             this.stateTimer = 0;
             this.evoker.getNavigation().stop();
