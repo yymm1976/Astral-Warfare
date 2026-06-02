@@ -153,7 +153,8 @@ public final class ModConstants {
     public static final double EXECUTION_TELEPORT_HEIGHT = 3.0;
     // 蓄力时间（tick）
     public static final int EXECUTION_CHARGE_TICKS = 15;
-    // 处决主目标伤害
+    // 处决主目标伤害（已迁移至 ModConfig.EXECUTION_DAMAGE，此常量仅作参考，代码不再引用）
+    @Deprecated
     public static final float EXECUTION_DAMAGE = 30.0F;
     // 砸地溅射范围
     // 从 5.0F 增大到 8.0F，扩大砸地冲击波范围

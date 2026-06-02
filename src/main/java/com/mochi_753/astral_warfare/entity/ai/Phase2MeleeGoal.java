@@ -334,6 +334,17 @@ public class Phase2MeleeGoal extends Goal {
                 }
 
                 this.evoker.teleportTo(newX, this.evoker.getY(), newZ);
+                // 传送碰撞检测：如果卡在固体方块中，向上扫描安全位置
+                net.minecraft.core.BlockPos tpPos = this.evoker.blockPosition();
+                if (this.evoker.level().getBlockState(tpPos).isSolidRender(this.evoker.level(), tpPos)) {
+                    for (int y = tpPos.getY(); y < tpPos.getY() + 10; y++) {
+                        net.minecraft.core.BlockPos checkPos = new net.minecraft.core.BlockPos(tpPos.getX(), y, tpPos.getZ());
+                        if (!this.evoker.level().getBlockState(checkPos).isSolidRender(this.evoker.level(), checkPos)) {
+                            this.evoker.teleportTo(tpPos.getX(), y, tpPos.getZ());
+                            break;
+                        }
+                    }
+                }
 
                 // 落点爆发（从3个增加到8个，更大范围）
                 for (int i = 0; i < 8; i++) {
@@ -442,6 +453,17 @@ public class Phase2MeleeGoal extends Goal {
                     double behindX = this.target.getX() - targetLook.x * 1.0;
                     double behindZ = this.target.getZ() - targetLook.z * 1.0;
                     this.evoker.teleportTo(behindX, this.target.getY(), behindZ);
+                    // 传送碰撞检测：如果卡在固体方块中，向上扫描安全位置
+                    net.minecraft.core.BlockPos tpPos = this.evoker.blockPosition();
+                    if (this.evoker.level().getBlockState(tpPos).isSolidRender(this.evoker.level(), tpPos)) {
+                        for (int y = tpPos.getY(); y < tpPos.getY() + 10; y++) {
+                            net.minecraft.core.BlockPos checkPos = new net.minecraft.core.BlockPos(tpPos.getX(), y, tpPos.getZ());
+                            if (!this.evoker.level().getBlockState(checkPos).isSolidRender(this.evoker.level(), checkPos)) {
+                                this.evoker.teleportTo(tpPos.getX(), y, tpPos.getZ());
+                                break;
+                            }
+                        }
+                    }
                 }
             }
             this.evoker.setInvisible(false);

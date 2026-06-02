@@ -52,8 +52,10 @@ public class StellaFlyingMoveControl extends MoveControl {
 
             // 计算移动向量并标准化
             double mag = Math.sqrt(dx * dx + dz * dz);
-            double moveX = (dx / mag) * speed;
-            double moveZ = (dz / mag) * speed;
+            // 除零守卫：当 BOSS 正好在目标正上方/下方时，水平幅度为 0
+            // 此时只做垂直移动，不施加水平速度（避免 NaN 导致实体消失）
+            double moveX = mag > 0.001 ? (dx / mag) * speed : 0;
+            double moveZ = mag > 0.001 ? (dz / mag) * speed : 0;
             double moveY = Math.signum(dy) * Math.min(Math.abs(dy) * 0.1, speed);
 
             this.mob.setDeltaMovement(this.mob.getDeltaMovement().add(moveX * 0.1, moveY * 0.1, moveZ * 0.1));

@@ -591,9 +591,13 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
 
             // 停止所有正在运行的 AI Goal
             // 1.21.1 中 GoalSelector 没有 getRunningGoals()，使用 getAvailableGoals 过滤运行中的 Goal
-            this.goalSelector.getAvailableGoals().stream()
+            // 先收集到临时列表再遍历停止，避免 stop() 修改 GoalSelector 内部状态导致 ConcurrentModificationException
+            java.util.List<WrappedGoal> runningGoals = this.goalSelector.getAvailableGoals().stream()
                     .filter(WrappedGoal::isRunning)
-                    .forEach(WrappedGoal::stop);
+                    .toList();
+            for (WrappedGoal goal : runningGoals) {
+                goal.stop();
+            }
 
             // 播放凋灵死亡音效（低沉的终末感）
             this.level().playSound(null, this.getX(), this.getY(), this.getZ(),

@@ -2,6 +2,7 @@ package com.mochi_753.astral_warfare.entity.ai;
 
 import com.mochi_753.astral_warfare.init.ModEffects;
 import com.mochi_753.astral_warfare.init.ModConstants;
+import com.mochi_753.astral_warfare.init.ModConfig;
 import com.mochi_753.astral_warfare.entity.StellaEvokerEntity;
 import com.mochi_753.astral_warfare.entity.StarcoreGolemEntity;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
@@ -61,10 +62,16 @@ public class DespairExecutionGoal extends Goal {
     private static final int LAUNCH_TICKS = 10;
     // 禁锢施加延迟：击飞后等待8tick让玩家升空，再施加禁锢
     private static final int ENTRAPMENT_DELAY_TICKS = 8;
-    private static final float EXECUTION_DAMAGE = ModConstants.EXECUTION_DAMAGE;
     private static final float SLAM_RADIUS = ModConstants.EXECUTION_SLAM_RADIUS;
     private static final float TRIGGER_HEALTH_PERCENT = ModConstants.EXECUTION_TRIGGER_HEALTH_PERCENT;
     private static final double TRIGGER_RANGE = ModConstants.EXECUTION_TRIGGER_RANGE;
+
+    // 【H4修复】终结技伤害改用 ModConfig 动态读取，而非 ModConstants 硬编码
+    // ModConstants.EXECUTION_DAMAGE=30.0F 是死值，ModConfig 默认=80.0 且服主可调
+    // 不能用 static final（编译时常量），必须运行时 .get() 读取
+    private float getExecutionDamage() {
+        return ModConfig.EXECUTION_DAMAGE.get().floatValue();
+    }
 
     public DespairExecutionGoal(StellaEvokerEntity evoker) {
         this.evoker = evoker;
@@ -515,7 +522,7 @@ public class DespairExecutionGoal extends Goal {
         if (this.targetPlayer != null && this.targetPlayer.isAlive()) {
             this.targetPlayer.hurt(
                     level.damageSources().indirectMagic(this.evoker, this.evoker),
-                    EXECUTION_DAMAGE
+                    getExecutionDamage()
             );
             spawnHalberdImpactTrail(level, this.targetPlayer);
             this.targetPlayer.knockback(1.5F,
