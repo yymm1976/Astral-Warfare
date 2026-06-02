@@ -56,6 +56,8 @@ public class DespairExecutionGoal extends Goal {
     // 击飞标记：确保击飞+伤害只执行一次，避免每tick重复造成10倍伤害
     private boolean hasLaunched = false;
     private static final int COOLDOWN_TICKS = ModConstants.EXECUTION_COOLDOWN_TICKS;
+    // 终结技成功后最小间隔：与 COOLDOWN 取最大值，确保成功后至少 30 秒才能再次触发
+    private static final int MIN_INTERVAL_TICKS = ModConstants.EXECUTION_MIN_INTERVAL_TICKS;
     private static final int WINDUP_TICKS = ModConstants.EXECUTION_WINDUP_TICKS;
     private static final float LAUNCH_DAMAGE = ModConstants.EXECUTION_LAUNCH_DAMAGE;
     private static final double LAUNCH_RANGE = ModConstants.EXECUTION_LAUNCH_RANGE;
@@ -265,6 +267,9 @@ public class DespairExecutionGoal extends Goal {
         suppressMovement();
 
         if (!this.hasLaunched) {
+            // 击飞动画：BOSS 下沉蓄力→猛然上挥，模拟"将玩家从地面掀起"
+            this.evoker.currentAttackAnim = "stella_evoker_execution_launch";
+
             // WINDUP 结束时已保证 BOSS 在范围内，此处直接执行击飞
             if (this.targetPlayer != null && this.targetPlayer.isAlive()) {
                 this.hasLaunched = true;
@@ -478,7 +483,7 @@ public class DespairExecutionGoal extends Goal {
             this.evoker.currentAttackAnim = null;
             this.state = State.IDLE;
             this.stateTimer = 0;
-            this.cooldownTimer = COOLDOWN_TICKS;
+            this.cooldownTimer = Math.max(COOLDOWN_TICKS, MIN_INTERVAL_TICKS);
             this.targetPlayer = null;
         }
 
@@ -515,7 +520,8 @@ public class DespairExecutionGoal extends Goal {
         this.state = State.IDLE;
         this.stateTimer = 0;
         this.evoker.currentAttackAnim = null;
-        this.cooldownTimer = COOLDOWN_TICKS / 2;
+        // 落空惩罚：COOLDOWN_TICKS * 3/4 = 300 tick = 15 秒
+        this.cooldownTimer = COOLDOWN_TICKS * 3 / 4;
         this.evoker.setNoGravity(false);
         this.targetPlayer = null;
     }

@@ -134,8 +134,11 @@ public final class ModConstants {
 
     // ==================== 绝望处决 ====================
 
-    // 处决连招冷却（tick）
-    public static final int EXECUTION_COOLDOWN_TICKS = 200;
+    // 处决连招冷却（tick）= 20 秒
+    public static final int EXECUTION_COOLDOWN_TICKS = 400;
+    // 处决成功后最小间隔（tick）= 30 秒，与 COOLDOWN 取最大值
+    // 确保终结技成功后至少 30 秒才能再次触发
+    public static final int EXECUTION_MIN_INTERVAL_TICKS = 600;
     // 处决触发血量阈值：BOSS血量低于此百分比时终结技可用
     public static final float EXECUTION_TRIGGER_HEALTH_PERCENT = 0.35F;
     // 处决触发范围：玩家在此范围内才会触发

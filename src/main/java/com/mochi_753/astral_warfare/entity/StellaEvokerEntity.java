@@ -164,6 +164,14 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
     private static final RawAnimation PHASE_TRANSITION_ANIM = RawAnimation.begin()
             .thenPlay("stella_evoker_phase_transition");
 
+    // 施法动画：双臂举过头顶→保持→快速下挥
+    private static final RawAnimation SPELL_CAST_ANIM = RawAnimation.begin()
+            .thenPlay("stella_evoker_spell_cast");
+
+    // 终结技击飞动画：下沉蓄力→猛然上挥（将玩家从地面掀起）
+    private static final RawAnimation EXECUTION_LAUNCH_ANIM = RawAnimation.begin()
+            .thenPlay("stella_evoker_execution_launch");
+
     // GeckoLib 动画控制器注册
     // attack_controller 优先级高于 idle_controller：
     //   isTransitioning() → 播放转阶段动画（硬切，过渡时间 0）
@@ -214,6 +222,8 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
                     case "stella_evoker_backstab" -> BACKSTAB_ANIM;
                     case "stella_evoker_execution_slam" -> EXECUTION_SLAM_ANIM;
                     case "stella_evoker_phase_transition" -> PHASE_TRANSITION_ANIM;
+                    case "stella_evoker_spell_cast" -> SPELL_CAST_ANIM;
+                    case "stella_evoker_execution_launch" -> EXECUTION_LAUNCH_ANIM;
                     default -> null;
                 };
                 if (anim != null) {

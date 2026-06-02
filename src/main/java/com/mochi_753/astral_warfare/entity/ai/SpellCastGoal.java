@@ -157,6 +157,9 @@ public class SpellCastGoal extends Goal {
         this.castTick = 0;
         this.beamDamageTimer = 0;
 
+        // 施法动画：BOSS 举手→下挥，增强法术释放的视觉反馈
+        this.evoker.currentAttackAnim = "stella_evoker_spell_cast";
+
         // 星命锁链：记录目标玩家和起始位置
         if (this.currentSpell == SpellType.FATE_LINK) {
             Player target = this.evoker.level().getNearestPlayer(this.evoker, 64.0);
@@ -291,6 +294,8 @@ public class SpellCastGoal extends Goal {
             this.evoker.setCurrentMana(newMana);
             this.cooldowns.put(this.currentSpell, this.currentSpell.cooldownTicks);
             this.nextCastAttempt = 100 + this.evoker.getRandom().nextInt(40);
+            // 施法动画结束，清除攻击动画引用，让 idle_controller 接管
+            this.evoker.currentAttackAnim = null;
             cleanupSpell();
             this.currentSpell = null;
         }
