@@ -208,68 +208,97 @@ public class DespairExecutionGoal extends Goal {
         }
 
         if (this.stateTimer >= WINDUP_TICKS) {
-            // 【BUG#5修复】冲刺结束后停止导航，BOSS不再自由移动
+            // 【击飞可靠性修复】冲刺结束后停止导航
             this.evoker.getNavigation().stop();
+
+            // 如果 BOSS 不在击飞范围内，强制瞬移到玩家身边
+            // 原先如果 WINDUP 导航没走到位，击飞距离判断会失败导致终结技直接中断
+            // 现在保证 WINDUP 结束后 BOSS 一定在玩家身边，击飞必定生效
+            if (this.targetPlayer != null && this.targetPlayer.isAlive()) {
+                double distToTarget = this.evoker.distanceTo(this.targetPlayer);
+                if (distToTarget > LAUNCH_RANGE) {
+                    // 瞬移到玩家身前 2 格处（面向玩家的方向偏移）
+                    Vec3 dir = this.targetPlayer.position().subtract(this.evoker.position()).normalize();
+                    double tpX = this.targetPlayer.getX() - dir.x * 2.0;
+                    double tpZ = this.targetPlayer.getZ() - dir.z * 2.0;
+                    this.evoker.teleportTo(tpX, this.targetPlayer.getY(), tpZ);
+                    this.evoker.getLookControl().setLookAt(this.targetPlayer, 180.0F, 180.0F);
+                }
+            }
+
             this.state = State.LAUNCHING;
             this.stateTimer = 0;
         }
     }
 
-    // 击飞阶段：将范围内玩家击飞到高空+伤害
+    // 击飞阶段：将玩家击飞到高空+伤害
     // 【BUG#1修复】此阶段只击飞+伤害，不施加禁锢
     // 禁锢在下一个状态 ENTRAPMENT 中施加，确保玩家已在空中
-    // 距离检查只在击飞前执行一次，击飞后不再检查（防止玩家升空后距离增大导致终结技中断）
+    //
+    // 【击飞可靠性修复】
+    // 原先仅用 setDeltaMovement(0, 2.5, 0) 设置击飞速度，但 Minecraft 玩家移动由客户端主导，
+    // 客户端本地预测会在下一 tick 立即覆盖服务端设置的速度，导致击飞"有概率失效"。
+    // 修复方案：每 tick 持续强制设置 Y 轴正速度 + hurtMarked 同步，直到玩家升到目标高度。
+    // 同时 WINDUP 结束时保证 BOSS 在范围内（不够就瞬移），避免距离判断导致击飞被跳过。
     private void tickLaunching(ServerLevel level) {
-        // 【BUG#5修复】击飞阶段BOSS不可移动
         suppressMovement();
 
         if (!this.hasLaunched) {
-            // 击飞前：检查距离，只在首次执行
+            // WINDUP 结束时已保证 BOSS 在范围内，此处直接执行击飞
             if (this.targetPlayer != null && this.targetPlayer.isAlive()) {
-                double distToTarget = this.evoker.distanceTo(this.targetPlayer);
+                this.hasLaunched = true;
 
-                if (distToTarget <= LAUNCH_RANGE) {
-                    this.hasLaunched = true;
-                    // 击飞到高空：2.5 格/tick 向上速度，约飞到 8-10 格高度
-                    this.targetPlayer.setDeltaMovement(0, 2.5, 0);
-                    this.targetPlayer.hurt(level.damageSources().indirectMagic(this.evoker, this.evoker),
-                            LAUNCH_DAMAGE);
-                    this.targetPlayer.hurtMarked = true;
+                // 先造成伤害（hurt 会触发击退抗性计算，但我们的击飞是手动设置速度，不受影响）
+                this.targetPlayer.hurt(level.damageSources().indirectMagic(this.evoker, this.evoker),
+                        LAUNCH_DAMAGE);
 
-                    // 击飞爆发粒子
-                    try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
-                        for (int i = 0; i < 12; i++) {
-                            double px = this.targetPlayer.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
-                            double py = this.targetPlayer.getY() + this.evoker.getRandom().nextDouble() * 1.5;
-                            double pz = this.targetPlayer.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
-                            emitter.add(StellaParticles.ID_TRANSITION_BURST, px, py, pz, 0);
-                        }
+                // 击飞到高空：2.5 格/tick 向上速度，约飞到 8-10 格高度
+                // hurtMarked = true 告诉客户端"服务端强制修改了你的速度/位置，请同步"
+                this.targetPlayer.setDeltaMovement(0, 2.5, 0);
+                this.targetPlayer.hurtMarked = true;
+                // 强制同步位置到客户端，防止客户端预测覆盖击飞速度
+                this.targetPlayer.teleportTo(
+                        this.targetPlayer.getX(),
+                        this.targetPlayer.getY(),
+                        this.targetPlayer.getZ()
+                );
+
+                // 击飞爆发粒子
+                try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+                    for (int i = 0; i < 12; i++) {
+                        double px = this.targetPlayer.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
+                        double py = this.targetPlayer.getY() + this.evoker.getRandom().nextDouble() * 1.5;
+                        double pz = this.targetPlayer.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
+                        emitter.add(StellaParticles.ID_TRANSITION_BURST, px, py, pz, 0);
                     }
-                    level.sendParticles(net.minecraft.core.particles.ParticleTypes.EXPLOSION,
-                            this.targetPlayer.getX(), this.targetPlayer.getY() + 1.0, this.targetPlayer.getZ(),
-                            1, 0.0, 0.0, 0.0, 0.0);
-
-                    level.playSound(null, this.targetPlayer.getX(), this.targetPlayer.getY(), this.targetPlayer.getZ(),
-                            SoundEvents.GENERIC_EXPLODE, SoundSource.HOSTILE, 1.5F, 1.0F);
-                } else {
-                    // 玩家跑出范围：终结技落空，进入冷却
-                    this.state = State.IDLE;
-                    this.stateTimer = 0;
-                    this.cooldownTimer = COOLDOWN_TICKS / 2;
-                    this.targetPlayer = null;
-                    return;
                 }
+                level.sendParticles(net.minecraft.core.particles.ParticleTypes.EXPLOSION,
+                        this.targetPlayer.getX(), this.targetPlayer.getY() + 1.0, this.targetPlayer.getZ(),
+                        1, 0.0, 0.0, 0.0, 0.0);
+
+                level.playSound(null, this.targetPlayer.getX(), this.targetPlayer.getY(), this.targetPlayer.getZ(),
+                        SoundEvents.GENERIC_EXPLODE, SoundSource.HOSTILE, 1.5F, 1.0F);
             }
         }
 
-        // 击飞后持续悬浮：防止玩家因重力下落（但不禁锢，禁锢在ENTRAPMENT阶段施加）
-        if (this.targetPlayer != null && this.targetPlayer.getDeltaMovement().y < 0) {
-            this.targetPlayer.setDeltaMovement(0, 0, 0);
-            this.targetPlayer.hurtMarked = true;
+        // 击飞后持续强制 Y 速度 + 同步，防止客户端预测覆盖导致击飞失效
+        // 在玩家 Y 速度变为负数（开始下落）之前，持续施加向上的推力
+        if (this.targetPlayer != null && this.targetPlayer.isAlive()) {
+            if (this.stateTimer < LAUNCH_TICKS - 2) {
+                // 击飞前中期：持续施加向上推力，确保玩家持续上升
+                double currentY = this.targetPlayer.getDeltaMovement().y;
+                if (currentY < 2.0) {
+                    this.targetPlayer.setDeltaMovement(0, 2.0, 0);
+                    this.targetPlayer.hurtMarked = true;
+                }
+            } else if (this.targetPlayer.getDeltaMovement().y < 0) {
+                // 击飞末期：玩家开始下落时归零速度，让玩家悬浮在空中
+                this.targetPlayer.setDeltaMovement(0, 0, 0);
+                this.targetPlayer.hurtMarked = true;
+            }
         }
 
         if (this.stateTimer >= LAUNCH_TICKS) {
-            // 击飞阶段结束，进入禁锢施加阶段
             this.state = State.ENTRAPMENT;
             this.stateTimer = 0;
         }
