@@ -234,9 +234,9 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
         return this.tickCount;
     }
 
-    // 施法 AI Goal：包可见，供组件访问
+    // 施法 AI Goal：public 供 entity.ai 包中的 Goal 互相访问
     SpellCastGoal spellCastGoal;
-    Phase2MeleeGoal phase2MeleeGoal;
+    public Phase2MeleeGoal phase2MeleeGoal;
     DespairExecutionGoal despairExecutionGoal;
 
     // 祭坛中心坐标（用于防止活塞推走等边缘情况）

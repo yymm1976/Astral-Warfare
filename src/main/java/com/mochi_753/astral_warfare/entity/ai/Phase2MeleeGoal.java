@@ -99,12 +99,6 @@ public class Phase2MeleeGoal extends Goal {
     // 从 12.0 增大到 18.0，扩大背刺追击范围
     private static final double BACKSTAB_MAX_RANGE = 18.0;
 
-    // 【BUG#4修复】供 DespairExecutionGoal 检查普攻是否正在进行
-    // 防止终结技在普攻连招执行中被触发
-    public boolean isAttacking() {
-        return this.state != State.IDLE;
-    }
-
     public Phase2MeleeGoal(StellaEvokerEntity evoker) {
         this.evoker = evoker;
         this.setFlags(java.util.EnumSet.of(Flag.MOVE, Flag.LOOK));
@@ -679,6 +673,12 @@ public class Phase2MeleeGoal extends Goal {
         double dot = lookDir.dot(toTarget);
         double angle = Math.acos(Math.max(-1.0, Math.min(1.0, dot)));
         return angle <= Math.toRadians(coneAngleDeg / 2.0);
+    }
+
+    // 【BUG#4修复】供 DespairExecutionGoal 检查普攻是否正在进行
+    // 防止终结技在普攻三连期间触发
+    public boolean isAttacking() {
+        return this.state != State.IDLE;
     }
 
     private enum State {
