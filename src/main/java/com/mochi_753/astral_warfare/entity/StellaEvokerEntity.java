@@ -176,7 +176,31 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
     //   否则 → 播放一阶段悬浮待机（浮动呼吸）
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        // 【A2修复】idle_controller 先注册（低优先级），attack_controller 后注册（高优先级）
+        // GeckoLib 中后注册的控制器先执行，返回 CONTINUE 时覆盖先注册控制器的骨骼变换
+        // 原先 attack 先注册导致攻击动画被 idle 覆盖，交换后攻击动画优先级更高
+
+        // 待机控制器：过渡时间 10 tick（平滑切换）
+        // 死亡动画例外：检测到 isDying() 时临时将过渡时间设为 0，确保跪地动作瞬间开始
+        controllers.add(new AnimationController<>(this, "idle_controller", 10, state -> {
+            if (this.isDying()) {
+                // 死亡动画：硬切（过渡时间 0），跪地动作干脆无过渡
+                state.getController().transitionLength(0);
+                state.getController().setAnimation(DEATH_ANIM);
+                return software.bernie.geckolib.animation.PlayState.CONTINUE;
+            }
+            if (this.getCombatPhase() == PHASE_2_MELEE) {
+                // 二阶段待机：地面站立姿态，持武器手臂 + 头部扫视 + 重心交替
+                state.getController().setAnimation(IDLE_PHASE2_ANIM);
+                return software.bernie.geckolib.animation.PlayState.CONTINUE;
+            }
+            // 一阶段待机：悬浮浮动呼吸动画
+            state.getController().setAnimation(IDLE_PHASE1_ANIM);
+            return software.bernie.geckolib.animation.PlayState.CONTINUE;
+        }));
+
         // 攻击/演出控制器：过渡时间 0（出招/演出瞬间硬切，不放过渡）
+        // 后注册 = 高优先级：攻击/死亡动画的骨骼变换覆盖待机动画
         controllers.add(new AnimationController<>(this, "attack_controller", 0, state -> {
             // 转阶段动画优先级最高：isTransitioning() 时强制播放
             if (this.isTransitioning()) {
@@ -200,38 +224,12 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
             // 无攻击/演出动画：让 idle_controller 接管
             return software.bernie.geckolib.animation.PlayState.STOP;
         }));
-
-        // 待机控制器：过渡时间 10 tick（平滑切换）
-        // 死亡动画例外：检测到 isDying() 时临时将过渡时间设为 0，确保跪地动作瞬间开始
-        controllers.add(new AnimationController<>(this, "idle_controller", 10, state -> {
-            if (this.isDying()) {
-                // 死亡动画：硬切（过渡时间 0），跪地动作干脆无过渡
-                state.getController().transitionLength(0);
-                state.getController().setAnimation(DEATH_ANIM);
-                return software.bernie.geckolib.animation.PlayState.STOP;
-            }
-            if (this.getCombatPhase() == PHASE_2_MELEE) {
-                // 二阶段待机：地面站立姿态，持武器手臂 + 头部扫视 + 重心交替
-                state.getController().setAnimation(IDLE_PHASE2_ANIM);
-                return software.bernie.geckolib.animation.PlayState.CONTINUE;
-            }
-            // 一阶段待机：悬浮浮动呼吸动画
-            state.getController().setAnimation(IDLE_PHASE1_ANIM);
-            return software.bernie.geckolib.animation.PlayState.CONTINUE;
-        }));
     }
 
     // 返回动画实例缓存（GeoEntity 接口要求）
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return geoCache;
-    }
-
-    // 返回当前 tick 数（GeoEntity 接口要求）
-    // GeckoLib 使用此值驱动动画时间轴
-    @Override
-    public double getTick(Object entity) {
-        return this.tickCount;
     }
 
     // 施法 AI Goal：public 供 entity.ai 包中的 Goal 互相访问

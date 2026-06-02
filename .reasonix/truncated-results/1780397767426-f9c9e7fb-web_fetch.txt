@@ -1,0 +1,585 @@
+Geckolib 4 Changes · bernie-g/geckolib Wiki · GitHub
+https://github.com/bernie-g/geckolib/wiki/Geckolib-4-Changes
+
+<!DOCTYPE html>
+
+Geckolib 4 Changes · bernie-g/geckolib Wiki · GitHub
+
+Skip to content
+
+Navigation Menu
+
+Toggle navigation
+
+Sign in
+
+Appearance settings
+
+Search or jump to...
+
+Search code, repositories, users, issues, pull requests...
+
+Search
+
+Clear
+
+Search syntax tips 
+
+Provide feedback
+
+We read every piece of feedback, and take your input very seriously.
+
+Include my email address so I can be contacted
+
+Cancel
+
+Submit feedback
+
+Saved searches
+
+Use saved searches to filter your results more quickly
+
+Name
+
+Query
+
+To see all available qualifiers, see our documentation.
+
+Cancel
+
+Create saved search
+
+Sign in
+
+Sign up
+
+Appearance settings
+
+Resetting focus
+
+You signed in with another tab or window. Reload to refresh your session.
+You signed out in another tab or window. Reload to refresh your session.
+You switched accounts on another tab or window. Reload to refresh your session.
+
+Dismiss alert
+
+{{ message }}
+
+bernie-g
+
+/
+
+geckolib
+
+Public
+
+Uh oh!
+
+There was an error while loading. Please reload this page.
+
+Notifications
+You must be signed in to change notification settings
+
+Fork
+157
+
+Star
+813
+
+Geckolib 4 Changes
+
+Jump to bottom
+
+Tslat edited this page Oct 28, 2025
+&middot;
+28 revisions
+
+Upgrading from GeckoLib 3.1.x to 4.0
+
+GeckoLib 4.0 was a substantial overhaul of the entire library and all of its associated classes.
+Because of this, there will be some things you will need to change in your mod to update your mod to work with GeckoLib 4.0+
+
+Table of Contents
+
+Change Summary
+
+Class Renames
+
+Class Merges/Removals
+
+Conceptual Changes
+
+Creating your Animatable class
+
+Creating your AnimatableInstanceCache
+
+Creating your RawAnimation (Previously AnimationBuilder)
+
+Default loop type
+
+Making a GeoArmor
+
+Other notable changes
+
+Custom RenderType for animatables
+
+Custom LoopTypes
+
+Custom EasingTypes
+
+Render Layers
+
+DynamicGeoEntityRenderer
+
+Defaulted GeoModels
+
+Default Animations
+
+DataTickets
+
+Native data syncing
+
+Server-triggerable animations
+
+Examples
+
+Example Entity
+
+Example Item
+
+Example Armor
+
+Example BlockEntity
+
+Change Summary
+
+Due to the extent of the overhaul in 4.0, there's not really any point in listing out all changes.
+Instead we can give a quick summary of the things that are most likely to impact you as a mod dev.
+
+The below list is not an exhaustive list of changes, these are just the ones that are likely to be the most important ones
+
+Class Renames
+
+AnimationData -> AnimatableManager
+
+AnimationFactory -> AnimatableInstanceCache
+
+IGeoRenderer -> GeoRenderer
+
+GeoLayerRenderer -> GeoRenderLayer
+
+ExtendedGeoEntityRenderer -> DynamicGeoEntityRenderer
+
+LayerGlowingAreasGeo -> AutoGlowingGeoLayer
+
+AnimatedGeoModel -> GeoModel
+
+GeckoLibIdTracker -> AnimatableIdCache
+
+AnimationBuilder -> RawAnimation
+
+IAnimatable -> GeoAnimatable
+
+IBone -> CoreGeoBone
+
+ILoopType -> Animation$LoopType
+
+AnimationEvent -> AnimationState
+
+Class Merges/Removals
+
+AbstractLayerGeo -> Merged into GeoRenderLayer
+
+IAnimatableModelProvider -> Removed, functionality moved into renderers
+
+GeoModelProvider -> Removed, functionality moved into renderers
+
+AnimatedTickingGeoModel -> Removed, functionality moved into renderers
+
+EasingManager -> Merged into EasingType
+
+EasingFunctionArgs -> Merged into EasingType
+
+IAnimationTickable -> Removed, functionality moved into renderers
+
+IAnimatableModel -> Merged into GeoModel
+
+EDefaultLoopTypes -> Merged into Animation$LoopType
+
+GeoProjectilesRenderer -> Merged into GeoEntityRenderer
+
+Conceptual Changes
+
+Animatable classes now specify the subtype they belong to via interface (GeoEntity, etc)
+
+GeoModels now define the default render type for themselves, not the renderer
+
+The numerous model classes have all been collapsed into one
+
+Native data syncing now exists
+
+Server-triggerable animations now exists
+
+Render layers have expanded functionality and are now supported on all geo renderers
+
+Defaulted model classes now exist
+
+Animation controller/manager extra data is now generified and specific
+
+Glowlayers now supports pre-made mask images instead of using mcmeta (optional, can still use mcmeta)
+
+LoopTypes now support json-defined loop types
+
+Custom LoopTypes and EasingTypes now supported natively
+
+AnimationFactory split into two classes after being renamed, uses factory method to get new instance
+
+Bedrock Animation Format is now supported, along with with catmullRom/smooth easing
+
+AnimationControllers are now registered to a registrar, as opposed to directly to the AnimatableManager, and animation controllers are now reliably ordered in operation
+
+Creating your Animatable class
+
+Previously in GeckoLib3, you would implement IAnimatable. In GeckoLib4, there are a handful of specific interfaces that you select from depending on your animatable type.
+These are important because they hold useful builtin methods that will likely be critical for your interaction with GeckoLib
+
+Animatable Type
+Interface
+
+Entity
+GeoEntity
+
+Projectile
+GeoEntity
+
+BlockEntity
+GeoBlockEntity
+
+Item
+GeoItem
+
+Armor
+GeoItem
+
+Existing Entity
+GeoReplacedEntity
+
+E.G.
+
+<span class="pl-k">public</span> <span class="pl-k">class</span> <span class="pl-s1">ExampleEntity</span> <span class="pl-k">extends</span> <span class="pl-smi">PathfinderMob</span> <span class="pl-k">implements</span> <span class="pl-smi">GeoEntity</span>
+
+Creating your AnimatableInstanceCache
+
+With exception to the very newest of the GeckoLib3 versions, you previously instantiated your AnimationFactory with its constructor. In GeckoLib4, this class has been renamed, and you instantiate your cache with GeckoLibUtil.createInstanceCache(Animatable).
+This allows GeckoLib to create a cache of an appropriate type for your animatable
+
+E.G.
+
+<span class="pl-k">private</span> <span class="pl-k">final</span> <span class="pl-smi">AnimatableInstanceCache</span> <span class="pl-s1">cache</span> = <span class="pl-smi">GeckoLibUtil</span>.<span class="pl-en">createInstanceCache</span>(<span class="pl-smi">this</span>);
+
+Creating your RawAnimation (Previously AnimationBuilder)
+
+In GeckoLib3, animations to pass to the AnimationController were created by using the class's constructor, then chaining addAnimation.
+As of GeckoLib4, this is a little different.
+
+You now create your RawAnimation via RawAnimation.begin(), followed by chaining one of the various methods available in the RawAnimation class.
+
+Default loop type
+
+One notable change is that by default; animations will now use the loop type defined in the animation json.
+This means that if you use the thenPlay method in RawAnimation, your animation will loop in whatever manner your animation json defined, allowing for users to customise animations in resourcepacks to a greater degree.
+
+As always, you should cache your RawAnimation instances in a static field so you're not recreating the instance every render frame.
+
+E.G.
+
+<span class="pl-k">private</span> <span class="pl-k">static</span> <span class="pl-k">final</span> <span class="pl-smi">RawAnimation</span> <span class="pl-c1">SPIN_ANIM</span> = <span class="pl-smi">RawAnimation</span>.<span class="pl-en">begin</span>().<span class="pl-en">thenPlay</span>(<span class="pl-s">"misc.spin"</span>);
+
+Making a GeoArmor
+
+In GeckoLib4, we make use of some inline render providers for armor rendering, instead of arbitrarily registering classes to the armor renderer.
+
+Forge
+
+<span class="pl-k">public</span> <span class="pl-smi">void</span> <span class="pl-en">initializeClient</span>(<span class="pl-smi">Consumer</span><<span class="pl-smi">IClientItemExtensions</span>> <span class="pl-s1">consumer</span>) {
+<span class="pl-s1">consumer</span>.<span class="pl-en">accept</span>(<span class="pl-k">new</span> <span class="pl-smi">IClientItemExtensions</span>() {
+<span class="pl-k">private</span> <span class="pl-smi">GeoArmorRenderer</span><?> <span class="pl-s1">renderer</span>;
+
+<span class="pl-c1">@</span><span class="pl-c1">Override</span>
+<span class="pl-k">public</span> <span class="pl-c1">@</span><span class="pl-c1">NotNull</span> <span class="pl-smi">HumanoidModel</span><?> <span class="pl-en">getHumanoidArmorModel</span>(<span class="pl-smi">LivingEntity</span> <span class="pl-s1">livingEntity</span>, <span class="pl-smi">ItemStack</span> <span class="pl-s1">itemStack</span>, <span class="pl-smi">EquipmentSlot</span> <span class="pl-s1">equipmentSlot</span>, <span class="pl-smi">HumanoidModel</span><?> <span class="pl-s1">original</span>) {
+<span class="pl-k">if</span> (<span class="pl-smi">this</span>.<span class="pl-s1">renderer</span> == <span class="pl-c1">null</span>)
+<span class="pl-smi">this</span>.<span class="pl-s1">renderer</span> = <span class="pl-k">new</span> <span class="pl-smi">MyArmorRenderer</span>();
+
+<span class="pl-c">// This prepares our GeoArmorRenderer for the current render frame.</span>
+<span class="pl-c">// These parameters may be null however, so we don't do anything further with them</span>
+<span class="pl-smi">this</span>.<span class="pl-s1">renderer</span>.<span class="pl-en">prepForRender</span>(<span class="pl-s1">livingEntity</span>, <span class="pl-s1">itemStack</span>, <span class="pl-s1">equipmentSlot</span>, <span class="pl-s1">original</span>);
+
+<span class="pl-k">return</span> <span class="pl-smi">this</span>.<span class="pl-s1">renderer</span>;
+}
+});
+}
+
+Fabric/Quilt
+
+TBA
+
+Other notable changes
+
+Custom RenderType for animatables
+
+GeckoLib4 allows for animatables to define the default RenderType for their object in the GeoModel. This means that you do not need to extend or anonymously override the renderer to change the render type.
+
+Custom LoopTypes
+
+LoopType now supports custom loop types, allowing developers to handle looping in their own specific way.
+This is done by registering a new instance of LoopType to GeckoLib via GeckoLibUtil.addCustomLoopType(String, LoopType). This must be called during your mod constructor, otherwise the loop type will not be registered in time for GeckoLib to use it when deserialization the animation jsons
+
+Custom EasingTypes
+
+EasingType now supports custom easings, allowing developers to apply custom easings to animations if needed.
+This is done by registering a new instance of EasingType to GeckoLib via GeckoLibUtil.addCustomEasingType(String, EasingType). This must be called during your mod constructor, otherwise the easing type will not be registered in time for GeckoLib to use it when deserialization the animation jsons
+
+Render Layers
+
+Render Layers have been expanded greatly in GeckoLib4. Not only does the base layer have much more information provided to you at render time, it also comes with additional hooks that allow for pre-render operations, as well as a hook to render right in the middle of when a bone is being rendered.
+
+In addition to this, several additional layers have been bundled in for use, such as a layer for dynamically hiding/showing bones, or one to render items or blocks alongside the model.
+
+DynamicGeoEntityRenderer
+
+Previously in GeckoLib3, ExtendedGeoEntityRenderer bundled several additional rendering functions for more advanced animatable rendering.
+In GeckoLib4, about half of that functionality has been split into various GeoRenderLayers allowing for any animatable to take advantage of the functionality.
+Additionally, the class has been renamed to DynamicGeoEntityRenderer.
+DynamicGeoEntityRenderer is now primarily used for per-bone render overrides, such as custom textures or render types.
+
+Defaulted GeoModels
+
+GeckoLib4+ provides several built-in animatable model subclasses. These defaulted classes allow for easy and consistent handling of animatable asset paths.
+These are completely optional to use, but it is recommended to use them as they encourage consistency of use.
+
+Example entity usage:
+
+<span class="pl-k">public</span> <span class="pl-k">class</span> <span class="pl-smi">MyEntityModel</span> <span class="pl-k">extends</span> <span class="pl-smi">DefaultedEntityGeoModel</span><<span class="pl-smi">MyEntity</span>> {
+<span class="pl-k">public</span> <span class="pl-smi">MyEntityModel</span>() {
+<span class="pl-en">super</span>(<span class="pl-k">new</span> <span class="pl-smi">ResourceLocation</span>(<span class="pl-smi">MyMod</span>.<span class="pl-c1">MOD_ID</span>, <span class="pl-s">"monster/my_entity"</span>));
+}
+
+<span class="pl-c">// This creates a new GeoModel with the following asset paths:</span>
+<span class="pl-c">// Animation Json: assets/mymod/animations/entity/monster/my_entity.animation.json</span>
+<span class="pl-c">// Model Json: assets/mymod/geo/entity/monster/my_entity.geo.json</span>
+<span class="pl-c">// Texture: assets/mymod/textures/entity/monster/my_entity.png</span>
+}
+
+As an added bonus, the DefaultedEntityGeoModel class can also automatically handle head rotation for you, by simply using the alternate constructor with a boolean in it.
+This will then automatically rotate the entity's "head" bone to the position it should be facing.
+
+Default Animations
+
+GeckoLib4 comes bundled with a suite of example/template animations. These can all be found in the DefaultAnimations class.
+They are completely optional to use, but they do encourage consistency of animation naming, as well as saving you from needing to instantiate new RawAnimations for basic animations.
+It also contains several generic animation controller factories, allowing you to quickly instantiate a basic controller with minimal additional effort
+
+E.G.
+
+<span class="pl-c">// Here we register two controllers that automatically handles walking, idling, and attacking for us</span>
+<span class="pl-k">public</span> <span class="pl-smi">void</span> <span class="pl-en">registerControllers</span>(<span class="pl-smi">AnimatableManager</span>.<span class="pl-smi">ControllerRegistrar</span> <span class="pl-s1">controllers</span>) {
+<span class="pl-s1">controllers</span>.<span class="pl-en">add</span>(
+<span class="pl-smi">DefaultAnimations</span>.<span class="pl-en">genericWalkIdleController</span>(<span class="pl-smi">this</span>),
+<span class="pl-smi">DefaultAnimations</span>.<span class="pl-en">genericAttackAnimation</span>(<span class="pl-smi">this</span>, <span class="pl-smi">DefaultAnimations</span>.<span class="pl-c1">ATTACK_STRIKE</span>)
+);
+}
+
+DataTickets
+
+GeckoLib4 makes use of a functionality called DataTickets. These are generified objects that act as 'keys' for transient data in GeckoLib.
+For example, the AnimationState class no longer has a getExtraDataOfType method. Instead, it's replaced with a getData method that takes a DataTicket key. This returns the exact data that has been stored either by you or GeckoLib previously, without requiring you to filter out potential unwanted values.
+
+GeckoLib stores a handful of default DataTicket implementations in the DataTickets class, but you can create your own at any time without any registration required.
+
+E.G.
+
+<span class="pl-smi">Entity</span> <span class="pl-s1">entity</span> = <span class="pl-s1">state</span>.<span class="pl-en">getData</span>(<span class="pl-smi">DataTickets</span>.<span class="pl-c1">ENTITY</span>);
+
+Native data syncing
+
+New to GeckoLib4 is native data-syncing for animatables. This allows for mod devs to efficiently send quick data bites to relevant clients for handling on the client side without needing to register synched entity data or custom packets.
+
+This is done through SerializableDataTickets. Unlike normal DataTickets, the serializable variants do require registration with GeckoLib to function.
+This can be done through GeckoLibUtil.addDataTicket at any time.
+
+GeckoLib itself pre-registers several potentially useful SerializableDataTickets however, so you may not need to register one of your own.
+These can be found in the DataTickets class
+
+To use this system, simply call setAnimData in your animatable class, providing the ticket and the data you want to send. GeckoLib will handle the rest for you. You can also call this on the client side to set and store data there if wanted
+
+E.G.
+
+<span class="pl-en">setAnimData</span>(<span class="pl-smi">DataTickets</span>.<span class="pl-c1">ACTIVE</span>, <span class="pl-c1">true</span>);
+
+Note that for singleton animatables (Items and replaced geo entities), you must additionally register your syncable animatable with GeckoLib in your class constructor via SingletonGeoAnimatable.registerSyncedAnimatable
+
+E.G.
+
+<span class="pl-k">public</span> <span class="pl-smi">ExampleItem</span><span class="pl-en"></span>(<span class="pl-smi">Properties</span> <span class="pl-s1">properties</span>) {
+<span class="pl-en">super</span>(<span class="pl-s1">properties</span>);
+
+<span class="pl-smi">SingletonGeoAnimatable</span>.<span class="pl-en">registerSyncedAnimatable</span>(<span class="pl-smi">this</span>);
+}
+
+Server-triggerable animations
+
+New to GeckoLib4 is the ability to trigger animations in an animatable, from the server! This opens a lot of interesting options for more complex objects and animations.
+Triggered animations will override the AnimationState calls for the AnimationController that is running it for the duration that it is being run, so it is recommended that you only trigger non-looping animations, but it can still be stopped by calling stop() on the controller at any stage.
+
+To use this system, we must first tell our controller that they have a triggerable animation. This is done by calling .triggerableAnim on the controller when we instantiate it, giving it a trigger name, and the RawAnimation associated with the trigger
+
+E.G.
+
+<span class="pl-k">public</span> <span class="pl-smi">void</span> <span class="pl-en">registerControllers</span>(<span class="pl-smi">AnimatableManager</span>.<span class="pl-smi">ControllerRegistrar</span> <span class="pl-s1">controllers</span>) {
+<span class="pl-s1">controllers</span>.<span class="pl-en">add</span>(<span class="pl-k">new</span> <span class="pl-smi">AnimationController</span><>(<span class="pl-smi">this</span>, <span class="pl-s">"shoot_controller"</span>, <span class="pl-s1">state</span> -> <span class="pl-smi">PlayState</span>.<span class="pl-c1">STOP</span>)
+.<span class="pl-en">triggerableAnim</span>(<span class="pl-s">"shoot"</span>, <span class="pl-c1">SHOOT_ANIM</span>));
+}
+
+Once that has been done, we can then call triggerAnim from the server side at any time, providing the controller name and the trigger name.
+
+E.G.
+
+<span class="pl-k">public</span> <span class="pl-smi">InteractionResultHolder</span><<span class="pl-smi">ItemStack</span>> <span class="pl-en">use</span>(<span class="pl-smi">Level</span> <span class="pl-s1">level</span>, <span class="pl-smi">Player</span> <span class="pl-s1">player</span>, <span class="pl-smi">InteractionHand</span> <span class="pl-s1">hand</span>) {
+<span class="pl-k">if</span> (<span class="pl-s1">level</span> <span class="pl-k">instanceof</span> <span class="pl-smi">ServerLevel</span> <span class="pl-s1">serverLevel</span>)
+<span class="pl-en">triggerAnim</span>(<span class="pl-s1">player</span>, <span class="pl-smi">GeoItem</span>.<span class="pl-en">getOrAssignId</span>(<span class="pl-s1">player</span>.<span class="pl-en">getItemInHand</span>(<span class="pl-s1">hand</span>), <span class="pl-s1">serverLevel</span>), <span class="pl-s">"shoot_controller"</span>, <span class="pl-s">"shoot"</span>);
+
+<span class="pl-k">return</span> <span class="pl-en">super</span>.<span class="pl-en">use</span>(<span class="pl-s1">level</span>, <span class="pl-s1">player</span>, <span class="pl-s1">hand</span>);
+}
+
+Note that for singleton animatables (Items and replaced geo entities), you must additionally register your syncable animatable with GeckoLib in your class constructor via SingletonGeoAnimatable.registerSyncedAnimatable
+
+E.G.
+
+<span class="pl-k">public</span> <span class="pl-smi">ExampleItem</span><span class="pl-en"></span>(<span class="pl-smi">Properties</span> <span class="pl-s1">properties</span>) {
+<span class="pl-en">super</span>(<span class="pl-s1">properties</span>);
+
+<span class="pl-smi">SingletonGeoAnimatable</span>.<span class="pl-en">registerSyncedAnimatable</span>(<span class="pl-smi">this</span>);
+}
+
+Examples
+
+Example Entity
+
+<span class="pl-k">public</span> <span class="pl-k">class</span> <span class="pl-smi">ExampleEntity</span> <span class="pl-k">extends</span> <span class="pl-smi">PathfinderMob</span> <span class="pl-k">implements</span> <span class="pl-smi">GeoEntity</span> {
+<span class="pl-k">private</span> <span class="pl-k">final</span> <span class="pl-smi">AnimatableInstanceCache</span> <span class="pl-s1">cache</span> = <span class="pl-smi">GeckoLibUtil</span>.<span class="pl-en">createInstanceCache</span>(<span class="pl-smi">this</span>);
+
+<span class="pl-k">public</span> <span class="pl-smi">ExampleEntity</span>(<span class="pl-smi">EntityType</span><? <span class="pl-k">extends</span> <span class="pl-smi">ExampleEntity</span>> <span class="pl-s1">type</span>, <span class="pl-smi">Level</span> <span class="pl-s1">level</span>) {
+<span class="pl-en">super</span>(<span class="pl-s1">type</span>, <span class="pl-s1">level</span>);
+}
+
+<span class="pl-c1">@</span><span class="pl-c1">Override</span>
+<span class="pl-k">public</span> <span class="pl-smi">void</span> <span class="pl-en">registerControllers</span>(<span class="pl-smi">AnimatableManager</span>.<span class="pl-smi">ControllerRegistrar</span> <span class="pl-s1">controllers</span>) {
+<span class="pl-s1">controllers</span>.<span class="pl-en">add</span>(<span class="pl-k">new</span> <span class="pl-smi">AnimationController</span><>(<span class="pl-smi">this</span>, <span class="pl-s">"idle"</span>, <span class="pl-c1">5</span>, <span class="pl-s1">state</span> -> <span class="pl-s1">state</span>.<span class="pl-en">setAndContinue</span>(<span class="pl-smi">DefaultAnimations</span>.<span class="pl-c1">IDLE</span>)));
+}
+
+<span class="pl-c1">@</span><span class="pl-c1">Override</span>
+<span class="pl-k">public</span> <span class="pl-smi">AnimatableInstanceCache</span> <span class="pl-en">getAnimatableInstanceCache</span>() {
+<span class="pl-k">return</span> <span class="pl-smi">this</span>.<span class="pl-s1">cache</span>;
+}
+}
+
+Example Item
+
+<span class="pl-k">public</span> <span class="pl-k">final</span> <span class="pl-k">class</span> <span class="pl-smi">ExampleItem</span> <span class="pl-k">extends</span> <span class="pl-smi">Item</span> <span class="pl-k">implements</span> <span class="pl-smi">GeoItem</span> {
+<span class="pl-k">private</span> <span class="pl-k">final</span> <span class="pl-smi">AnimatableInstanceCache</span> <span class="pl-s1">cache</span> = <span class="pl-smi">GeckoLibUtil</span>.<span class="pl-en">createInstancecache</span>(<span class="pl-smi">this</span>);
+
+<span class="pl-k">public</span> <span class="pl-smi">ExampleItem</span>(<span class="pl-smi">Properties</span> <span class="pl-s1">properties</span>) {
+<span class="pl-en">super</span>(<span class="pl-s1">properties</span>);
+
+<span class="pl-c">// Register our item as server-side handled.</span>
+<span class="pl-c">// This enables both animation data syncing and server-side animation triggering</span>
+<span class="pl-smi">SingletonGeoAnimatable</span>.<span class="pl-en">registerSyncedAnimatable</span>(<span class="pl-smi">this</span>);
+}
+
+<span class="pl-c1">@</span><span class="pl-c1">Override</span>
+<span class="pl-k">public</span> <span class="pl-smi">void</span> <span class="pl-en">initializeClient</span>(<span class="pl-smi">Consumer</span><<span class="pl-smi">IClientItemExtensions</span>> <span class="pl-s1">consumer</span>) {
+<span class="pl-s1">consumer</span>.<span class="pl-en">accept</span>(<span class="pl-k">new</span> <span class="pl-smi">IClientItemExtensions</span>() {
+<span class="pl-k">private</span> <span class="pl-smi">ExampleItemRenderer</span> <span class="pl-s1">renderer</span>;
+
+<span class="pl-c1">@</span><span class="pl-c1">Override</span>
+<span class="pl-k">public</span> <span class="pl-smi">BlockEntityWithoutLevelRenderer</span> <span class="pl-en">getCustomRenderer</span>() {
+<span class="pl-k">if</span> (<span class="pl-smi">this</span>.<span class="pl-s1">renderer</span> == <span class="pl-c1">null</span>)
+<span class="pl-smi">this</span>.<span class="pl-s1">renderer</span> = <span class="pl-k">new</span> <span class="pl-smi">ExampleItemRenderer</span>();
+
+<span class="pl-k">return</span> <span class="pl-smi">this</span>.<span class="pl-s1">renderer</span>;
+}
+});
+}
+
+<span class="pl-c1">@</span><span class="pl-c1">Override</span>
+<span class="pl-k">public</span> <span class="pl-smi">void</span> <span class="pl-en">registerControllers</span>(<span class="pl-smi">AnimatableManager</span>.<span class="pl-smi">ControllerRegistrar</span> <span class="pl-s1">controllers</span>) {
+<span class="pl-s1">controllers</span>.<span class="pl-en">add</span>(<span class="pl-k">new</span> <span class="pl-smi">AnimationController</span><>(<span class="pl-smi">this</span>, <span class="pl-s">"shoot_controller"</span>, <span class="pl-s1">state</span> -> <span class="pl-smi">PlayState</span>.<span class="pl-c1">STOP</span>)
+.<span class="pl-en">triggerableAnim</span>(<span class="pl-s">"shoot"</span>, <span class="pl-smi">DefaultAnimations</span>.<span class="pl-c1">ATTACK_SHOOT</span>));
+}
+
+<span class="pl-c1">@</span><span class="pl-c1">Override</span>
+<span class="pl-k">public</span> <span class="pl-smi">InteractionResultHolder</span><<span class="pl-smi">ItemStack</span>> <span class="pl-en">use</span>(<span class="pl-smi">Level</span> <span class="pl-s1">level</span>, <span class="pl-smi">Player</span> <span class="pl-s1">player</span>, <span class="pl-smi">InteractionHand</span> <span class="pl-s1">hand</span>) {
+<span class="pl-k">if</span> (<span class="pl-s1">level</span> <span class="pl-k">instanceof</span> <span class="pl-smi">ServerLevel</span> <span class="pl-s1">serverLevel</span>)
+<span class="pl-en">triggerAnim</span>(<span class="pl-s1">player</span>, <span class="pl-smi">GeoItem</span>.<span class="pl-en">getOrAssignId</span>(<span class="pl-s1">player</span>.<span class="pl-en">getItemInHand</span>(<span class="pl-s1">hand</span>), <span class="pl-s1">serverLevel</span>), <span class="pl-s">"shoot_controller"</span>, <span class="pl-s">"shoot"</span>);
+
+<span class="pl-k">return</span> <span class="pl-en">super</span>.<span class="pl-en">use</span>(<span class="pl-s1">level</span>, <span class="pl-s1">player</span>, <span class="pl-s1">hand</span>);
+}
+
+<span class="pl-c1">@</span><span class="pl-c1">Override</span>
+<span class="pl-k">public</span> <span class="pl-smi">AnimatableInstanceCache</span> <span class="pl-en">getAnimatableInstanceCache</span>() {
+<span class="pl-k">return</span> <span class="pl-smi">this</span>.<span class="pl-s1">cache</span>;
+}
+}
+
+Example Armor
+
+<span class="pl-k">public</span> <span class="pl-k">final</span> <span class="pl-k">class</span> <span class="pl-smi">ExampleArmor</span> <span class="pl-k">extends</span> <span class="pl-smi">ArmorItem</span> <span class="pl-k">implements</span> <span class="pl-smi">GeoItem</span> {
+<span class="pl-k">private</span> <span class="pl-k">final</span> <span class="pl-smi">AnimatableInstanceCache</span> <span class="pl-s1">cache</span> = <span class="pl-smi">GeckoLibUtil</span>.<span class="pl-en">createInstanceCache</span>(<span class="pl-smi">this</span>);
+
+<span class="pl-k">public</span> <span class="pl-smi">ExampleArmor</span>(<span class="pl-smi">ArmorMaterial</span> <span class="pl-s1">armorMaterial</span>, <span class="pl-smi">EquipmentSlot</span> <span class="pl-s1">slot</span>, <span class="pl-smi">Properties</span> <span class="pl-s1">properties</span>) {
+<span class="pl-en">super</span>(<span class="pl-s1">armorMaterial</span>, <span class="pl-s1">slot</span>, <span class="pl-s1">properties</span>);
+}
+
+<span class="pl-c1">@</span><span class="pl-c1">Override</span>
+<span class="pl-k">public</span> <span class="pl-smi">void</span> <span class="pl-en">initializeClient</span>(<span class="pl-smi">Consumer</span><<span class="pl-smi">IClientItemExtensions</span>> <span class="pl-s1">consumer</span>) {
+<span class="pl-s1">consumer</span>.<span class="pl-en">accept</span>(<span class="pl-k">new</span> <span class="pl-smi">IClientItemExtensions</span>() {
+<span class="pl-k">private</span> <span class="pl-smi">ExampleArmorRenderer</span><?> <span class="pl-s1">renderer</span>;
+
+<span class="pl-c1">@</span><span class="pl-c1">Override</span>
+<span class="pl-k">public</span> <span class="pl-c1">@</span><span class="pl-c1">NotNull</span> <span class="pl-smi">HumanoidModel</span><?> <span class="pl-en">getHumanoidArmorModel</span>(<span class="pl-smi">LivingEntity</span> <span class="pl-s1">livingEntity</span>, <span class="pl-smi">ItemStack</span> <span class="pl-s1">itemStack</span>, <span class="pl-smi">EquipmentSlot</span> <span class="pl-s1">equipmentSlot</span>, <span class="pl-smi">HumanoidModel</span><?> <span class="pl-s1">original</span>) {
+<span class="pl-k">if</span> (<span class="pl-smi">this</span>.<span class="pl-s1">renderer</span> == <span class="pl-c1">null</span>)
+<span class="pl-smi">this</span>.<span class="pl-s1">renderer</span> = <span class="pl-k">new</span> <span class="pl-smi">ExampleArmorRenderer</span>();
+
+<span class="pl-smi">this</span>.<span class="pl-s1">renderer</span>.<span class="pl-en">prepForRender</span>(<span class="pl-s1">livingEntity</span>, <span class="pl-s1">itemStack</span>, <span class="pl-s1">equipmentSlot</span>, <span class="pl-s1">original</span>);
+
+<span class="pl-k">return</span> <span class="pl-smi">this</span>.<span class="pl-s1">renderer</span>;
+}
+});
+}
+
+<span class="pl-c1">@</span><span class="pl-c1">Override</span>
+<span class="pl-k">public</span> <span class="pl-smi">void</span> <span class="pl-en">registerControllers</span>(<span class="pl-smi">AnimatableManager</span>.<span class="pl-smi">ControllerRegistrar</span> <span class="pl-s1">controllers</span>) {
+<span class="pl-s1">controllers</span>.<span class="pl-en">add</span>(<span class="pl-smi">DefaultAnimations</span>.<span class="pl-en">genericIdleController</span>(<span class="pl-smi">this</span>));
+}
+
+<span class="pl-c1">@</span><span class="pl-c1">Override</span>
+<span class="pl-k">public</span> <span class="pl-smi">AnimatableInstanceCache</span> <span class="pl-en">getAnimatableInstanceCache</span>() {
+<span class="pl-k">return</span> <span class="pl-smi">this</span>.<span class="pl-s1">cache</span>;
+}
+}
+
+Example BlockEntity
+
+<span class="pl-k">public</span> <span class="pl-k">class</span> <span class="pl-smi">ExampleBlockEntity</span> <span class="pl-k">extends</span> <span class="pl-smi">BlockEntity</span> <span class="pl-k">implements</span> <span class="pl-smi">GeoBlockEntity</span> {
+<span class="pl-k">private</span> <span class="pl-k">final</span> <span class="pl-smi">AnimatableInstanceCache</span> <span class="pl-s1">cache</span> = <span class="pl-smi">GeckoLibUtil</span>.<span class="pl-en">createInstanceCache</span>(<span class="pl-smi">this</span>);
+
+<span class="pl-k">public</span> <span class="pl-smi">ExampleBlockEntity</span>(<span class="pl-smi">BlockPos</span> <span class="pl-s1">pos</span>, <span class="pl-smi">BlockState</span> <span class="pl-s1">state</span>) {
+<span class="pl-en">super</span>(<span class="pl-smi">TileRegistry</span>.<span class="pl-c1">EXAMPLE_BLOCK_ENTITY</span>.<span class="pl-en">get</span>(), <span class="pl-s1">pos</span>, <span class="pl-s1">state</span>);
+}
+
+<span class="pl-c1">@</span><span class="pl-c1">Override</span>
+<span class="pl-k">public</span> <span class="pl-smi">void</span><span class="pl-en"></span> (<span class="pl-smi">AnimatableManager</span>.<span class="pl-smi">ControllerRegistrar</span> <span class="pl-s1">controllers</span>) {
+<span class="pl-s1">controllers</span>.<span class="pl-en">add</span>(<span class="pl-k">new</span> <span class="pl-smi">AnimationController</span><>(<span class="pl-smi">this</span>, <span class="pl-s1">state</span> -> {
+
+
+[… truncated 2174 chars …]
