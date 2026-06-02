@@ -168,6 +168,22 @@ public final class ModConstants {
     // 公式：pullStrength = min(MAX_PULL_STRENGTH, PULL_STRENGTH_FACTOR / effectiveDistSq)
     public static final double PULL_STRENGTH_FACTOR = 2.0;
 
+    // ==================== 星轨迷宫 ====================
+
+    // 星轨迷宫：激活列伤害
+    public static final float STAR_TRACK_MAZE_DAMAGE = 12.0F;
+    // 星轨迷宫：网格大小（列数×行数）
+    public static final int STAR_TRACK_MAZE_GRID_SIZE = 7;
+
+    // ==================== 虚空裂隙 ====================
+
+    // 虚空裂隙：生成数量
+    public static final int VOID_FISSURE_COUNT = 3;
+    // 虚空裂隙：每次伤害
+    public static final float VOID_FISSURE_DAMAGE = 4.0F;
+    // 虚空裂隙：生命周期（tick，300 = 15秒）
+    public static final int VOID_FISSURE_LIFETIME = 300;
+
     // ==================== 死亡演出 ====================
 
     // 死亡爆炸粒子数量

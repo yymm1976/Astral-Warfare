@@ -5,6 +5,7 @@ import com.mochi_753.astral_warfare.entity.AstralCrystalEntity;
 import com.mochi_753.astral_warfare.entity.NightfallSingularityEntity;
 import com.mochi_753.astral_warfare.entity.StarcoreGolemEntity;
 import com.mochi_753.astral_warfare.entity.StellaEvokerEntity;
+import com.mochi_753.astral_warfare.entity.VoidFissureEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -46,6 +47,16 @@ public class ModEntities {
                             .fireImmune()
                             .noSummon()
                             .build("nightfall_singularity"));
+
+    // 虚空裂隙实体：终结技砸地后残留的地面伤害区域
+    // 不可见 Misc 实体，粒子效果由 tick 中生成
+    public static final Supplier<EntityType<VoidFissureEntity>> VOID_FISSURE =
+            ENTITIES.register("void_fissure",
+                    () -> EntityType.Builder.<VoidFissureEntity>of(VoidFissureEntity::new, MobCategory.MISC)
+                            .sized(0.1f, 0.1f)
+                            .fireImmune()
+                            .noSummon()
+                            .build("void_fissure"));
 
     public static void onEntityAttributeCreation(EntityAttributeCreationEvent event) {
         event.put(STELLA_EVOKER.get(), StellaEvokerEntity.createAttributes());

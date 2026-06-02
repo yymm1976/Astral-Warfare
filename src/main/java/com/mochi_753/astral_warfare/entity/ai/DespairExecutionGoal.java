@@ -3,8 +3,10 @@ package com.mochi_753.astral_warfare.entity.ai;
 import com.mochi_753.astral_warfare.init.ModEffects;
 import com.mochi_753.astral_warfare.init.ModConstants;
 import com.mochi_753.astral_warfare.init.ModConfig;
+import com.mochi_753.astral_warfare.init.ModEntities;
 import com.mochi_753.astral_warfare.entity.StellaEvokerEntity;
 import com.mochi_753.astral_warfare.entity.StarcoreGolemEntity;
+import com.mochi_753.astral_warfare.entity.VoidFissureEntity;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
 import com.mochi_753.astral_warfare.network.ClientboundScreenShakePacket;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
@@ -602,6 +604,45 @@ public class DespairExecutionGoal extends Goal {
                 SoundEvents.ANVIL_LAND, SoundSource.HOSTILE, 1.5F, 0.6F);
         level.playSound(null, this.evoker.getX(), this.evoker.getY(), this.evoker.getZ(),
                 SoundEvents.WITHER_BREAK_BLOCK, SoundSource.HOSTILE, 1.5F, 0.8F);
+
+        // 【虚空裂隙生成】砸地后在 BOSS 周围 12 格随机 3 个位置生成裂隙
+        // 裂隙最小间距 3 格，避免重叠
+        spawnVoidFissures(level);
+    }
+
+    // 在 BOSS 周围生成虚空裂隙
+    // 随机 3 个位置，最小间距 3 格，防止裂隙重叠
+    private void spawnVoidFissures(ServerLevel level) {
+        java.util.List<net.minecraft.world.phys.Vec3> fissurePositions = new java.util.ArrayList<>();
+        int count = ModConstants.VOID_FISSURE_COUNT;
+        double range = 12.0;
+        double minDist = 3.0;
+
+        for (int attempt = 0; attempt < count * 10 && fissurePositions.size() < count; attempt++) {
+            double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
+            double dist = 3.0 + this.evoker.getRandom().nextDouble() * (range - 3.0);
+            double fx = this.evoker.getX() + Math.cos(angle) * dist;
+            double fz = this.evoker.getZ() + Math.sin(angle) * dist;
+            double fy = this.evoker.getY();
+
+            // 检查与已有裂隙位置的最小间距
+            boolean tooClose = false;
+            for (net.minecraft.world.phys.Vec3 pos : fissurePositions) {
+                if (pos.distanceTo(new net.minecraft.world.phys.Vec3(fx, fy, fz)) < minDist) {
+                    tooClose = true;
+                    break;
+                }
+            }
+            if (tooClose) continue;
+
+            VoidFissureEntity fissure = ModEntities.VOID_FISSURE.get().create(level);
+            if (fissure != null) {
+                fissure.moveTo(fx, fy, fz);
+                fissure.setCaster(this.evoker);
+                level.addFreshEntity(fissure);
+                fissurePositions.add(new net.minecraft.world.phys.Vec3(fx, fy, fz));
+            }
+        }
     }
 
     @Override

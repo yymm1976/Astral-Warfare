@@ -57,6 +57,11 @@ public class ClientEvents {
                 ModEntities.NIGHTFALL_SINGULARITY.get(),
                 NightfallSingularityRenderer::new
         );
+        // 虚空裂隙渲染器：空实现，视觉效果由服务端粒子驱动
+        event.registerEntityRenderer(
+                ModEntities.VOID_FISSURE.get(),
+                VoidFissureRenderer::new
+        );
     }
 
     /**

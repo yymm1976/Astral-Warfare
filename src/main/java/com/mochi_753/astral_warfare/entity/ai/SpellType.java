@@ -43,7 +43,11 @@ public enum SpellType {
 
     // 念力投掷：BOSS 抓起充能完毕待命的傀儡砸向玩家
     // 蓝图 B.7：落地星尘爆炸，消耗 5 点法力
-    TELEKINETIC_THROW(5, 300, 20, SpellCastGoal::executeTelekineticThrow);
+    TELEKINETIC_THROW(5, 300, 20, SpellCastGoal::executeTelekineticThrow),
+
+    // 星轨迷宫：地面网格奇偶列交替伤害，消耗 12 点法力
+    // 前 40 tick 预警画全网格，40-120 tick 奇偶列交替每 10 tick 切换
+    STAR_TRACK_MAZE(12, 300, 120, SpellCastGoal::executeStarTrackMaze);
 
     public final int manaCost;
     public final int cooldownTicks;

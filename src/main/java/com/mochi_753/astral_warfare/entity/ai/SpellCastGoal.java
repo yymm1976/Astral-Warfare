@@ -8,6 +8,7 @@ import com.mochi_753.astral_warfare.init.ModEntities;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import com.mochi_753.astral_warfare.network.ClientboundScreenShakePacket;
+import com.mochi_753.astral_warfare.network.ClientboundMazeSyncPacket;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -72,6 +73,11 @@ public class SpellCastGoal extends Goal {
     private StarcoreGolemEntity throwGolem = null;
     // 念力投掷：目标玩家
     private Player throwTarget = null;
+
+    // 星轨迷宫：网格中心位置
+    private Vec3 mazeCenter = null;
+    // 星轨迷宫：当前激活列组（0=偶数列，1=奇数列）
+    private int mazeActiveGroup = 0;
 
     public SpellCastGoal(StellaEvokerEntity evoker) {
         this.evoker = evoker;
@@ -222,6 +228,17 @@ public class SpellCastGoal extends Goal {
             }
         }
 
+        // 星轨迷宫：以目标玩家位置为网格中心
+        if (this.currentSpell == SpellType.STAR_TRACK_MAZE) {
+            Player target = this.evoker.level().getNearestPlayer(this.evoker, 64.0);
+            if (target != null) {
+                this.mazeCenter = target.position();
+                this.mazeActiveGroup = 0;
+            } else {
+                this.currentSpell = null;
+            }
+        }
+
         // 技能施放提示：向所有追踪 BOSS 的玩家发送聊天框消息
         if (this.currentSpell != null && this.evoker.level() instanceof ServerLevel) {
             String translationKey = switch (this.currentSpell) {
@@ -231,6 +248,7 @@ public class SpellCastGoal extends Goal {
                 case FATE_LINK -> "entity.astral_warfare.stella_evoker.spell.fate_link";
                 case STAR_RAIL_CUT -> "entity.astral_warfare.stella_evoker.spell.star_rail_cut";
                 case TELEKINETIC_THROW -> "entity.astral_warfare.stella_evoker.spell.telekinetic_throw";
+                case STAR_TRACK_MAZE -> "entity.astral_warfare.stella_evoker.spell.star_track_maze";
             };
             for (net.minecraft.server.level.ServerPlayer player : this.evoker.getBossEvent().getPlayers()) {
                 player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(translationKey));
@@ -260,6 +278,8 @@ public class SpellCastGoal extends Goal {
             tickStarRailCut();
         } else if (this.currentSpell == SpellType.TELEKINETIC_THROW) {
             tickTelekineticThrow();
+        } else if (this.currentSpell == SpellType.STAR_TRACK_MAZE) {
+            tickStarTrackMaze();
         }
 
         // 施法结束
@@ -298,6 +318,8 @@ public class SpellCastGoal extends Goal {
         this.starRailOrigin = null;
         this.throwGolem = null;
         this.throwTarget = null;
+        this.mazeCenter = null;
+        this.mazeActiveGroup = 0;
         this.beamDamageTimer = 0;
     }
 
@@ -993,5 +1015,113 @@ public class SpellCastGoal extends Goal {
 
         // 傀儡在爆炸中消散
         goal.throwGolem.discard();
+    }
+
+    // ==================== 星轨迷宫 ====================
+
+    // 星轨迷宫：地面网格奇偶列交替伤害
+    // 前 40 tick 预警：地面画全网格（淡蓝细线粒子）
+    // 40-120 tick：奇偶列交替，每 10 tick 切换
+    // 激活列蓝色发光粒子 + 伤害，非激活列暗色
+    private static final int MAZE_GRID_SIZE = ModConstants.STAR_TRACK_MAZE_GRID_SIZE;
+    private static final float MAZE_DAMAGE = ModConstants.STAR_TRACK_MAZE_DAMAGE;
+    // 预警阶段持续时间（tick）
+    private static final int MAZE_WARNING_TICKS = 40;
+    // 列切换间隔（tick）
+    private static final int MAZE_SWITCH_INTERVAL = 10;
+    // 网格间距（格）
+    private static final double MAZE_CELL_SIZE = 2.0;
+
+    private void tickStarTrackMaze() {
+        if (this.mazeCenter == null) return;
+        if (!(this.evoker.level() instanceof ServerLevel serverLevel)) return;
+
+        double cx = this.mazeCenter.x;
+        double cz = this.mazeCenter.z;
+        double cy = this.mazeCenter.y;
+        int halfGrid = MAZE_GRID_SIZE / 2;
+
+        // 预警阶段（0-40 tick）：画全网格淡蓝细线
+        if (this.castTick < MAZE_WARNING_TICKS) {
+            try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+                // 纵向线（沿 Z 轴）
+                for (int col = -halfGrid; col <= halfGrid; col++) {
+                    double x = cx + col * MAZE_CELL_SIZE;
+                    for (int row = 0; row < 20; row++) {
+                        double z = cz - halfGrid * MAZE_CELL_SIZE + row * (MAZE_GRID_SIZE * MAZE_CELL_SIZE / 20.0);
+                        emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.05, z, 0);
+                    }
+                }
+                // 横向线（沿 X 轴）
+                for (int row = -halfGrid; row <= halfGrid; row++) {
+                    double z = cz + row * MAZE_CELL_SIZE;
+                    for (int col = 0; col < 20; col++) {
+                        double x = cx - halfGrid * MAZE_CELL_SIZE + col * (MAZE_GRID_SIZE * MAZE_CELL_SIZE / 20.0);
+                        emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.05, z, 0);
+                    }
+                }
+            }
+            return;
+        }
+
+        // 激活阶段（40-120 tick）：奇偶列交替
+        int activeTick = this.castTick - MAZE_WARNING_TICKS;
+        // 每 10 tick 切换激活列组
+        this.mazeActiveGroup = (activeTick / MAZE_SWITCH_INTERVAL) % 2;
+
+        try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+            for (int col = -halfGrid; col <= halfGrid; col++) {
+                boolean isActive = ((col + halfGrid) % 2 == this.mazeActiveGroup);
+                double x = cx + col * MAZE_CELL_SIZE;
+
+                for (int row = -halfGrid; row <= halfGrid; row++) {
+                    double z = cz + row * MAZE_CELL_SIZE;
+
+                    if (isActive) {
+                        // 激活列：蓝色发光粒子（交点密集 + 额外亮度）
+                        emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.1, z, 0);
+                        emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.1, z, 1);
+                    } else {
+                        // 非激活列：暗色稀疏粒子
+                        if ((row + halfGrid) % 2 == 0) {
+                            emitter.add(StellaParticles.ID_VOID_TWINKLE, x, cy + 0.05, z, 0);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 伤害判定：每 10 tick 的首 tick 对激活列上的玩家造成伤害
+        if (activeTick % MAZE_SWITCH_INTERVAL == 0) {
+            for (int col = -halfGrid; col <= halfGrid; col++) {
+                boolean isActive = ((col + halfGrid) % 2 == this.mazeActiveGroup);
+                if (!isActive) continue;
+
+                double x = cx + col * MAZE_CELL_SIZE;
+                // 激活列的 AABB 判定区域（宽 1 格，高 2 格）
+                AABB colBox = new AABB(
+                        x - MAZE_CELL_SIZE * 0.4, cy - 1.0, cz - halfGrid * MAZE_CELL_SIZE,
+                        x + MAZE_CELL_SIZE * 0.4, cy + 2.0, cz + halfGrid * MAZE_CELL_SIZE
+                );
+                List<Player> hitPlayers = serverLevel.getEntitiesOfClass(Player.class, colBox,
+                        p -> p.isAlive() && !p.isSpectator());
+                for (Player player : hitPlayers) {
+                    player.hurt(serverLevel.damageSources().indirectMagic(this.evoker, this.evoker), MAZE_DAMAGE);
+                }
+            }
+        }
+
+        // 发送网络同步包给客户端渲染器
+        PacketDistributor.sendToPlayersTrackingEntityAndSelf(this.evoker,
+                new ClientboundMazeSyncPacket(cx, cy, cz, this.mazeActiveGroup, MAZE_GRID_SIZE));
+    }
+
+    // 星轨迷宫执行阶段：施法结束时的收尾效果
+    static void executeStarTrackMaze(SpellCastGoal goal, ServerLevel serverLevel) {
+        // 迷宫在 tick 中已持续处理，execute 阶段播放收尾音效
+        if (goal.mazeCenter != null) {
+            serverLevel.playSound(null, goal.mazeCenter.x, goal.mazeCenter.y, goal.mazeCenter.z,
+                    SoundEvents.BEACON_DEACTIVATE, SoundSource.HOSTILE, 1.0F, 0.5F);
+        }
     }
 }

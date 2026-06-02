@@ -115,5 +115,15 @@ public class ModPayloads {
                             }
                         })
         );
+
+        // 星轨迷宫同步包：服务端→客户端
+        // 同步迷宫中心位置、激活列组、网格大小
+        // 客户端 StarTrackMazeRenderer 使用此数据绘制网格线
+        registrar.playToClient(
+                ClientboundMazeSyncPacket.TYPE,
+                ClientboundMazeSyncPacket.STREAM_CODEC,
+                (ClientboundMazeSyncPacket pkt, IPayloadContext ctx) ->
+                        ctx.enqueueWork(() -> pkt.updateClientCache())
+        );
     }
 }
