@@ -1,7 +1,9 @@
 package com.mochi_753.astral_warfare.util;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.material.Fluids;
 
 // BOSS 通用工具类
 // 提取多个组件共用的工具方法，消除代码重复（DRY 原则）
@@ -15,11 +17,32 @@ public class BossUtils {
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
         int startBlockY = BlockPos.containing(x, startY, z).getY();
         for (int y = startBlockY; y > level.getMinBuildHeight(); y--) {
-            mutable.set(x, y, z);
-            if (!level.getBlockState(mutable).isAir()) {
+            // S-34修复：显式 Math.floor 截断，避免隐式 double→int 转换歧义
+            // S-35修复：排除水和岩浆，BOSS 不应站在液面上
+            mutable.set((int) Math.floor(x), y, (int) Math.floor(z));
+            if (!level.getBlockState(mutable).isAir()
+                    && !level.getFluidState(mutable).is(Fluids.WATER)
+                    && !level.getFluidState(mutable).is(Fluids.LAVA)) {
                 return y + 1.0;
             }
         }
         return fallbackY;
+    }
+
+    // S-27修复：合并 Phase2MeleeGoal 和 DespairExecutionGoal 中的重复传送碰撞检测逻辑
+    // 传送后如果实体卡在固体方块中，向上扫描最多 10 格寻找安全位置
+    // 如果找不到安全位置，保持原位（不会把实体卡得更深）
+    // 使用方式：entity.teleportTo(x, y, z) 后调用此方法
+    public static void findSafeTeleportPosition(Entity entity) {
+        BlockPos tpPos = entity.blockPosition();
+        if (entity.level().getBlockState(tpPos).isSolidRender(entity.level(), tpPos)) {
+            for (int y = tpPos.getY(); y < tpPos.getY() + 10; y++) {
+                BlockPos checkPos = new BlockPos(tpPos.getX(), y, tpPos.getZ());
+                if (!entity.level().getBlockState(checkPos).isSolidRender(entity.level(), checkPos)) {
+                    entity.teleportTo(tpPos.getX(), y, tpPos.getZ());
+                    break;
+                }
+            }
+        }
     }
 }

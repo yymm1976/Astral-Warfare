@@ -1,6 +1,7 @@
 package com.mochi_753.astral_warfare.entity.ai;
 
 import com.mochi_753.astral_warfare.init.ModEffects;
+import com.mochi_753.astral_warfare.init.ModConfig;
 import com.mochi_753.astral_warfare.entity.StellaEvokerEntity;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
@@ -88,10 +89,12 @@ public class Phase2MeleeGoal extends Goal {
     private static final int SLASH_DURATION_TICKS = 15;
 
     // 伤害值（二阶段伤害大幅加强）
-    private static final float SLASH_DAMAGE = 16.0F;
-    private static final float THRUST_DAMAGE = 12.0F;
-    private static final float BACKSTAB_DAMAGE = 28.0F;
-    private static final float PULL_PUNCH_DAMAGE = 30.0F;
+    // S-29修复：从硬编码改为 ModConfig 配置项，服主可在 toml 中调整
+    // DoubleValue.get() 返回 Double 包装类，需要 .floatValue() 转换
+    private static final float SLASH_DAMAGE = ModConfig.SLASH_DAMAGE.get().floatValue();
+    private static final float THRUST_DAMAGE = ModConfig.THRUST_DAMAGE.get().floatValue();
+    private static final float BACKSTAB_DAMAGE = ModConfig.BACKSTAB_DAMAGE.get().floatValue();
+    private static final float PULL_PUNCH_DAMAGE = ModConfig.PULL_PUNCH_DAMAGE.get().floatValue();
 
     // 虚空流血持续时间：6秒 = 120tick
     private static final int VOID_BLEED_DURATION = 120;
@@ -347,17 +350,8 @@ public class Phase2MeleeGoal extends Goal {
                 }
 
                 this.evoker.teleportTo(newX, this.evoker.getY(), newZ);
-                // 传送碰撞检测：如果卡在固体方块中，向上扫描安全位置
-                net.minecraft.core.BlockPos tpPos = this.evoker.blockPosition();
-                if (this.evoker.level().getBlockState(tpPos).isSolidRender(this.evoker.level(), tpPos)) {
-                    for (int y = tpPos.getY(); y < tpPos.getY() + 10; y++) {
-                        net.minecraft.core.BlockPos checkPos = new net.minecraft.core.BlockPos(tpPos.getX(), y, tpPos.getZ());
-                        if (!this.evoker.level().getBlockState(checkPos).isSolidRender(this.evoker.level(), checkPos)) {
-                            this.evoker.teleportTo(tpPos.getX(), y, tpPos.getZ());
-                            break;
-                        }
-                    }
-                }
+                // S-27修复：使用 BossUtils.findSafeTeleportPosition 替代内联碰撞检测
+                com.mochi_753.astral_warfare.util.BossUtils.findSafeTeleportPosition(this.evoker);
 
                 // 落点爆发（从3个增加到8个，更大范围）
                 for (int i = 0; i < 8; i++) {
@@ -469,17 +463,8 @@ public class Phase2MeleeGoal extends Goal {
                     double behindX = this.target.getX() - Math.sin(yawRad) * 1.0;
                     double behindZ = this.target.getZ() + Math.cos(yawRad) * 1.0;
                     this.evoker.teleportTo(behindX, this.target.getY(), behindZ);
-                    // 传送碰撞检测：如果卡在固体方块中，向上扫描安全位置
-                    net.minecraft.core.BlockPos tpPos = this.evoker.blockPosition();
-                    if (this.evoker.level().getBlockState(tpPos).isSolidRender(this.evoker.level(), tpPos)) {
-                        for (int y = tpPos.getY(); y < tpPos.getY() + 10; y++) {
-                            net.minecraft.core.BlockPos checkPos = new net.minecraft.core.BlockPos(tpPos.getX(), y, tpPos.getZ());
-                            if (!this.evoker.level().getBlockState(checkPos).isSolidRender(this.evoker.level(), checkPos)) {
-                                this.evoker.teleportTo(tpPos.getX(), y, tpPos.getZ());
-                                break;
-                            }
-                        }
-                    }
+                    // S-27修复：使用 BossUtils.findSafeTeleportPosition 替代内联碰撞检测
+                    com.mochi_753.astral_warfare.util.BossUtils.findSafeTeleportPosition(this.evoker);
                 }
             }
             this.evoker.setInvisible(false);

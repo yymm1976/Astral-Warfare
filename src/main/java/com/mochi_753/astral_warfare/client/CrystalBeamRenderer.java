@@ -17,6 +17,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 
 import java.util.List;
+import java.util.Objects;
 
 // 星光能量射线渲染器
 // 在客户端的 AFTER_TRANSLUCENT_BLOCKS 阶段，从每个存活的星界水晶向 BOSS 胸口绘制星空蓝能量射线
@@ -56,7 +57,9 @@ public class CrystalBeamRenderer {
 
         // 检测维度切换：重置粒子计数器，避免跨维度遗留
         net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> currentDim = mc.level.dimension();
-        if (lastDimension != null && lastDimension != currentDim) {
+        // S-05修复：使用 Objects.equals 替代 != 比较维度 ResourceKey
+        // != 比较对象引用而非值，维度重载后可能产生不等的新实例
+        if (!Objects.equals(lastDimension, currentDim)) {
             particleTickCounter = 0;
         }
         lastDimension = currentDim;

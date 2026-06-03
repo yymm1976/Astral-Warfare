@@ -1,5 +1,6 @@
 package com.mochi_753.astral_warfare.entity;
 
+import com.mochi_753.astral_warfare.client.particle.StellaParticles;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -122,14 +123,12 @@ public class AstralCrystalEntity extends LivingEntity {
             // 标记水晶死亡，同步到客户端用于射线断开
             this.entityData.set(DATA_ALIVE, false);
             // 服务端：播放碎裂粒子（使用 Lodestone 粒子网络包替代原版 sendParticles）
-            // 粒子 ID 对应 StellaParticles 中的常量：
-            //   3 = ID_IMPACT_WAVE（冲击波），2 = ID_ASTRAL_BEAM（星界光束碎裂）
-            // 不直接引用 StellaParticles 常量，因为它是客户端专属类
+            // S-49修复：使用 StellaParticles 常量替代硬编码数字，避免 ID 不一致
             if (this.level() instanceof ServerLevel) {
                 try (ParticleEmitter emitter = new ParticleEmitter(this)) {
-                    emitter.add(3, this.getX(), this.getY() + 0.5, this.getZ(), 0);
+                    emitter.add(StellaParticles.ID_IMPACT_WAVE, this.getX(), this.getY() + 0.5, this.getZ(), 0);
                     for (int i = 0; i < 20; i++) {
-                        emitter.add(2,
+                        emitter.add(StellaParticles.ID_ASTRAL_BEAM,
                                 this.getX() + (this.random.nextDouble() - 0.5) * 1.0,
                                 this.getY() + this.random.nextDouble() * 1.5,
                                 this.getZ() + (this.random.nextDouble() - 0.5) * 1.0, 0);

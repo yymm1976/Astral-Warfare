@@ -8,6 +8,8 @@ import java.util.UUID;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.LayeredDraw;
 import net.minecraft.client.gui.components.BossHealthOverlay;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import team.lodestar.lodestone.registry.common.particle.LodestoneScreenParticleTypes;
 import team.lodestar.lodestone.systems.easing.Easing;
 import team.lodestar.lodestone.systems.particle.builder.ScreenParticleBuilder;
@@ -23,6 +25,8 @@ import team.lodestar.lodestone.systems.particle.screen.ScreenParticleHolder;
 // 法力枯竭警告：当法力值低于30%时，在法力条位置生成Lodestone屏幕粒子
 // 使用深紫色WISP粒子，每秒2-3个，营造"法力即将耗尽"的紧迫感
 public class StellaBossBarOverlay {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(StellaBossBarOverlay.class);
 
     // 法力条尺寸
     private static final int BAR_WIDTH = 182;
@@ -109,6 +113,8 @@ public class StellaBossBarOverlay {
         try {
             bossBarCount = bossOverlay.events.size();
         } catch (Throwable t) {
+            // S-03修复：记录降级日志，便于排查 events 字段变更问题
+            LOGGER.warn("bossBarCount 降级", t);
             bossBarCount = 0;
         }
         int baseY = BOSS_BAR_TOP_OFFSET + bossBarCount * BOSS_BAR_SPACING;
@@ -167,8 +173,10 @@ public class StellaBossBarOverlay {
                 if (particleSpawnTimer >= PARTICLE_SPAWN_INTERVAL) {
                     particleSpawnTimer = 0;
                     // 在法力条范围内随机位置生成粒子
-                    double particleX = x + Math.random() * BAR_WIDTH;
-                    double particleY = y + Math.random() * BAR_HEIGHT;
+                    // S-02修复：使用 mc.level.random 替代 Math.random()
+                    // Math.random() 是 synchronized 方法，渲染帧高频调用造成线程竞争
+                    double particleX = x + mc.level.random.nextDouble() * BAR_WIDTH;
+                    double particleY = y + mc.level.random.nextDouble() * BAR_HEIGHT;
                     ScreenParticleBuilder.create(LodestoneScreenParticleTypes.WISP, manaWarningParticles)
                             .setColorData(ColorParticleData.create(MANA_LOW_START, MANA_LOW_END).build())
                             .setScaleData(GenericParticleData.create(0.6f, 0.05f).setEasing(Easing.QUINTIC_OUT).build())

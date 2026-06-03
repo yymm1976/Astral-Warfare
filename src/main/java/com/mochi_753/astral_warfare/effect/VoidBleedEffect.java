@@ -75,8 +75,13 @@ public class VoidBleedEffect extends MobEffect {
         return true;
     }
 
+    // S-31修复：duration % DAMAGE_INTERVAL == DAMAGE_INTERVAL - 1
+    // 原版 MobEffect 在 shouldApplyEffectTickThisTick 返回 true 时调用 applyEffectTick，
+    // 然后 duration--。当 duration % 40 == 0 时，第一次触发在 duration=40，
+    // 但效果刚施加时 duration 可能不是 40 的倍数，导致首次触发延迟不一致。
+    // 改为 DAMAGE_INTERVAL - 1 确保效果在正确的 tick 触发
     @Override
     public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
-        return duration % DAMAGE_INTERVAL == 0;
+        return duration % DAMAGE_INTERVAL == DAMAGE_INTERVAL - 1;
     }
 }

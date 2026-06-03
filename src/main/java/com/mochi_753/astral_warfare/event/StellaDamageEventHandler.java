@@ -16,8 +16,8 @@ import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 @EventBusSubscriber(modid = com.mochi_753.astral_warfare.AstralWarfare.MOD_ID)
 public class StellaDamageEventHandler {
 
-    // 虚弱状态伤害倍率：1.5 倍（+50%），集中管理于 ModConstants
-    private static final float WEAKENED_DAMAGE_MULTIPLIER = ModConstants.WEAKENED_DAMAGE_MULTIPLIER;
+    // S-33修复：直接引用 ModConstants 常量，消除本地字段冗余
+    // 本地字段在 ModConstants 值变更时不会同步更新
 
     // 监听 LivingDamageEvent.Pre（伤害应用前的最终拦截点）
     // 在此处修改伤害值不会影响其他模组对同一事件的监听
@@ -32,7 +32,7 @@ public class StellaDamageEventHandler {
         if (evoker.isWeakened()) {
             // 通过修改 Container 中的 newDamage 实现伤害放大
             // LivingDamageEvent.Pre 允许修改最终伤害值
-            event.setNewDamage(event.getNewDamage() * WEAKENED_DAMAGE_MULTIPLIER);
+            event.setNewDamage(event.getNewDamage() * ModConstants.WEAKENED_DAMAGE_MULTIPLIER);
         }
     }
 }

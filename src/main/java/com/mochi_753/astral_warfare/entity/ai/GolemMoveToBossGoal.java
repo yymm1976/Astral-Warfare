@@ -15,6 +15,9 @@ public class GolemMoveToBossGoal extends Goal {
     private final StarcoreGolemEntity golem;
     private StellaEvokerEntity targetBoss;
     private int pathRecalcTimer = 0;
+    // S-28修复：扫描间隔，每 10 tick 搜索一次 BOSS，其余 tick 复用缓存
+    private int scanTimer = 0;
+    private static final int SCAN_INTERVAL = 10;
     private static final double BOSS_SEARCH_RANGE = 30.0;
     private static final double ARRIVAL_DIST = 3.0;
 
@@ -27,11 +30,17 @@ public class GolemMoveToBossGoal extends Goal {
     public boolean canUse() {
         if (this.golem.level().isClientSide) return false;
 
-        this.targetBoss = this.golem.level().getEntitiesOfClass(
-                StellaEvokerEntity.class,
-                this.golem.getBoundingBox().inflate(BOSS_SEARCH_RANGE),
-                boss -> boss.isAlive() && boss.getCombatPhase() == StellaEvokerEntity.PHASE_1_CASTER
-        ).stream().findFirst().orElse(null);
+        // S-28修复：每 SCAN_INTERVAL tick 才执行一次高消耗的 getEntitiesOfClass
+        // 其余 tick 复用上一次的缓存结果
+        scanTimer++;
+        if (scanTimer >= SCAN_INTERVAL) {
+            scanTimer = 0;
+            this.targetBoss = this.golem.level().getEntitiesOfClass(
+                    StellaEvokerEntity.class,
+                    this.golem.getBoundingBox().inflate(BOSS_SEARCH_RANGE),
+                    boss -> boss.isAlive() && boss.getCombatPhase() == StellaEvokerEntity.PHASE_1_CASTER
+            ).stream().findFirst().orElse(null);
+        }
 
         return this.targetBoss != null && this.golem.distanceTo(this.targetBoss) > ARRIVAL_DIST;
     }

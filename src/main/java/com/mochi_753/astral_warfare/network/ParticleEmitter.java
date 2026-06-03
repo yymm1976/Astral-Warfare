@@ -2,6 +2,8 @@ package com.mochi_753.astral_warfare.network;
 
 import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +25,8 @@ import java.util.List;
 //
 // 蓝图对应：所有 BOSS 法术粒子、死亡演出粒子、转阶段粒子、处决粒子
 public class ParticleEmitter implements AutoCloseable {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ParticleEmitter.class);
 
     // 追踪目标实体（用于确定包的发送范围）
     private final Entity trackingEntity;
@@ -59,9 +63,8 @@ public class ParticleEmitter implements AutoCloseable {
                     new ClientboundParticleBatchPacket(currentTypeId, new ArrayList<>(currentBatch))
             );
         } catch (Exception t) {
-            // 网络发送失败，静默丢弃当前批次
-            // 【L15修复】改为 catch(Exception)，不再吞没 OutOfMemoryError 等 Error
-            // OOM 等严重错误应向上传播，让 JVM 有机会处理
+            // S-11修复：记录网络发送失败日志，便于排查连接问题
+            LOGGER.debug("Particle batch send failed", t);
         }
         currentBatch.clear();
         currentTypeId = -1;

@@ -38,21 +38,11 @@ public record ClientboundMazeSyncPacket(
     @Override
     public Type<? extends CustomPacketPayload> type() { return TYPE; }
 
-    // 客户端缓存：最近一次收到的迷宫数据
-    // StarTrackMazeRenderer 每帧读取此缓存进行渲染
-    private static MazeData lastMazeData = null;
-
-    public static MazeData getLastMazeData() {
-        return lastMazeData;
-    }
-
-    public static void clearMazeData() {
-        lastMazeData = null;
-    }
-
     // 客户端接收到迷宫同步包时更新缓存
+    // S-07修复：缓存逻辑已移入 MazeDataCache（独立职责 + volatile）
     public void updateClientCache() {
-        lastMazeData = new MazeData(cx, cy, cz, activeGroup, gridSize, System.currentTimeMillis());
+        com.mochi_753.astral_warfare.client.MazeDataCache.setLastMazeData(
+                new MazeData(cx, cy, cz, activeGroup, gridSize, System.currentTimeMillis()));
     }
 
     // 迷宫渲染数据记录

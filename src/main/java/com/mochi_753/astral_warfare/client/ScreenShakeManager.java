@@ -6,6 +6,7 @@ import net.minecraft.util.RandomSource;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ViewportEvent;
 
 // 客户端屏幕震动管理器
@@ -49,5 +50,14 @@ public class ScreenShakeManager {
             if (intensity < 0) intensity = 0;
             remainingTicks--;
         }
+    }
+
+    // S-09修复：玩家断开连接时重置震动状态
+    // 防止切服/重连后残留上一次的震动效果
+    @SubscribeEvent
+    public static void onClientPlayerLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
+        intensity = 0;
+        remainingTicks = 0;
+        falloff = 0;
     }
 }

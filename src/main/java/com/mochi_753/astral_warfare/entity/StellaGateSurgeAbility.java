@@ -208,7 +208,8 @@ public class StellaGateSurgeAbility {
     }
 
     public void setState(int state) {
-        this.gateSurgeState = state;
+        // S-26修复：钳制状态值到 [0, 3] 范围，防止 NBT 篡改导致越界
+        this.gateSurgeState = Math.max(0, Math.min(3, state));
     }
 
     public int getTimer() {

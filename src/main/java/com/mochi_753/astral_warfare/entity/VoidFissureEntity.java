@@ -59,6 +59,10 @@ public class VoidFissureEntity extends Entity {
         if (tag.hasUUID("CasterUUID")) {
             this.casterUUID = tag.getUUID("CasterUUID");
         }
+        // S-20修复：恢复伤害计时器，防止区块重载后伤害间隔被重置
+        if (tag.contains("DamageTimer")) {
+            this.damageTimer = tag.getInt("DamageTimer");
+        }
     }
 
     @Override
@@ -66,6 +70,8 @@ public class VoidFissureEntity extends Entity {
         if (this.casterUUID != null) {
             tag.putUUID("CasterUUID", this.casterUUID);
         }
+        // S-20修复：持久化伤害计时器
+        tag.putInt("DamageTimer", this.damageTimer);
     }
 
     @Override
@@ -86,6 +92,13 @@ public class VoidFissureEntity extends Entity {
             if (entity instanceof LivingEntity living) {
                 this.caster = living;
             }
+        }
+
+        // S-19修复：施法者存活断言，与 NightfallSingularityEntity 保持一致
+        // 施法者已死亡或不在同一维度时，裂隙自毁，防止伤害归因错误
+        if (this.caster == null || !this.caster.isAlive() || this.caster.level() != this.level()) {
+            this.discard();
+            return;
         }
 
         // 超时自毁

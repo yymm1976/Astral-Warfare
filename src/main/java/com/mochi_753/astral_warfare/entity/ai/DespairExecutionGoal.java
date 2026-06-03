@@ -374,16 +374,8 @@ public class DespairExecutionGoal extends Goal {
                 this.evoker.teleportTo(tpX, tpY, tpZ);
             }
 
-            net.minecraft.core.BlockPos evokerPos = this.evoker.blockPosition();
-            if (this.evoker.level().getBlockState(evokerPos).isSolidRender(this.evoker.level(), evokerPos)) {
-                for (int y = evokerPos.getY(); y < evokerPos.getY() + 10; y++) {
-                    net.minecraft.core.BlockPos checkPos = new net.minecraft.core.BlockPos(evokerPos.getX(), y, evokerPos.getZ());
-                    if (!this.evoker.level().getBlockState(checkPos).isSolidRender(this.evoker.level(), checkPos)) {
-                        this.evoker.teleportTo(evokerPos.getX(), y, evokerPos.getZ());
-                        break;
-                    }
-                }
-            }
+            // S-27修复：使用 BossUtils.findSafeTeleportPosition 替代内联碰撞检测
+            com.mochi_753.astral_warfare.util.BossUtils.findSafeTeleportPosition(this.evoker);
             this.evoker.setNoGravity(true);
             this.evoker.setDeltaMovement(Vec3.ZERO);
         }
@@ -629,7 +621,10 @@ public class DespairExecutionGoal extends Goal {
             double dist = 3.0 + this.evoker.getRandom().nextDouble() * (range - 3.0);
             double fx = this.evoker.getX() + Math.cos(angle) * dist;
             double fz = this.evoker.getZ() + Math.sin(angle) * dist;
-            double fy = this.evoker.getY();
+            // S-48修复：使用 BossUtils.findGroundY 替代 evoker.getY()
+            // 终结技砸地后 BOSS 可能在空中，裂隙应生成在地面而非空中
+            double fy = com.mochi_753.astral_warfare.util.BossUtils.findGroundY(
+                    level, fx, fz, this.evoker.getY(), this.evoker.getY());
 
             // 检查与已有裂隙位置的最小间距
             boolean tooClose = false;

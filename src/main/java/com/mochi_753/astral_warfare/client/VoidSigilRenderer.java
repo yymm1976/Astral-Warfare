@@ -23,6 +23,7 @@ import team.lodestar.lodestone.systems.particle.data.color.ColorParticleData;
 import team.lodestar.lodestone.systems.particle.data.spin.SpinParticleData;
 
 import java.awt.Color;
+import java.util.Objects;
 
 // 虚空禁锢脚下星阵纹路渲染器
 // 在被禁锢的玩家脚下渲染旋转发光的暗紫色虚空星阵
@@ -69,7 +70,8 @@ public class VoidSigilRenderer {
 
         // 检测维度切换：重置粒子计数器，避免跨维度遗留
         net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> currentDim = mc.level.dimension();
-        if (lastDimension != null && lastDimension != currentDim) {
+        // S-05修复：使用 Objects.equals 替代 != 比较维度 ResourceKey
+        if (!Objects.equals(lastDimension, currentDim)) {
             particleTickCounter = 0;
         }
         lastDimension = currentDim;

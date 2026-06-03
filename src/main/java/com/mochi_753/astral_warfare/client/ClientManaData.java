@@ -6,6 +6,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 
 import java.util.Collections;
 import java.util.Map;
@@ -58,5 +59,35 @@ public class ClientManaData {
     @SubscribeEvent
     public static void onClientPlayerLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
         clear();
+    }
+
+    // S-04修复：定期清理已死亡实体的法力数据，防止内存泄漏
+    // 每 200 tick（10秒）扫描一次，移除对应实体已不存在的条目
+    private static int cleanTimer = 0;
+    private static final int CLEAN_INTERVAL = 200;
+
+    @SubscribeEvent
+    public static void onClientTick(ClientTickEvent.Post event) {
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+        if (mc.level == null) return;
+
+        cleanTimer++;
+        if (cleanTimer >= CLEAN_INTERVAL) {
+            cleanTimer = 0;
+            cleanStaleEntries(mc);
+        }
+    }
+
+    // 移除对应实体已死亡的条目
+    // ClientLevel.getEntity(int id) 需要实体 ID 而非 UUID，因此改用遍历方式
+    private static void cleanStaleEntries(net.minecraft.client.Minecraft mc) {
+        if (!(mc.level instanceof net.minecraft.client.multiplayer.ClientLevel clientLevel)) return;
+        // 收集所有存活实体的 UUID
+        java.util.Set<UUID> aliveUUIDs = new java.util.HashSet<>();
+        for (net.minecraft.world.entity.Entity entity : clientLevel.entitiesForRendering()) {
+            aliveUUIDs.add(entity.getUUID());
+        }
+        // 移除不在存活集合中的条目
+        MANA_MAP.entrySet().removeIf(entry -> !aliveUUIDs.contains(entry.getKey()));
     }
 }

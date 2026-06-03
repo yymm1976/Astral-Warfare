@@ -27,5 +27,7 @@
   "entity.astral_warfare.stella_evoker.spell.star_rail_cut": "\u26A1 The Stella Evoker casts: Star Rail Cut!",
   "entity.astral_warfare.stella_evoker.spell.telekinetic_throw": "\uD83D\uDD2E The Stella Evoker casts: Telekinetic Throw!",
   "entity.astral_warfare.stella_evoker.spell.star_track_maze": "\uD83D\uDD37 The Stella Evoker casts: Star Track Maze!",
+  "subtitles.astral_warfare.stella_evoker_phase1": "Stella Evoker - Phase 1 Theme",
+  "subtitles.astral_warfare.stella_evoker_phase2": "Stella Evoker - Phase 2 Theme",
   "itemGroup.astral_warfare": "Astral Warfare"
 }

@@ -51,11 +51,11 @@ public class StarTrackMazeRenderer {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.player == null) return;
 
-        ClientboundMazeSyncPacket.MazeData mazeData = ClientboundMazeSyncPacket.getLastMazeData();
+        ClientboundMazeSyncPacket.MazeData mazeData = MazeDataCache.getLastMazeData();
         if (mazeData == null) return;
 
         if (System.currentTimeMillis() - mazeData.timestamp() > 6000) {
-            ClientboundMazeSyncPacket.clearMazeData();
+            MazeDataCache.clear();
             return;
         }
 

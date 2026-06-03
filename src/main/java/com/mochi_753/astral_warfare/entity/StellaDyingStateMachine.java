@@ -115,9 +115,12 @@ public class StellaDyingStateMachine {
         this.evoker.onFinishDyingDropLoot();
 
         // 全服公告
-        for (ServerPlayer player : level.getServer().getPlayerList().getPlayers()) {
-            player.sendSystemMessage(
-                    Component.translatable("entity.astral_warfare.stella_evoker.defeated"));
+        // S-24修复：getServer() 可能返回 null（如世界卸载期间调用）
+        if (level.getServer() != null) {
+            for (ServerPlayer player : level.getServer().getPlayerList().getPlayers()) {
+                player.sendSystemMessage(
+                        Component.translatable("entity.astral_warfare.stella_evoker.defeated"));
+            }
         }
 
         // 关键：先清除 DATA_IS_DYING 标志，再调用 forceDie()

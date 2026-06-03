@@ -24,6 +24,12 @@ public class ModConfig {
     public static final ModConfigSpec.DoubleValue BLACKHOLE_STRENGTH;
     public static final ModConfigSpec.DoubleValue SINGULARITY_TICK_DAMAGE;
 
+    // ==================== 近战伤害配置 ====================
+    public static final ModConfigSpec.DoubleValue SLASH_DAMAGE;
+    public static final ModConfigSpec.DoubleValue THRUST_DAMAGE;
+    public static final ModConfigSpec.DoubleValue BACKSTAB_DAMAGE;
+    public static final ModConfigSpec.DoubleValue PULL_PUNCH_DAMAGE;
+
     // ==================== 冷却时间配置 ====================
     public static final ModConfigSpec.IntValue STAR_GATE_INTERVAL_TICKS;
 
@@ -55,6 +61,22 @@ public class ModConfig {
         SINGULARITY_TICK_DAMAGE = BUILDER
                 .comment("黑洞中心区域每秒窒息伤害")
                 .defineInRange("singularity_tick_damage", 3.0, 0.0, 1000.0);
+        BUILDER.pop();
+
+        // 近战伤害分组
+        BUILDER.push("melee");
+        SLASH_DAMAGE = BUILDER
+                .comment("二阶段弦斩伤害")
+                .defineInRange("slash_damage", 16.0, 0.0, 10000.0);
+        THRUST_DAMAGE = BUILDER
+                .comment("二阶段突进伤害")
+                .defineInRange("thrust_damage", 12.0, 0.0, 10000.0);
+        BACKSTAB_DAMAGE = BUILDER
+                .comment("二阶段背刺伤害")
+                .defineInRange("backstab_damage", 28.0, 0.0, 10000.0);
+        PULL_PUNCH_DAMAGE = BUILDER
+                .comment("二阶段拉人重拳伤害")
+                .defineInRange("pull_punch_damage", 30.0, 0.0, 10000.0);
         BUILDER.pop();
 
         // 冷却时间分组

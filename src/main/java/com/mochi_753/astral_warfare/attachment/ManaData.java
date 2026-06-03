@@ -48,7 +48,8 @@ public class ManaData {
     }
 
     public synchronized void setCurrentMana(int currentMana) {
-        this.currentMana = currentMana;
+        // S-12修复：法力值不允许为负数
+        this.currentMana = Math.max(0, currentMana);
     }
 
     public synchronized int getMaxMana() {
@@ -56,7 +57,8 @@ public class ManaData {
     }
 
     public synchronized void setMaxMana(int maxMana) {
-        this.maxMana = maxMana;
+        // S-12修复：最大法力值至少为1，防止除零
+        this.maxMana = Math.max(1, maxMana);
     }
 
     public synchronized boolean isManaSystemDisabled() {
@@ -65,6 +67,14 @@ public class ManaData {
 
     public synchronized void setManaSystemDisabled(boolean manaSystemDisabled) {
         this.manaSystemDisabled = manaSystemDisabled;
+    }
+
+    // S-13修复：原子复合 setter，一次性设置所有字段
+    // 避免分步调用时渲染线程读取到中间状态（如 currentMana 已更新但 maxMana 未更新）
+    public synchronized void setManaData(int current, int max, boolean disabled) {
+        this.currentMana = Math.max(0, current);
+        this.maxMana = Math.max(1, max);
+        this.manaSystemDisabled = disabled;
     }
 
     // 序列化快照方法：synchronized 确保读取时字段不被并发修改
