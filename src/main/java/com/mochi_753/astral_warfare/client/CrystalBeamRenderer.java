@@ -3,22 +3,18 @@ package com.mochi_753.astral_warfare.client;
 import com.mochi_753.astral_warfare.AstralWarfare;
 import com.mochi_753.astral_warfare.entity.AstralCrystalEntity;
 import com.mochi_753.astral_warfare.entity.StellaEvokerEntity;
-import team.lodestar.lodestone.registry.common.particle.LodestoneParticleTypes;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
-import team.lodestar.lodestone.systems.easing.Easing;
-import team.lodestar.lodestone.systems.particle.builder.WorldParticleBuilder;
-import team.lodestar.lodestone.systems.particle.data.GenericParticleData;
-import team.lodestar.lodestone.systems.particle.data.color.ColorParticleData;
 
 import java.awt.Color;
 import java.util.List;
@@ -133,6 +129,11 @@ public class CrystalBeamRenderer {
         float dy = (float) (end.y - start.y);
         float dz = (float) (end.z - start.z);
         float length = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
+        // 除零保护：起点终点重合时跳过绘制，避免法线除零崩溃
+        if (length < 0.001f) {
+            poseStack.popPose();
+            return;
+        }
         float nx = dx / length;
         float ny = dy / length;
         float nz = dz / length;
@@ -186,7 +187,9 @@ public class CrystalBeamRenderer {
     }
 
     // 沿射线路径生成粒子效果
-    // 使用固定粒子数 + 动态步进，确保粒子沿射线均匀分布
+    // 使用原版 ParticleTypes.END_ROD 替代 Lodestone WorldParticleBuilder
+    // 原因：WorldParticleBuilder 在客户端渲染事件中调用可能导致服务端类加载问题
+    // END_ROD 粒子自带星空蓝光效，与射线主题一致
     private static void spawnBeamParticles(AstralCrystalEntity crystal, StellaEvokerEntity boss) {
         Vec3 start = crystal.position().add(0, 0.5, 0);
         Vec3 end = boss.position().add(0, 1.0, 0);
@@ -197,6 +200,9 @@ public class CrystalBeamRenderer {
         // 固定粒子数量，步进 = 总距离 / 粒子数，确保均匀分布
         int particleCount = 8;
         double step = distance / particleCount;
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level == null) return;
+
         for (int i = 1; i <= particleCount; i++) {
             double t = i * step;
             if (t > distance) break;
@@ -209,14 +215,10 @@ public class CrystalBeamRenderer {
             double offsetY = (crystal.getRandom().nextDouble() - 0.5) * 0.3;
             double offsetZ = (crystal.getRandom().nextDouble() - 0.5) * 0.3;
 
-            // 使用 Lodestone WorldParticleBuilder 替代原版 addParticle
-            // 支持颜色渐变、缩放缓动、透明度衰减等高级效果
-            WorldParticleBuilder.create(LodestoneParticleTypes.SPARK_PARTICLE)
-                    .setColorData(ColorParticleData.create(new Color(60, 140, 255), new Color(120, 200, 255)).build())
-                    .setScaleData(GenericParticleData.create(0.15f, 0.05f).setEasing(Easing.QUAD_OUT).build())
-                    .setTransparencyData(GenericParticleData.create(0.8f, 0f).setEasing(Easing.QUAD_OUT).build())
-                    .setLifetime(20)
-                    .spawn(crystal.level(), px + offsetX, py + offsetY, pz + offsetZ);
+            // 使用原版 END_ROD 粒子替代 Lodestone WorldParticleBuilder
+            mc.level.addParticle(ParticleTypes.END_ROD,
+                    px + offsetX, py + offsetY, pz + offsetZ,
+                    0, 0.02, 0);
         }
     }
 }

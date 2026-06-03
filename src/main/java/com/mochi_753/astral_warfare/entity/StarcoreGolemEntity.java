@@ -131,6 +131,11 @@ public class StarcoreGolemEntity extends Monster {
         super.readAdditionalSaveData(tag);
         this.chargeDelayTimer = tag.getInt("ChargeDelayTimer");
         this.chargeScheduled = tag.getBoolean("ChargeScheduled");
+        // NBT 恢复后重新应用充能状态的速度修饰符
+        // 原因：区块卸载重载后 AttributeModifier 丢失，isCharged() 返回 true 但速度未提升
+        if (isCharged()) {
+            setCharged(true);
+        }
     }
 
     private static final ResourceLocation CHARGED_SPEED_MODIFIER_ID =

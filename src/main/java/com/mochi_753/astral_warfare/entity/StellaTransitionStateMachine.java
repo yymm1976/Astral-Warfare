@@ -3,7 +3,7 @@ package com.mochi_753.astral_warfare.entity;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
 import com.mochi_753.astral_warfare.init.ModConstants;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
-import net.minecraft.core.BlockPos;
+import com.mochi_753.astral_warfare.util.BossUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -52,8 +52,12 @@ public class StellaTransitionStateMachine {
 
         double groundY = findGroundY(level);
         double targetY = groundY + TRANSITION_TARGET_HEIGHT;
-        if (evoker.getY() < targetY) {
-            evoker.setDeltaMovement(evoker.getDeltaMovement().add(0, 0.5, 0));
+        double currentY = evoker.getY();
+        if (currentY < targetY) {
+            // 升空速度上限 0.5：避免 BOSS 在接近目标高度时过冲
+            // 使用 Math.min 确保最后一帧不会越过目标高度太多
+            double riseSpeed = Math.min(0.5, targetY - currentY);
+            evoker.setDeltaMovement(evoker.getDeltaMovement().add(0, riseSpeed, 0));
         } else {
             evoker.setDeltaMovement(Vec3.ZERO);
         }
@@ -174,14 +178,7 @@ public class StellaTransitionStateMachine {
     }
 
     private double findGroundY(ServerLevel level) {
-        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
-        for (int y = evoker.blockPosition().getY(); y > level.getMinBuildHeight(); y--) {
-            mutable.set(evoker.getX(), y, evoker.getZ());
-            if (!level.getBlockState(mutable).isAir()) {
-                return y + 1.0;
-            }
-        }
-        return evoker.getY();
+        return BossUtils.findGroundY(level, evoker.getX(), evoker.getZ(), evoker.getY(), evoker.getY());
     }
 
     public boolean isActive() {

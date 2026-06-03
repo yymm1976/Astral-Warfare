@@ -1,238 +1,332 @@
-## Astral Warfare Mod (NeoForge 1.21.1) 代码审查报告
+# Astral Warfare (1.21.1 NeoForge) 代码审查报告
 
-**项目名称:** Astral Warfare (com.mochi_753.astral_warfare)
-**Minecraft 版本:** 1.21.1 (NeoForge)
-**审查日期:** 2026-06-02
-**源码文件数:** 55 个 Java 源文件 + 30 个资源文件
-**代码总行数:** 约 8,000+ 行 Java 代码
-
----
-
-## 一、项目概述
-
-本项目是一个 NeoForge 1.21.1 的 Minecraft Mod，实现了一个完整的 BOSS 战斗系统——"星穹唤魔者"(Stella Evoker)。项目包含双阶段 BOSS 战（施法阶段 + 近战阶段）、法力系统、水晶机制、6 种法术、重力奇点、星核傀儡召唤、虚空长戟武器、夜幕星盘召唤道具、祭坛结构世界生成，以及完整的客户端渲染（GeckoLib 骨骼动画、粒子特效、屏幕震动、后处理着色器、战斗 BGM 切换、自定义 BOSS 血条等）。
-
-依赖库包括 Lodestone（粒子系统）、GeckoLib（实体动画）、PAL（玩家动画）和 Curios API。
+**审查日期**: 2026-06-03
+**项目路径**: `1.21.1-BOSS`
+**审查范围**: 全部 57 个 Java 源文件 + 资源/配置文件（共 374 个文件）
+**审查原则**: 仅审查，不修改代码
 
 ---
 
-## 二、缺陷总览（按严重度分级）
+## 一、项目概览
 
-### 严重（HIGH）— 可能导致崩溃或严重逻辑错误
+本项目是一个 Minecraft NeoForge 1.21.1 的 Boss 战斗模组（Astral Warfare），核心内容包括：一个多阶段 Boss（Stella Evoker，法师形态 + 近战形态 + 死亡演出）、法力系统、终结技、7 种法术、傀儡召唤、黑洞/裂隙等战场实体、自定义结构（星穹祭坛）、专属武器与道具、战斗 BGM、屏幕特效与 HUD 覆盖。
 
-**H1. StellaEvokerEntity.java — `die()` 方法存在 ConcurrentModificationException 风险**
-`die()` 方法中使用 `forEach` 遍历 `getAvailableGoals()` 过滤后的流，同时调用 `stop()` 可能修改目标列表的内部状态。`readAdditionalSaveData()` 中相同逻辑正确地使用了 `.toList()` 先收集再遍历，但 `die()` 方法没有做同样的处理。在 BOSS 死亡时若触发此异常，会导致死亡流程中断，BOSS 卡在 0 生命值无法移除。
+**技术栈**: Java 21, NeoForge 2.0.139, GeckoLib 4.7.3, Lodestone 1.7.0.268, PAL 1.1.4, Curios 9.5.1
 
-**H2. Phase2MeleeGoal.java — 突刺传送无碰撞检测**
-`tickThrust()` 中 BOSS 向目标方向传送 6 格，但传送后没有检测是否进入固体方块。与 `DespairExecutionGoal` 中的传送逻辑不同（后者有 `isSolidRender()` 检测 + 向上扫描安全位置），突刺传送可能导致 BOSS 卡在墙壁或地形中，无法正常移动。
-
-**H3. StellaFlyingMoveControl.java — 除零风险**
-当 BOSS 正好位于目标玩家的正上方或正下方时（`dx` 和 `dz` 均为 0），水平幅度 `mag` 为 0，导致归一化计算产生 `NaN` 速度。虽然 `distSq < 0.01` 的检测能捕获大多数情况，但当垂直距离大而水平距离为 0 时，`distSq` 可能超过 0.01 而 `mag` 仍然为 0。
-
-**H4. ModConfig.java / ModConstants.java — `EXECUTION_DAMAGE` 常量冲突**
-`ModConfig` 中定义了可配置的 `EXECUTION_DAMAGE`（默认 80.0），而 `ModConstants` 中也定义了硬编码的 `EXECUTION_DAMAGE`（值 30.0F）。使用 `ModConstants.EXECUTION_DAMAGE` 的代码将完全忽略服务器配置，使配置系统形同虚设。这是功能完整度方面的严重缺陷。
-
-**H5. ModPayloads.java — 顶层导入客户端专属类，专用服务器存在崩溃风险**
-文件顶部直接导入了 `Minecraft`、`ClientLevel`、`ClientManaData`、`ScreenShakeManager`、`StellaParticles` 等客户端专属类。代码依赖 NeoForge 的延迟类加载行为来避免专用服务器上的 `NoClassDefFoundError`。如果 NeoForge 未来版本更改类加载策略，服务器将在类加载阶段直接崩溃。安全的做法是将所有客户端处理逻辑移至独立的 `@OnlyIn(Dist.CLIENT)` 类中。
-
-### 中等（MEDIUM）— 影响功能正确性或游戏体验
-
-**M1. StarcoreGolemEntity.java — 缺少 NBT 持久化**
-`chargeDelayTimer` 和 `chargeScheduled` 字段未保存到 NBT。如果区块在傀儡充能延迟期间卸载，重新加载后傀儡将永久处于未充能状态，无法再变为充能状态。
-
-**M2. StellaEvokerEntity.java — NBT 读取不完整**
-读取 `AltarCenterPos` 时仅检测 `AltarCenterX` 是否存在，未检测 Y 和 Z。如果 NBT 损坏仅包含 X 坐标，`getInt("AltarCenterY")` 返回 0，生成错误的 BlockPos(?, 0, ?)。
-
-**M3. StellaEvokerEntity.java — `injectConfigHp` 逻辑缺陷**
-配置注入条件为 `currentBase < configMaxHp`，注释说"仅当 baseValue 仍为默认 200.0 时覆盖"。但如果缩放道具将基础 HP 设为低于配置值（如配置 300、缩放后 250），该值会被覆盖为 300，破坏缩放系统的功能。
-
-**M4. StellaEvokerEntity.java — `getMaxHealth()` 除零**
-`this.getHealth() / this.getMaxHealth()` 在 `getMaxHealth()` 返回 0 时产生 `NaN`（属性未加载或数据损坏），可能导致 BOSS 血条渲染异常或客户端崩溃。
-
-**M5. DespairExecutionGoal.java — 重复屏幕震动包**
-`executeSlamImpact()` 中 `ClientboundScreenShakePacket` 被发送了两次（参数完全相同），导致震屏时间翻倍。可能是复制粘贴错误。
-
-**M6. DespairExecutionGoal.java — 目标选择非最近玩家**
-`nearbyPlayers.get(0)` 选取 `getEntitiesOfClass` 返回的第一个玩家，该方法不保证按距离排序。BOSS 可能选中较远的玩家而忽略更近的。
-
-**M7. SpellCastGoal.java — 星束法术每 tick 搜索最近玩家**
-`tickAstralBeam()` 在 60 tick 的持续时间内每 tick 调用 `getNearestPlayer()`，产生 60 次实体搜索。结果可以缓存。
-
-**M8. StellaTransitionStateMachine.java — `findGroundY()` 每 tick 调用**
-过渡阶段每 tick 执行一次向下的方块扫描来寻找地面。地面位置在 4-5 秒的过渡期间不太可能变化，应在过渡开始时缓存结果。
-
-**M9. ManaData.java — Codec 快照非原子操作**
-`snapshotCurrentMana()`、`snapshotMaxMana()`、`snapshotManaSystemDisabled()` 各自独立 `synchronized`，但 Codec 序列化时依次调用三个方法，之间其他线程可以修改字段，导致序列化的快照包含来自不同时间点的数据。
-
-**M10. ClientboundParticleBatchPacket.java — 无数据包大小验证**
-解码时 `count` 字段直接使用网络数据，无任何上限检测。恶意或损坏的数据包指定 `count = Integer.MAX_VALUE` 将导致 OOM 或长时间挂起。
-
-**M11. StellaBossBarOverlay.java — `getMaxMana()` 除零**
-`manaRatio` 计算中如果 `getMaxMana()` 返回 0，产生 `NaN`/`Infinity`，传播到填充宽度和闪光计算，可能导致渲染异常。
-
-**M12. NocturnalAstrolabeItem.java — BOSS 生成无碰撞检测**
-BOSS 在玩家上方 5 格处生成，未检测该位置是否在固体方块内。如果祭坛上方天花板较低，BOSS 可能生成在方块中窒息。
-
-**M13. NocturnalAstrolabeItem.java — 道具消耗不检查生成是否成功**
-道具在使用时立即消耗（非创造模式），但如果 BOSS 创建失败（`create()` 返回 null 或抛出异常），道具仍然被消耗且无反馈。
-
-**M14. AstralAltarStructure.java — 水面规避逻辑缺陷**
-水面规避循环仅检测中心柱位置是否有水。如果中心是水而周围是陆地，整个平台会被提升到水面以上，可能悬浮在空中。此外，超过建筑高度上限时不中止生成，而是静默失败。
-
-### 低（LOW）— 代码质量、可维护性或轻微逻辑问题
-
-**L1. StellaFlyingMoveControl.java — 悬停目标不过滤创造/旁观模式玩家**
-`getNearestPlayer` 不过滤游戏模式。BOSS 可能在非战斗的创造模式玩家上方悬停跟随。`NearestAttackableTargetGoal` 正确过滤了创造模式，导致目标选择和悬停行为不一致。
-
-**L2. GolemMoveToBossGoal.java — `canUse()` 每 tick 无节流搜索**
-`getEntitiesOfClass` 在 `canUse()` 中每 tick 调用，无缓存或节流。多个傀儡时搜索开销倍增。
-
-**L3. Phase2MeleeGoal.java — 背刺传送在目标仰视/俯视时失效**
-BOSS 传送到目标"身后" 1 格处基于视线方向。当目标直视上方或下方时，`targetLook.x` 和 `targetLook.z` 接近 0，BOSS 会被传送到目标正上方而非身后。
-
-**L4. Phase2MeleeGoal.java — 拉扯技能无地面检测**
-`tickPull()` 将玩家传送到 BOSS 的 Y 高度，未进行地面检测。如果 BOSS 和玩家处于不同高度，玩家可能被传送到方块内部或空中。
-
-**L5. SpellCastGoal.java — 命运链接可 targeting 创造模式玩家**
-命运链接选择最近玩家时不过滤游戏模式。创造模式玩家虽然免疫伤害，但法术仍会消耗法力和冷却。
-
-**L6. StellaManaSystem.java — 两次相同 AABB 的实体搜索**
-`recoverManaFromCrystals()` 对同一个 AABB 分别搜索水晶和傀儡实体，可以合并为一次搜索再按类型过滤。
-
-**L7. StellaEvokerEntity.java — 动画状态使用 String 而非枚举**
-`currentAttackAnim` 使用字符串匹配 `switch` 表达式。添加新动画时若忘记更新 switch，静默返回 `null`。枚举更安全。
-
-**L8. StellaGateSurgeAbility / StellaTransitionStateMachine — `findGroundY()` 重复实现**
-相同的地面扫描方法在两个类中各自实现，违反 DRY 原则。
-
-**L9. AstralCrystalEntity.java — 粒子 ID 使用硬编码魔术数字**
-`emitter.add(3, ...)` 和 `emitter.add(2, ...)` 使用原始整数而非命名常量。如果粒子 ID 重新排序，这些数字会无声地失效。
-
-**L10. ScreenShakeManager.java — 硬编码 Mod ID**
-`@EventBusSubscriber(modid = "astral_warfare")` 使用字面量而非 `AstralWarfare.MOD_ID`。其他所有类都使用常量引用。
-
-**L11. ClientManaData.java — 死亡/移除的实体不清理缓存**
-`removeManaData()` 存在但没有机制在实体死亡或卸载时调用。BOSS 死亡后若新 BOSS 在同一会话中生成，旧 UUID 条目永久残留，每帧被无效遍历。
-
-**L12. PlayerAnimationHandler.java — `wasEntrapped` 状态永不重置**
-静态字段 `wasEntrapped` 在玩家登出、重生、切换维度时均不重置。导致被虚空束缚的玩家登出后重新登录时，动画无法再次触发。
-
-**L13. CrystalBeamRenderer.java — 垂直光束除零**
-当水晶和 BOSS 的 X/Z 坐标完全相同时，光束方向归一化产生 `NaN`，可能导致渲染伪影或崩溃。
-
-**L14. VoidSigilRenderer.java — 渲染事件中每帧搜索实体**
-`getEntitiesOfClass` 在渲染帧事件中调用（60-240 FPS），而非按 tick 节流。32 格 AABB 搜索在此频率下开销显著。
-
-**L15. ParticleEmitter.java — `catch (Throwable)` 吞没 OOM 错误**
-`flush()` 和 `close()` 捕获 `Throwable`（包括 `OutOfMemoryError`），危险的内存不足错误会被静默忽略。应缩小为 `catch (Exception)`。
-
-**L16. AstralAltarStructure.java — 每次生成约 305 次不必要的 BlockPos 分配**
-平台和柱子方块使用 `new BlockPos(...)` 而非已有的 `MutableBlockPos`，每次结构生成产生约 305 个可避免的不可变对象分配。
-
-**L17. StellaEvokerRenderer.java — 每帧分配 ItemStack**
-`VoidHalberdLayer` 在 BOSS 处于第二阶段时每渲染帧创建新的 `ItemStack(ModItems.VOID_HALBERD.get())`。应缓存为字段。
-
-**L18. StellaBossBarOverlay.java — 使用 `Math.random()` 而非 `ThreadLocalRandom`**
-在每帧调用的渲染热路径中使用 `Math.random()`，会创建并锁定共享的 `Random` 实例。应使用 `ThreadLocalRandom` 或 Minecraft 提供的 `RandomSource`。
-
-**L19. Model 类 — `setupAnim` 未重置部件姿态**
-`AstralCrystalModel` 和 `StarcoreGolemModel` 的 `setupAnim` 方法开始时均未调用 `root().getAllParts().forEach(ModelPart::resetPose)`。如果前一个动画留下了非默认姿态，新动画会叠加其上。
-
-**L20. StarcoreGolemModel.java — 耳朵部件缺少 `xRot` 同步**
-所有头部子部件（颈部、头顶、双眼、嘴）都同步了 `yRot` 和 `xRot`，但左右耳仅同步了 `yRot`。当傀儡上下看时，耳朵不随头部俯仰倾斜。
+**整体评价**: 这是一个完成度较高、代码质量上乘的 Boss 模组项目。组件化设计清晰，注释质量远超同类模组平均水平（几乎每个类、方法、关键逻辑块都有中文注释说明设计意图和权衡取舍）。以下按严重程度组织审查发现。
 
 ---
 
-## 三、性能分析
+## 二、严重问题（建议优先修复）
 
-### 粒子系统网络开销
+### 2.1 `forceDie()` 可能导致战利品重复掉落
 
-本项目的粒子效果非常密集。以下是主要粒子源的开销分析：
+**文件**: `StellaEvokerEntity.java`
 
-| 粒子来源 | 频率 | 每次粒子数 | 等效每 tick |
-|----------|------|-----------|------------|
-| 绝望处刑 WINDUP 阶段 | 每 tick | 最高 ~70 | ~70 |
-| 绝望处刑 SLAM 阶段 | 每 tick | ~10 | ~10 |
-| 奇点核心 + 吸积盘 | 每 tick | 10-14 | 10-14 |
-| 光束法术 | 每 tick (60 tick) | ~50 | ~50 |
-| 斩击连击 | 每 tick (15 tick) | ~53 | ~53 |
+`forceDie()` 使用 `damageSources().generic()` 调用 `super.die()`。`LivingEntity.die()` 内部可能触发 `dropFromLootTable`，而 `onFinishDyingDropLoot()` 中已经显式调用了一次 `dropFromLootTable`。两者叠加可能导致 Boss 战利品翻倍。
 
-`ParticleEmitter` 的批处理机制有效降低了网络包数量，但同类型粒子交替时会自动 flush，降低批处理效率。`DespairExecutionGoal` 的 WINDUP 阶段在 40 tick 内可产生约 2,800 个粒子，对客户端渲染和网络带宽都是显著压力。
+**建议**: 确认 `LivingEntity.die()` 的父类实现是否会自动触发战利品掉落，若会则在 `forceDie()` 前设标志位跳过重复掉落。
 
-### 渲染线程开销
+### 2.2 死亡演出状态机的 NBT 恢复兜底缺失
 
-`CrystalBeamRenderer`、`VoidSigilRenderer` 和 `StellaBossBarOverlay` 都在渲染帧事件（60-240 FPS）中执行 `getEntitiesOfClass` AABB 搜索。这些搜索应按 tick 节流或缓存结果，当前实现在高帧率下产生大量冗余计算。
+**文件**: `StellaDyingStateMachine.java`
 
-`bufferSource.endBatch()` 在两处被无参数调用（`CrystalBeamRenderer` 和 `VoidSigilRenderer`），这会刷新所有渲染类型而非仅 `RenderType.lines()`，可能干扰共享同一 BufferSource 的其他渲染器。
+`isActive()` 基于 `dyingTimer > 0` 判断，`isDying()` 基于 `entityData.get(DATA_IS_DYING)` 判断。若 NBT 恢复时 `dyingTimer` 为 0（数据损坏），`isDying()` 为 `true` 但 `isActive()` 为 `false`，Boss 将永久卡在"正在死亡"状态，既无法恢复战斗也无法被移除。
 
-### 实体搜索效率
+**建议**: 在 `tick()` 中增加兜底逻辑——若 `isDying()` 为 `true` 但 `dyingTimer <= 0`，自动触发 `finishDying()`。
 
-`GolemMoveToBossGoal.canUse()` 每 tick 调用实体搜索且无节流，`SpellCastGoal.tickAstralBeam()` 在持续期间每 tick 调用 `getNearestPlayer()`。对比 `StellaFlyingMoveControl` 中有效的 20 tick 缓存机制，这些缺少节流的搜索是明显的优化点。
+### 2.3 `isDeadOrDying()` 重写可能导致实体残留
 
----
+**文件**: `StellaEvokerEntity.java`
 
-## 四、架构与设计评价
+死亡演出期间 `isDeadOrDying()` 返回 `false`，阻止自动移除。若 `finishDying()` 执行过程中抛出异常（如粒子系统出错），Boss 实体可能永久残留为 0 血量的僵尸实体。
 
-### 优秀之处
+**建议**: 在 `tick()` 中增加兜底——若血量 <= 0 且不在死亡演出中，强制移除实体。
 
-**状态机模式应用得当。** 战斗阶段（PHASE_1_CASTER / PHASE_2_MELEE）、死亡动画（StellaDyingStateMachine）、过渡动画（StellaTransitionStateMachine）、门涌能力（StellaGateSurgeAbility）和绝望处刑（DespairExecutionGoal 的 7 状态机）都采用了清晰的状态机设计，状态转换明确。
+### 2.4 `CrystalBeamRenderer` 除零风险
 
-**关注点分离良好。** 主实体类 StellaEvokerEntity（965 行）虽然较大，但已将法力系统、死亡状态、过渡状态、门涌能力分别提取到独立类中。策略模式（SpellType 枚举 + BiConsumer 执行器）使法术系统易于扩展。
+**文件**: `CrystalBeamRenderer.java`
 
-**NBT 持久化全面。** BOSS 实体的战斗阶段、过渡状态、死亡状态、法力系统、门涌进度、祭坛位置都正确保存和恢复，确保区块卸载/加载后战斗状态不丢失。
+`drawBeam` 中 `length = sqrt(dx*dx + dy*dy + dz*dz)`，当水晶和 Boss 位置完全重合时 `length = 0`，后续除法产生 `NaN`，可能导致渲染管线崩溃。
 
-**客户端-服务器隔离基本正确。** 主 mod 类中使用 `FMLEnvironment.dist == Dist.CLIENT` 保护客户端初始化，粒子通过自定义网络包从服务器发送到客户端。
+**建议**: 增加 `if (length < 0.001f) return;` 保护。
 
-**配置系统支持热重载。** `ModConfig` 中的 `ConfigValue` 值通过 `.get()` 动态读取，支持配置重载后生效。
+### 2.5 `StellaBossBarOverlay` 法力条除零风险
 
-### 需要改进之处
+**文件**: `StellaBossBarOverlay.java`
 
-**客户端/服务器隔离不彻底。** `ModPayloads.java` 在顶层导入客户端类是最大的架构风险。虽然当前依赖 NeoForge 的延迟加载行为可以工作，但这种模式在版本升级时极其脆弱。
+`(float) manaData.getCurrentMana() / manaData.getMaxMana()` 当 `getMaxMana()` 返回 0 时产生 `Infinity`/`NaN`，渲染可能崩溃。
 
-**配置系统与硬编码常量不一致。** `ModConfig`（可配置）和 `ModConstants`（硬编码）的职责划分缺乏明确标准。`EXECUTION_DAMAGE` 在两处以不同值定义是最突出的问题，其他常量如 `STARFALL_DAMAGE`、`WEAKENED_DURATION_TICKS` 等的归属也缺乏一致性。
+**建议**: 增加 `if (maxMana <= 0) maxMana = 1;` 保护。
 
-**维度/会话切换时的静态状态清理不完整。** 多个客户端类使用静态字段但在维度切换或玩家重生时不清理：`ClientManaData.MANA_MAP`、`CrystalBeamRenderer.particleTickCounter`、`VoidSigilRenderer.particleTickCounter`、`StellaBattleMusic` 状态字段、`PlayerAnimationHandler.wasEntrapped`、`ScreenShakeManager` 状态字段。这些字段仅在登出时部分清理，可能导致跨维度或重生后的异常行为。
+### 2.6 `ScreenShakeManager` NPE 风险
 
----
+**文件**: `ScreenShakeManager.java`
 
-## 五、资源文件审查
+`Minecraft.getInstance().player.getRandom()` 在极端时序下（玩家刚断开但最后一帧仍在渲染）`mc.player` 可能为 null。
 
-### 完整性
+**建议**: 增加 `if (mc.player == null) return;` 保护。
 
-所有代码中引用的资源文件均已正确创建，包括 5 个物品模型 + 纹理、4 个实体纹理、2 个 BGM 音频（正确配置为 `stream: true`）、GeckoLib 模型和动画文件、PAL 玩家动画文件、着色器文件、战利品表、伤害类型、世界生成结构和生物群系标签。
+### 2.7 `DespairExecutionGoal.canUse()` 中冷却计时器递减违反 Goal 语义
 
-JSON 文件语法全部正确。中英文语言文件（en_us.json / zh_cn.json）包含完全一致的 29 个翻译键，覆盖了所有物品、实体、效果、死亡消息和 BOSS 事件消息。
+**文件**: `DespairExecutionGoal.java`
 
-### 发现的问题
+`cooldownTimer` 的递减写在 `canUse()` 中。Minecraft 的 `GoalSelector` 在同一 tick 内可能多次调用 `canUse()`，导致冷却被多递减，实际冷却时间短于预期。
 
-缺少可选的效果描述翻译键（`effect.astral_warfare.void_entrapment.description` 和 `effect.astral_warfare.void_bleed.description`），导致效果在背包界面中不显示描述文本。
+**建议**: 将冷却递减迁移到 `tick()` 中，并在外部驱动未激活时的递减。
 
-`player_animations/void_entrapment.json` 包含 `geckolib_format_version` 字段，但该文件由 PAL 而非 GeckoLib 消费，字段被忽略但具有误导性。
+### 2.8 `SpellCastGoal.canUse()` 副作用过重
 
-后处理着色器文件（`singularity_distortion` 系列）有效但从未被激活（`ENABLED = false`），属于保留的死资源。
+**文件**: `SpellCastGoal.java`
 
-`stella_evoker.json` 战利品表使用 `"type": "entity"`（无命名空间前缀），而 `starcore_golem.json` 使用 `"type": "minecraft:entity"`（有前缀），两者均有效但风格不一致。
+`canUse()` 内修改了 5 个字段（`currentSpell`, `castTick` 等），违反 `canUse()` 应为纯查询的语义约定。多次调用可能导致冷却被多递减。
 
----
+**建议**: 将状态修改逻辑迁移到 `start()` 中。
 
-## 六、构建配置评价
+### 2.9 `Phase2MeleeGoal` 背刺斩 NPE 风险
 
-`build.gradle.kts` 配置规范，正确使用了 NeoForge ModDev 插件 2.0.139、Java 21 工具链、Parchment 映射。依赖管理合理，CurseMaven 用于获取 Lodestone 1.21.1 NeoForge 版本（附有详细注释解释选择原因），GeckoLib 4.7.3 和 PAL 1.1.4 版本选择有注释说明。Access Transformer 验证已启用。
+**文件**: `Phase2MeleeGoal.java`
 
-`gradle.properties` 中的版本号配置合理，NeoForge 版本范围限制了兼容性。
+`tickBackstabStrike` 中 `this.target.position()` 的调用不在存活性检查的保护范围内。若 `target` 为 null 或已死亡，将抛出 NPE。同时若 Boss 和目标在同一位置，`normalize()` 返回零向量导致 NaN。
+
+**建议**: 增加 null 检查和零向量保护。
 
 ---
 
-## 七、改进优先级建议
+## 三、中等问题（建议排期修复）
 
-**第一优先级（修复崩溃/严重逻辑错误）：**
-H1（ConcurrentModificationException）、H2（突刺传送卡墙）、H3（除零崩溃）、H4（配置常量冲突）、H5（服务器类加载风险）
+### 3.1 Boss 脱战检测被演出阶段的 `return` 跳过
 
-**第二优先级（修复功能缺陷）：**
-M1（傀儡 NBT 丢失）、M4（血条 NaN）、M5（重复震屏）、M6（目标选择错误）、M10（数据包验证）、M12/M13（BOSS 生成与道具消耗）
+**文件**: `StellaEvokerEntity.java`
 
-**第三优先级（性能优化）：**
-渲染线程中的实体搜索节流、粒子密集场景的带宽优化、`findGroundY()` 缓存、`getNearestPlayer` 调用频率降低
+星门涌动、转阶段演出、死亡演出期间的 `return` 会跳过后续的脱战检测（`checkAnchorDespawn`）。若所有玩家在演出期间跑出检测半径或下线，Boss 不会脱战消失。
 
-**第四优先级（代码质量）：**
-DRY 重复提取、枚举替代字符串、静态状态清理补全、模型姿态重置规范
+**建议**: 将脱战检测提前到所有 `return` 之前执行。
+
+### 3.2 `passiveManaRegenTimer` 未持久化
+
+**文件**: `StellaManaSystem.java` / `StellaEvokerEntity.java`
+
+`passiveManaRegenTimer` 在 `addAdditionalSaveData()` 中未保存。区块重载后计时器归零。虽然 `StellaManaSystem` 已有 `getPassiveManaRegenTimer()` / `setPassiveManaRegenTimer()` 方法，但未被使用。
+
+**建议**: 在 NBT 序列化中补充此字段。
+
+### 3.3 转阶段升空速度无上限
+
+**文件**: `StellaTransitionStateMachine.java`
+
+每 tick 累加 0.5 的向上速度，没有上限。Boss 可能以极高速度冲过目标高度后被瞬间制动到 0，产生不自然的"急停"视觉效果。
+
+**建议**: 使用 `Math.min` 限制最大升空速度。
+
+### 3.4 `VoidFissureEntity` 施法者死亡后不自动消散
+
+**文件**: `VoidFissureEntity.java`
+
+与 `NightfallSingularityEntity` 不同，裂隙在施法者死亡后不会自毁。Boss 死亡后裂隙仍可能对玩家造成约 10 秒的无归因伤害。
+
+**建议**: 增加施法者存活检测，死亡后主动 `discard()`。
+
+### 3.5 BGM 交叉淡入淡出的音频泄漏
+
+**文件**: `StellaBattleMusic.java`
+
+若在 `fadingOutBgm` 尚未完成渐隐时再次调用 `crossfadeToPhase`，旧的 `fadingOutBgm` 会被覆盖但不会被停止，导致一个永远不会被清理的音频实例持续播放。
+
+**建议**: 在覆盖前增加 `if (fadingOutBgm != null) mc.getSoundManager().stop(fadingOutBgm);`。
+
+### 3.6 星轨迷宫网络包过于频繁
+
+**文件**: `SpellCastGoal.java`
+
+`ClientboundMazeSyncPacket` 在施法的 120 tick 中每 tick 发送一次，产生约 80 个网络包。对远程服务器可能造成带宽压力。
+
+**建议**: 仅在切换 `mazeActiveGroup` 时发包，其余 tick 靠客户端本地插值渲染。
+
+### 3.7 `DespairExecutionGoal` 的 `COOLDOWN` 状态是死代码
+
+**文件**: `DespairExecutionGoal.java`
+
+枚举值 `State.COOLDOWN` 存在但状态机从未转入此状态。`stop()` 方法也未完整清理状态——若 Goal 在终结技进行中被抢占，冷却不会被设置，终结技可立即无冷却再次触发。
+
+**建议**: 移除死代码，完善 `stop()` 的状态清理逻辑。
+
+### 3.8 粒子生成频率与帧率耦合
+
+**文件**: `CrystalBeamRenderer.java`, `VoidSigilRenderer.java`, `StarTrackMazeRenderer.java`
+
+三个渲染器的 `particleTickCounter` 在渲染帧（而非游戏 tick）中递增。60 FPS 和 240 FPS 玩家的粒子密度差 4 倍。
+
+**建议**: 改用 `ClientTickEvent` 控制粒子生成计时。
+
+### 3.9 `NocturnalAstrolabeItem` 水晶与 Boss 生成不一致
+
+**文件**: `NocturnalAstrolabeItem.java`
+
+Boss 碰撞检测循环无安全出口——若 15 格内全是固体方块，Boss 可能卡在方块里。另外水晶生成在 `bossSpawned` 判定之外，Boss 生成失败时水晶仍会散落。
+
+**建议**: 增加 fallback 逻辑，将水晶生成移入 `if (bossSpawned)` 条件块。
+
+### 3.10 `GolemMoveToBossGoal.canUse()` 不选最近的 Boss
+
+**文件**: `GolemMoveToBossGoal.java`
+
+使用 `findFirst()` 获取 Boss 但不保证距离最近。`canContinueToUse()` 也未检查 Boss 阶段，进入二阶段后傀儡仍会继续追踪。
+
+---
+
+## 四、低优先级问题（可后续迭代处理）
+
+### 4.1 代码重复（DRY 违反）
+
+| 重复内容 | 涉及文件 | 建议 |
+|---------|---------|------|
+| `findGroundY()` 方法完全相同 | `StellaTransitionStateMachine` + `StellaGateSurgeAbility` | 提取到 `BossUtils` 工具类 |
+| 传送碰撞检测逻辑重复 3 次 | `DespairExecutionGoal` + `Phase2MeleeGoal` (x2) | 提取到工具类 |
+| 停止所有 Goal 代码段相同 | `StellaEvokerEntity.die()` + `readAdditionalSaveData()` | 提取为私有方法 |
+| 冲击波伤害逻辑相似 | `StellaManaSystem` + `StellaTransitionStateMachine` | 提取共享方法 |
+| `isInCone` 方法重复 | `Phase2MeleeGoal` + `SpellCastGoal` | 提取到工具类 |
+| `findNearestSurvivalPlayer` 重复 | `SpellCastGoal` + `StellaFlyingMoveControl` | 提取到工具类 |
+| 空渲染器结构相同 | `NightfallSingularityRenderer` + `VoidFissureRenderer` | 提取通用基类 |
+| `bufferSource.endBatch()` 无参数调用 | 3 个渲染器 | 改为仅刷新使用的 `RenderType.lines()` |
+
+### 4.2 硬编码 vs 配置化不一致
+
+`DespairExecutionGoal` 已将伤害值迁移到 `ModConfig`，但 `Phase2MeleeGoal` 的 `SLASH_DAMAGE`、`THRUST_DAMAGE`、`BACKSTAB_DAMAGE` 等仍是 `static final` 硬编码。建议统一迁移到 `ModConfig` 或 `ModConstants`。
+
+### 4.3 部分类体积过大
+
+`SpellCastGoal`（1173 行）和 `StellaEvokerEntity`（约 990 行）承担了过多职责。建议将各法术的 tick/execute 逻辑拆分到独立的策略类中，将 Boss 的 NBT 序列化和动画注册提取到独立组件。
+
+### 4.4 状态值使用 int 而非枚举
+
+`StellaGateSurgeAbility.gateSurgeState` 使用 `0/1/2/3` 表示状态。建议使用枚举提高可读性和类型安全。
+
+### 4.5 冷却递减策略不统一
+
+`DespairExecutionGoal` 和 `SpellCastGoal` 在 `canUse()` 中递减，`Phase2MeleeGoal` 在 `tick()` 中递减。建议统一策略并在项目文档中说明。
+
+### 4.6 其他小问题
+
+- `StarcoreGolemEntity` 中 `ResourceLocation` 使用了硬编码命名空间 `"astral_warfare"` 而非 `AstralWarfare.MOD_ID` 常量。
+- `ModConfig.onConfigReload()` 方法体为空，注册一个空监听器没有实际意义，应移除。
+- `NocturnalAstrolabeItem` 注释中 HP 公式 `BaseHP(200) + (N-1) * 100` 与 `ModConfig` 实际默认值（`BASE_HP=1000.0`, `HP_PER_EXTRA_PLAYER=400.0`）不一致，注释过时。
+- `ModConstants.EXECUTION_DAMAGE` 标注 `@Deprecated` 但仍保留，死代码应移除。
+- `VoidHalberdItem` 的 `SimpleTier.attackDamageBonus(9.0F)` 与 `createAttributes(5, -2.4F)` 叠加后最终攻击伤害为 14 点，建议核实是否符合设计预期并注释最终面板值。
+- `StellaFlyingMoveControl` 的 `moveY` 使用 `Math.signum` 在目标高度附近可能产生微小抖动，建议使用死区处理。
+- `PlayerAnimationHandler.wasEntrapped` 静态字段在玩家重生/维度切换时无重置机制。
+- `VoidEntrapmentEffect` 和 `DespairExecutionGoal` 中使用了全限定类名（如 `net.minecraft.world.phys.Vec3`），而文件头部已有对应 import，属于冗余写法。
+- `StellaBossBarOverlay` 使用 `Math.random()` 而非 `RandomSource`，不符合 Minecraft Mod 编码惯例。
+
+---
+
+## 五、NBT 持久化完整性审查
+
+| 状态字段 | 是否持久化 | 备注 |
+|---------|:---------:|------|
+| CombatPhase | 是 | |
+| HasTransitioned | 是 | |
+| ManaSystemDisabled | 是 | |
+| WeakenedTicks | 是 | |
+| IsFallingFromExhaustion | 是 | |
+| ImpactTriggered | 是 | |
+| CrystalManaRecoverTimer | 是 | |
+| **PassiveManaRegenTimer** | **否** | 有 getter/setter 但未在序列化中使用 |
+| AnchorCheckTimer | 是 | |
+| AltarCenterPos | 是 | |
+| IsTransitioning + TransitionTimer | 是 | |
+| IsDying + DyingTimer | 是 | |
+| ConfigHpInjected | 是 | |
+| GateSurge 全部状态 | 是 | |
+| StarcoreGolem 充能状态 | 是 | |
+| AstralCrystal 存活状态 | 是 | |
+| NightfallSingularity casterUUID | 是 | |
+| VoidFissure casterUUID | 是 | |
+
+---
+
+## 六、资源文件完整性审查
+
+| 资源类型 | 状态 | 备注 |
+|---------|------|------|
+| 物品模型 (5 个 JSON) | 完整 | |
+| 物品纹理 (3 个 PNG) | 完整 | |
+| 实体纹理 (4 个 PNG) | 完整 | |
+| 音效文件 (2 个 OGG) | 完整 | stream: true 已配置 |
+| sounds.json | 完整 | |
+| 伤害类型 JSON | 完整 | |
+| 结构 JSON + 生物群系标签 | 完整 | |
+| 战利品表 | 基本完整 | **`starcore_golem.json` pools 为空数组** |
+| 多语言 | 基本完整 | **缺少 `entity.astral_warfare.void_fissule` 翻译键** |
+| GeckoLib 模型/动画 | 完整 | |
+| PAL 动画 | 完整 | |
+| 着色器 | 完整 | |
+| Access Transformer | 存在 | |
+| neoforge.mods.toml | 完整 | 依赖声明齐全（NeoForge, Minecraft, Lodestone, Curios, PAL, GeckoLib） |
+
+---
+
+## 七、架构层面评价
+
+### 优势
+
+- **组件化设计**: `StellaTransitionStateMachine`、`StellaDyingStateMachine`、`StellaGateSurgeAbility`、`StellaManaSystem` 四个组件将 Boss 的复杂行为解耦，每个组件职责单一。
+- **策略模式**: `SpellType` 枚举通过 `executor` 实现法术执行策略，扩展性好。
+- **`ParticleEmitter` 的 try-with-resources 模式**: 优雅解决了粒子批量发送的资源管理问题。
+- **`ManaData` 的 synchronized + Codec 快照设计**: 体现了对并发安全性的思考。
+- **客户端/服务端隔离**: 正确使用 `@EventBusSubscriber(Dist.CLIENT)`、`FMLEnvironment.dist` 判断和 `level.isClientSide` 检查，Side 安全。
+- **防御性编程**: 多处使用 try-catch 包裹实体生成、碰撞检测等高风险操作，`LOGGER.error` 记录异常。
+- **网络包设计**: 所有网络包处理器使用 `ctx.enqueueWork()` 调度到主线程，`ClientboundParticleBatchPacket` 包含 count 上限验证防 OOM。
+
+### 不足
+
+- 组件直接依赖 `StellaEvokerEntity` 的具体类型而非接口，增加了测试难度。
+- `StellaEvokerEntity` 仍承担过多职责（约 990 行），可进一步拆分。
+- 静态字段大量用于客户端状态存储（BGM、震动、法力数据、粒子计时器），在 LAN 服务器和模组热重载场景下可能出问题。
+- 缺少统一的工具类，导致代码重复散布在多个文件中。
+
+---
+
+## 八、修复优先级排序
+
+| 优先级 | 问题 | 文件 |
+|:------:|------|------|
+| P0 | `forceDie()` 战利品重复掉落风险 | `StellaEvokerEntity.java` |
+| P0 | 死亡演出 NBT 恢复兜底缺失 | `StellaDyingStateMachine.java` |
+| P0 | `isDeadOrDying()` 实体残留风险 | `StellaEvokerEntity.java` |
+| P0 | `CrystalBeamRenderer` 除零风险 | `CrystalBeamRenderer.java` |
+| P0 | 法力条 HUD 除零风险 | `StellaBossBarOverlay.java` |
+| P0 | `ScreenShakeManager` NPE 风险 | `ScreenShakeManager.java` |
+| P1 | `DespairExecutionGoal.canUse()` 冷却语义错误 | `DespairExecutionGoal.java` |
+| P1 | `SpellCastGoal.canUse()` 副作用过重 | `SpellCastGoal.java` |
+| P1 | `Phase2MeleeGoal` 背刺 NPE | `Phase2MeleeGoal.java` |
+| P1 | Boss 脱战检测被演出跳过 | `StellaEvokerEntity.java` |
+| P1 | `passiveManaRegenTimer` 未持久化 | `StellaEvokerEntity.java` |
+| P1 | BGM 音频泄漏 | `StellaBattleMusic.java` |
+| P2 | 转阶段升空速度无上限 | `StellaTransitionStateMachine.java` |
+| P2 | 裂隙施法者死亡后不自毁 | `VoidFissureEntity.java` |
+| P2 | 迷宫网络包过于频繁 | `SpellCastGoal.java` |
+| P2 | 粒子频率与帧率耦合 | 3 个渲染器 |
+| P2 | 召唤道具碰撞检测无 fallback | `NocturnalAstrolabeItem.java` |
+| P3 | 代码重复（DRY 违反） | 多文件 |
+| P3 | 硬编码伤害值配置化 | `Phase2MeleeGoal.java` 等 |
+| P3 | 大文件拆分 | `SpellCastGoal`, `StellaEvokerEntity` |
+
+---
+
+## 九、总结评分
+
+| 维度 | 评分 | 说明 |
+|------|:----:|------|
+| 功能完成度 | 9/10 | 核心功能完整，个别次要翻译键和空战利品表待补 |
+| 代码健壮性 | 7/10 | 多处缺少边界保护（除零、NPE、兜底机制） |
+| 性能与效率 | 7.5/10 | 粒子帧率耦合、网络包频率偏高、重复代码散布 |
+| 编码规范 | 8.5/10 | 注释和命名优秀，个别全限定类名和死代码待清理 |
+| 资源完整性 | 9/10 | 纹理/音效/模型/JSON 基本齐全，小问题不影响运行 |
+| 架构设计 | 8/10 | 组件化清晰，但缺乏接口抽象和工具类收敛 |
+
+**综合**: 这是一个质量较高的模组项目，代码组织清晰，注释极其详尽。主要风险点集中在边界情况保护（除零、NPE、NBT 兜底）和状态管理的一致性上。建议优先修复 P0 级别的 6 个问题以确保稳定性，其余可在后续迭代中逐步处理。
+
+---
+
+*本报告仅列出审查发现，未对项目代码做任何修改。*

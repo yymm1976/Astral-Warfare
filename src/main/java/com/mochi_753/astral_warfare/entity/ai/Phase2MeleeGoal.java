@@ -516,7 +516,17 @@ public class Phase2MeleeGoal extends Goal {
             }
         }
 
-        Vec3 toTarget = this.target.position().subtract(this.evoker.position()).normalize();
+        // NPE 守卫：target 可能为 null 或已死亡，toTarget 计算需在守卫内
+        Vec3 toTarget = null;
+        if (this.target != null && this.target.isAlive()) {
+            toTarget = this.target.position().subtract(this.evoker.position()).normalize();
+        }
+        // 除零保护：toTarget 长度趋近零时跳过粒子生成
+        if (toTarget == null || toTarget.lengthSqr() < 0.0001) {
+            this.state = State.COOLDOWN;
+            this.stateTimer = 0;
+            return;
+        }
 
         // 贯穿轨迹（从8个增加到15个，更长更华丽）
         try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {

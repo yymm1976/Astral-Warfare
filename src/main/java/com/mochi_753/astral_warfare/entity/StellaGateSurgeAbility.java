@@ -4,7 +4,7 @@ import com.mochi_753.astral_warfare.client.particle.StellaParticles;
 import com.mochi_753.astral_warfare.init.ModConstants;
 import com.mochi_753.astral_warfare.init.ModEntities;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
-import net.minecraft.core.BlockPos;
+import com.mochi_753.astral_warfare.util.BossUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -188,14 +188,7 @@ public class StellaGateSurgeAbility {
     }
 
     private double findGroundY(ServerLevel level) {
-        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
-        for (int y = evoker.blockPosition().getY(); y > level.getMinBuildHeight(); y--) {
-            mutable.set(evoker.getX(), y, evoker.getZ());
-            if (!level.getBlockState(mutable).isAir()) {
-                return y + 1.0;
-            }
-        }
-        return evoker.getY();
+        return BossUtils.findGroundY(level, evoker.getX(), evoker.getZ(), evoker.getY(), evoker.getY());
     }
 
     public boolean isActive() {

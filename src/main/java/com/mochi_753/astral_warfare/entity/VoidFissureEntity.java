@@ -11,13 +11,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
-import team.lodestar.lodestone.registry.common.particle.LodestoneParticleTypes;
-import team.lodestar.lodestone.systems.particle.builder.WorldParticleBuilder;
-import team.lodestar.lodestone.systems.particle.data.GenericParticleData;
-import team.lodestar.lodestone.systems.particle.data.color.ColorParticleData;
-import team.lodestar.lodestone.systems.easing.Easing;
 
-import java.awt.Color;
 import java.util.List;
 import java.util.UUID;
 
@@ -119,20 +113,17 @@ public class VoidFissureEntity extends Entity {
                 }
             }
 
-            // 使用 Lodestone WorldParticleBuilder 生成带颜色渐变的粒子
-            // enableNoClip() 防止粒子埋入地面
-            Color particleColor = new Color(r, g, b);
+            // 使用原版 DUST 粒子替代 Lodestone WorldParticleBuilder（服务端安全）
+            // DUST 粒子支持 RGB 颜色，可呈现紫→暗红渐变
+            net.minecraft.core.particles.DustParticleOptions dustColor =
+                    new net.minecraft.core.particles.DustParticleOptions(
+                            new org.joml.Vector3f(r, g, b), 0.5F);
             for (int i = 0; i < 2; i++) {
                 double ox = (this.random.nextDouble() - 0.5) * 0.8;
                 double oz = (this.random.nextDouble() - 0.5) * 0.8;
-                WorldParticleBuilder.create(LodestoneParticleTypes.WISP_PARTICLE)
-                    .setScaleData(GenericParticleData.create(0.15F, 0.05F).setEasing(Easing.QUAD_IN_OUT).build())
-                    .setTransparencyData(GenericParticleData.create(0.7F, 0.0F).setEasing(Easing.QUAD_IN_OUT).build())
-                    .setColorData(ColorParticleData.create(particleColor, particleColor).build())
-                        .setLifetime(25 + this.random.nextInt(10))
-                        .setMotion(0, 0.05 + this.random.nextDouble() * 0.03, 0)
-                        .enableNoClip()
-                        .spawn(serverLevel, this.getX() + ox, this.getY() + 0.1, this.getZ() + oz);
+                serverLevel.sendParticles(dustColor,
+                        this.getX() + ox, this.getY() + 0.1, this.getZ() + oz,
+                        1, 0.0, 0.05 + this.random.nextDouble() * 0.03, 0.0, 0.0);
             }
         }
 

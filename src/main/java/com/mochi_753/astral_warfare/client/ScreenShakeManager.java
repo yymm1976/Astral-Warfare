@@ -37,7 +37,10 @@ public class ScreenShakeManager {
     @SubscribeEvent
     public static void onComputeCameraAngles(ViewportEvent.ComputeCameraAngles event) {
         if (remainingTicks > 0 && intensity > 0) {
-            RandomSource random = Minecraft.getInstance().player.getRandom();
+            // NPE 守卫：玩家未加载时 getRandom() 会空指针
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.player == null) return;
+            RandomSource random = mc.player.getRandom();
             float yawOffset = (random.nextFloat() - 0.5f) * 2 * intensity;
             float pitchOffset = (random.nextFloat() - 0.5f) * 2 * intensity;
             event.setYaw(event.getYaw() + yawOffset);

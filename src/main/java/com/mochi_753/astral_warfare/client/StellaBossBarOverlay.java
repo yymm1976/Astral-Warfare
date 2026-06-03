@@ -120,8 +120,8 @@ public class StellaBossBarOverlay {
             if (manaData.isManaSystemDisabled()) continue;
             int y = baseY + manaBarIndex * BOSS_BAR_SPACING;
 
-            // 计算法力比例
-            float manaRatio = (float) manaData.getCurrentMana() / manaData.getMaxMana();
+            // 计算法力比例（除零保护：maxMana<=0 时比例归零）
+            float manaRatio = manaData.getMaxMana() <= 0 ? 0 : (float) manaData.getCurrentMana() / manaData.getMaxMana();
             int filledWidth = (int) (BAR_WIDTH * manaRatio);
 
             // 更新光泽动画

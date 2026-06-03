@@ -524,6 +524,15 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
             return;
         }
 
+        // ---- 脱战检测（最高优先级，在所有 return 之前执行）----
+        // 原因：如果脱战检测放在死亡/转阶段 return 之后，
+        // BOSS 在死亡演出或转阶段期间玩家全部离开时不会消失，导致演出卡住
+        anchorCheckTimer++;
+        if (anchorCheckTimer >= ANCHOR_CHECK_INTERVAL) {
+            anchorCheckTimer = 0;
+            checkAnchorDespawn(serverLevel);
+        }
+
         // ---- 死亡演出逻辑（最高优先级）----
         // 委托给 StellaDyingStateMachine 组件处理全部演出 tick 计数、粒子序列与音效时序
         if (isDying()) {
@@ -557,13 +566,6 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
                         altarCenterPos.getZ() + 0.5
                 );
             }
-        }
-
-        // ---- 脱战检测 ----
-        anchorCheckTimer++;
-        if (anchorCheckTimer >= ANCHOR_CHECK_INTERVAL) {
-            anchorCheckTimer = 0;
-            checkAnchorDespawn(serverLevel);
         }
 
         // ---- 半血转阶段检测 ----
@@ -809,6 +811,7 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
         tag.putBoolean("IsFallingFromExhaustion", manaSystem.isFalling());
         tag.putBoolean("ImpactTriggered", manaSystem.isImpactTriggered());
         tag.putInt("CrystalManaRecoverTimer", manaSystem.getCrystalManaRecoverTimer());
+        tag.putInt("PassiveManaRegenTimer", manaSystem.getPassiveManaRegenTimer());
         tag.putInt("AnchorCheckTimer", anchorCheckTimer);
         if (altarCenterPos != null) {
             tag.putInt("AltarCenterX", altarCenterPos.getX());
@@ -860,6 +863,9 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
         }
         if (tag.contains("CrystalManaRecoverTimer")) {
             manaSystem.setCrystalManaRecoverTimer(tag.getInt("CrystalManaRecoverTimer"));
+        }
+        if (tag.contains("PassiveManaRegenTimer")) {
+            manaSystem.setPassiveManaRegenTimer(tag.getInt("PassiveManaRegenTimer"));
         }
         if (tag.contains("AnchorCheckTimer")) {
             anchorCheckTimer = tag.getInt("AnchorCheckTimer");

@@ -653,6 +653,9 @@ public class DespairExecutionGoal extends Goal {
 
     @Override
     public void stop() {
+        // 异常终止时设置冷却：COOLDOWN_TICKS * 3/4 = 300 tick = 15 秒
+        // 防止终结技被中断后立即重新触发
+        this.cooldownTimer = COOLDOWN_TICKS * 3 / 4;
         this.state = State.IDLE;
         this.stateTimer = 0;
         this.evoker.currentAttackAnim = null;

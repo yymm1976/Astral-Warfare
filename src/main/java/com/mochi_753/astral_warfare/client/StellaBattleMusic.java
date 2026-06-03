@@ -243,6 +243,13 @@ public class StellaBattleMusic {
             fadingOutBgm = currentBgm;
         }
 
+        // 音频泄漏修复：覆盖前先停止旧的渐隐 BGM
+        // 防止多次快速切换阶段时旧 BGM 堆积未停止
+        if (fadingOutBgm != null && fadingOutBgm != currentBgm) {
+            mc.getSoundManager().stop(fadingOutBgm);
+            fadingOutBgm = null;
+        }
+
         // 创建新 BGM，初始音量为极小值（0.01F），确保声音通道被 Minecraft 音频引擎正确分配
         // 如果初始音量为 0，SoundManager 可能不分配音频通道，导致后续 tick() 淡入无效
         currentBgm = new BattleBgmSoundInstance(

@@ -701,13 +701,12 @@ public class SpellCastGoal extends Goal {
                 py += swayOffset;
 
                 if (isWarningPhase) {
-                    // 后 1.5 秒：鲜红色链环（variant=1 更鲜红，替换暗紫红 variant=0）
+                    // 后 1.5 秒：鲜红色链环（variant=1 更鲜红）
                     // variant=3：短生命周期（5 tick），快速消散不拖影
                     emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 3);
                 } else {
-                    // 前 1.5 秒：淡蓝色链环
-                    // 主链环：SMOKE_PARTICLE（小而实），variant=3 短生命周期
-                    emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 3);
+                    // 前 1.5 秒：淡蓝色链环，使用 ASTRAL_BEAM（星空蓝，温和提示）
+                    emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0);
                 }
             }
 
@@ -732,7 +731,8 @@ public class SpellCastGoal extends Goal {
                 if (isWarningPhase) {
                     emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 3);
                 } else {
-                    emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 3);
+                    // 非预警连接线：淡蓝色 ASTRAL_BEAM
+                    emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0);
                 }
             }
         }
