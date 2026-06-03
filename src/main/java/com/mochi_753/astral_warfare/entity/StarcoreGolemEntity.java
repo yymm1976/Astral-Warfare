@@ -84,7 +84,9 @@ public class StarcoreGolemEntity extends Monster {
     public void tick() {
         super.tick();
         if (this.chargeScheduled && !this.level().isClientSide) {
-            this.chargeDelayTimer--;
+            // S-51修复：Math.max 确保计时器不会下溢为负数
+            // 理论上不会发生，但 NBT 恢复异常值时可能触发
+            this.chargeDelayTimer = Math.max(0, this.chargeDelayTimer - 1);
             if (this.chargeDelayTimer <= 0) {
                 this.chargeScheduled = false;
                 this.setCharged(true);

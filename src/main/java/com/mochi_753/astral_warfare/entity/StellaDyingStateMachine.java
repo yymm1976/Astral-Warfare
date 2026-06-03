@@ -134,8 +134,10 @@ public class StellaDyingStateMachine {
     }
 
     // 从 NBT 恢复死亡演出计时器
+    // S-23修复：钳制 timer 到 [0, DYING_DURATION_TICKS] 范围
+    // 防止 NBT 被篡改或损坏时 timer 越界导致演出逻辑异常
     public void readFromNbt(int timer) {
-        this.dyingTimer = timer;
+        this.dyingTimer = Math.max(0, Math.min(timer, DYING_DURATION_TICKS));
     }
 
     // 保存死亡演出计时器到 NBT

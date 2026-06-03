@@ -248,6 +248,12 @@ public class NightfallSingularityEntity extends Entity {
                 continue;
             }
 
+            // B-14修复：缓存玩家可能已超出拉拽范围（4 tick 缓存期间玩家可能走远）
+            // 超出 PULL_RADIUS 的玩家跳过，避免对远处玩家施加残余拉力
+            if (player.distanceToSqr(this) > PULL_RADIUS * PULL_RADIUS) {
+                continue;
+            }
+
             double distToCenter = player.distanceTo(this);
 
             if (distToCenter <= CENTER_RADIUS && distToCenter > 0.1) {

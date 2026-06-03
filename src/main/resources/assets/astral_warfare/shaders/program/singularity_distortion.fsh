@@ -30,11 +30,8 @@ uniform float AnimTime;
 in vec2 texCoord;
 out vec4 fragColor;
 
-// 平滑步进函数：用于创建柔和的过渡边缘
-float smoothstep(float edge0, float edge1, float x) {
-    float t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
-    return t * t * (3.0 - 2.0 * t);
-}
+// GLSL 1.50 内置 smoothstep(edge0, edge1, x) 函数
+// 自定义 smoothstep 函数体已删除，避免与内置函数冲突导致着色器编译错误
 
 void main() {
     vec2 screenPos = texCoord * OutSize;

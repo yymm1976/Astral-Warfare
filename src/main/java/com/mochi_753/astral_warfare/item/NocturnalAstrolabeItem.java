@@ -131,11 +131,12 @@ public class NocturnalAstrolabeItem extends Item {
                 }
                 boss.setHealth(effectiveHp);
 
-                serverLevel.addFreshEntity(boss);
-                bossSpawned = true;
-                LOGGER.info("StellaEvoker 已生成，位置: [{}, {}, {}]，玩家数: {}，动态血量: {}",
-                        player.blockPosition().getX(), player.blockPosition().getY(), player.blockPosition().getZ(),
-                        playerCount, (int) effectiveHp);
+                bossSpawned = serverLevel.addFreshEntity(boss);
+                if (bossSpawned) {
+                    LOGGER.info("StellaEvoker 已生成，位置: [{}, {}, {}]，玩家数: {}，动态血量: {}",
+                            player.blockPosition().getX(), player.blockPosition().getY(), player.blockPosition().getZ(),
+                            playerCount, (int) effectiveHp);
+                }
             }
         } catch (Exception e) {
             LOGGER.error("StellaEvoker 生成失败", e);
@@ -162,7 +163,13 @@ public class NocturnalAstrolabeItem extends Item {
         serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(),
                 SoundEvents.END_PORTAL_SPAWN, SoundSource.PLAYERS, 1.0F, 0.5F);
 
-        return InteractionResultHolder.sidedSuccess(stack, false);
+        // B-07修复：生成失败时返回 pass（不消耗、不播放成功动画）
+        // 生成成功时返回 sidedSuccess（播放成功动画 + 消耗道具）
+        if (bossSpawned) {
+            return InteractionResultHolder.sidedSuccess(stack, false);
+        } else {
+            return InteractionResultHolder.pass(stack);
+        }
     }
 
     // 统计祭坛附近玩家数量（用于动态血量计算）

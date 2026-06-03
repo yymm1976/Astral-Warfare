@@ -248,7 +248,9 @@ public class StarcoreGolemModel extends HierarchicalModel<StarcoreGolemEntity> {
         this.mouth.yRot = this.head.yRot;
         this.mouth.xRot = this.head.xRot;
         this.rightEar.yRot = this.head.yRot;
+        this.rightEar.xRot = this.head.xRot;
         this.leftEar.yRot = this.head.yRot;
+        this.leftEar.xRot = this.head.xRot;
 
         float walkSpeed = 0.6F;
         this.rightArm.xRot = Mth.cos(limbSwing * 0.6662F) * limbSwingAmount * walkSpeed;

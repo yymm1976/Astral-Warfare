@@ -130,6 +130,9 @@ public class StellaManaSystem {
                         && !(entity instanceof StarcoreGolemEntity));
 
         for (LivingEntity target : targets) {
+            // S-22修复：normalize() 前检查距离，避免目标与 BOSS 重合时除零
+            double distSq = target.distanceToSqr(evoker);
+            if (distSq < 0.01) continue;
             Vec3 knockbackDir = target.position().subtract(evoker.position()).normalize();
             target.knockback(1.5F, -knockbackDir.x, -knockbackDir.z);
             target.hurt(evoker.damageSources().mobAttack(evoker), IMPACT_DAMAGE);
