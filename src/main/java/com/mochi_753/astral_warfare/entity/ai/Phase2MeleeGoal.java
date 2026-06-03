@@ -65,8 +65,6 @@ public class Phase2MeleeGoal extends Goal {
     // 三段连招冷却：30tick = 1.5秒（连招间短暂停顿，不应长时间站桩）
     private int comboCooldownTimer = 0;
     private static final int COMBO_COOLDOWN = 30;
-    // 冷却期侧向环绕方向：1.0=右绕，-1.0=左绕
-    private float strafeDirection = 1.0F;
     // 拉人冷却：60tick = 3秒
     private int pullCooldownTimer = 0;
     private static final int PULL_COOLDOWN = 60;

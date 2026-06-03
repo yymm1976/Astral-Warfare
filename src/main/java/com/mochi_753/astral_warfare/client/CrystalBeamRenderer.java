@@ -16,7 +16,6 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 
-import java.awt.Color;
 import java.util.List;
 
 // 星光能量射线渲染器

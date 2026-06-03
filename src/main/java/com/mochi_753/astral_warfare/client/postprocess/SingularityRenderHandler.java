@@ -67,7 +67,6 @@ public class SingularityRenderHandler {
         // 将黑洞世界坐标投影到屏幕坐标，更新后处理器参数
         NightfallSingularityEntity nearest = singularities.get(0);
         // 计算屏幕坐标：将世界坐标转换为归一化设备坐标
-        var poseStack = event.getPoseStack();
         var camera = mc.gameRenderer.getMainCamera();
         double dx = nearest.getX() - camera.getPosition().x;
         double dy = nearest.getY() - camera.getPosition().y;
