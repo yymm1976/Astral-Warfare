@@ -29,6 +29,16 @@ public class StellaFlyingMoveControl extends MoveControl {
     // 缓存验证计时器
     private int cacheValidateTimer = 0;
 
+    // Phase 33：惯性漂移系统，使 BOSS 移动更缓慢飘逸
+    // 当前实际速度（缓动后的），每帧通过 currentVel = currentVel * 0.9 + targetVel * 0.1 平滑过渡
+    private double currentVelX = 0;
+    private double currentVelZ = 0;
+    // 随机漂移偏移量（模拟漫无目的的漂移）
+    private double driftOffsetX = 0;
+    private double driftOffsetZ = 0;
+    // 漂移更新计时器
+    private int driftTimer = 0;
+
     public StellaFlyingMoveControl(Mob mob) {
         super(mob);
     }
@@ -121,20 +131,44 @@ public class StellaFlyingMoveControl extends MoveControl {
         double horizontalDist = Math.sqrt(dx * dx + dz * dz);
 
         // 速度系数：基于 MOVEMENT_SPEED 属性计算
-        // 一阶段 MOVEMENT_SPEED = 0.25，乘以 1.0 基础系数 = 0.25
-        // 水平移动 = 0.25 * 0.8 = 0.2 blocks/tick ≈ 4 格/秒（与玩家行走速度相当）
+        // Phase 33：水平追踪速度从 0.8 降低到 0.35，使 BOSS 移动更缓慢飘逸
+        // 一阶段 MOVEMENT_SPEED = 0.25，乘以 0.35 = 0.0875 blocks/tick ≈ 1.75 格/秒
         double speed = this.mob.getAttributeValue(Attributes.MOVEMENT_SPEED) * 1.0;
 
-        double moveX, moveZ;
-        if (horizontalDist > MIN_HORIZONTAL_DIST) {
-            // 距离太远，靠近玩家
-            moveX = (dx / horizontalDist) * speed * 0.8;
-            moveZ = (dz / horizontalDist) * speed * 0.8;
-        } else {
-            // 距离适中，缓慢减速
-            moveX = this.mob.getDeltaMovement().x * 0.8;
-            moveZ = this.mob.getDeltaMovement().z * 0.8;
+        // Phase 33：随机漂移 — 每 60 tick 有 20% 概率随机微调目标位置 ±2 格
+        // 模拟 BOSS 漫无目的的漂移感，避免机械地紧跟玩家
+        driftTimer++;
+        if (driftTimer >= 60) {
+            driftTimer = 0;
+            if (this.mob.getRandom().nextFloat() < 0.2F) {
+                driftOffsetX = (this.mob.getRandom().nextDouble() - 0.5) * 4.0; // ±2 格
+                driftOffsetZ = (this.mob.getRandom().nextDouble() - 0.5) * 4.0;
+            } else {
+                // 逐渐回归中心
+                driftOffsetX *= 0.5;
+                driftOffsetZ *= 0.5;
+            }
         }
+
+        // Phase 33：目标速度（含漂移偏移）
+        double targetVelX, targetVelZ;
+        if (horizontalDist > MIN_HORIZONTAL_DIST) {
+            // 距离太远，靠近玩家（含漂移偏移）
+            targetVelX = ((dx + driftOffsetX) / horizontalDist) * speed * 0.35;
+            targetVelZ = ((dz + driftOffsetZ) / horizontalDist) * speed * 0.35;
+        } else {
+            // 距离适中，目标速度为 0（仅漂移偏移）
+            targetVelX = driftOffsetX * 0.01;
+            targetVelZ = driftOffsetZ * 0.01;
+        }
+
+        // Phase 33：惯性缓动 — currentVel = currentVel * 0.9 + targetVel * 0.1
+        // 产生"惯性漂移"感，BOSS 不会瞬间改变方向，而是缓慢过渡
+        currentVelX = currentVelX * 0.9 + targetVelX * 0.1;
+        currentVelZ = currentVelZ * 0.9 + targetVelZ * 0.1;
+
+        double moveX = currentVelX;
+        double moveZ = currentVelZ;
 
         // 垂直方向：平滑趋近目标高度
         // 0.15 趋近系数 + 0.5 最大速度，确保 BOSS 能快速到达目标高度

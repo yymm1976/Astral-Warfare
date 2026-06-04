@@ -73,15 +73,27 @@ public class StellaManaSystem {
         }
 
         if (!isWeakened() && !isFallingFromExhaustion) {
-            if (evoker.tickCount % 2 == 0) {
+            // Phase 33：三层星光环绕体效果，替代原有随机散布粒子
+            // 3 条光环，每条 12 个 ID_STELLA_WISP variant=1，半径 1.2/1.8/2.4
+            // 每 3 tick 重新计算 36 个粒子位置并发送，产生缓慢旋转的光晕效果
+            // 粒子参数：小而淡，短命（setScaleData/setTransparencyData/setLifetime 在粒子定义中设置）
+            if (evoker.tickCount % 3 == 0) {
+                double[] haloRadii = {1.2, 1.8, 2.4};
+                // 三层环以不同速度旋转，产生层次感
+                double[] rotationSpeeds = {0.05, -0.03, 0.02};
                 try (ParticleEmitter emitter = new ParticleEmitter(evoker)) {
-                    for (int j = 0; j < 2; j++) {
-                        double angle = evoker.getRandom().nextDouble() * Math.PI * 2;
-                        double radius = 0.8 + evoker.getRandom().nextDouble() * 0.5;
-                        double px = evoker.getX() + Math.cos(angle) * radius;
-                        double py = evoker.getY() + evoker.getRandom().nextDouble() * 1.5;
-                        double pz = evoker.getZ() + Math.sin(angle) * radius;
-                        emitter.add(StellaParticles.ID_STELLA_WISP, px, py, pz, 1);
+                    for (int ring = 0; ring < 3; ring++) {
+                        double radius = haloRadii[ring];
+                        // 每层环的旋转角度随时间缓慢变化
+                        double baseAngle = evoker.tickCount * rotationSpeeds[ring];
+                        for (int i = 0; i < 12; i++) {
+                            double angle = baseAngle + i * Math.PI * 2.0 / 12;
+                            double px = evoker.getX() + Math.cos(angle) * radius;
+                            // 环在 BOSS 身体中部（Y+0.8 到 Y+1.2），略有高度波动
+                            double py = evoker.getY() + 0.8 + Math.sin(angle * 2 + evoker.tickCount * 0.1) * 0.2;
+                            double pz = evoker.getZ() + Math.sin(angle) * radius;
+                            emitter.add(StellaParticles.ID_STELLA_WISP, px, py, pz, 1);
+                        }
                     }
                 }
             }

@@ -139,8 +139,8 @@ public class StellaBossBarOverlay {
             }
 
             // 法力条 Y 位置：紧跟对应 BOSS 血条下方
-            // BOSS_BAR_HEIGHT = 5（血条高度），+1 是间隔
-            int y = BOSS_BAR_TOP_OFFSET + bossIndex * BOSS_BAR_SPACING + BAR_HEIGHT + 1;
+            // BOSS_BAR_HEIGHT = 5（血条高度），+4 是间隔（让法力条下沿可感知地贴着血条）
+            int y = BOSS_BAR_TOP_OFFSET + bossIndex * BOSS_BAR_SPACING + BAR_HEIGHT + 4;
 
             // 计算法力比例（除零保护：maxMana<=0 时比例归零）
             float manaRatio = manaData.getMaxMana() <= 0 ? 0 : (float) manaData.getCurrentMana() / manaData.getMaxMana();
