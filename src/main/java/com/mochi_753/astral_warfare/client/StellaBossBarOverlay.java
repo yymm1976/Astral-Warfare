@@ -100,31 +100,47 @@ public class StellaBossBarOverlay {
         }
 
         int screenWidth = mc.getWindow().getGuiScaledWidth();
-
-        // 动态 Y 偏移：法力条位于所有 BossBar 下方
-        // 通过 BossHealthOverlay.events 获取当前活跃 BossBar 数量
-        // 在整合包环境中，其他模组可能也有 BossBar，必须动态计算避免重叠
-        // Access Transformer 使 events 字段可公开访问
-        // 防御性 try-catch：若 NeoForge/Mojang 更新中 events 字段名变更，
-        // NoSuchFieldError 是 Error 子类，必须 catch(Throwable) 而非 catch(Exception)
-        // 降级策略：bossBarCount=0，法力条渲染在屏幕顶部，不会崩溃
-        BossHealthOverlay bossOverlay = mc.gui.getBossOverlay();
-        int bossBarCount;
-        try {
-            bossBarCount = bossOverlay.events.size();
-        } catch (Throwable t) {
-            // S-03修复：记录降级日志，便于排查 events 字段变更问题
-            LOGGER.warn("bossBarCount 降级", t);
-            bossBarCount = 0;
-        }
-        int baseY = BOSS_BAR_TOP_OFFSET + bossBarCount * BOSS_BAR_SPACING;
         int x = (screenWidth - BAR_WIDTH) / 2;
+
+        // 动态 Y 偏移：法力条紧跟对应 BOSS 血条下方
+        // 通过 BossHealthOverlay.events 查找 BOSS UUID 对应的渲染序号
+        // baseY = BOSS_BAR_TOP_OFFSET + bossIndex * BOSS_BAR_SPACING + BOSS_BAR_HEIGHT + 1
+        // 这样法力条紧贴在对应 BOSS 血条正下方，不会因其他模组 BossBar 而错位
+        BossHealthOverlay bossOverlay = mc.gui.getBossOverlay();
+        java.util.Map<UUID, ?> bossEvents;
+        try {
+            bossEvents = bossOverlay.events;
+        } catch (Throwable t) {
+            LOGGER.warn("bossEvents 降级", t);
+            bossEvents = java.util.Collections.emptyMap();
+        }
 
         // 为每个活跃 BOSS 渲染法力条
         int manaBarIndex = 0;
-        for (ManaData manaData : allData.values()) {
+        for (java.util.Map.Entry<UUID, ManaData> entry : allData.entrySet()) {
+            UUID bossUUID = entry.getKey();
+            ManaData manaData = entry.getValue();
             if (manaData.isManaSystemDisabled()) continue;
-            int y = baseY + manaBarIndex * BOSS_BAR_SPACING;
+
+            // 查找此 BOSS UUID 在 bossOverlay.events 中的渲染序号
+            // 原版 BossHealthOverlay 按 Map 遍历顺序渲染，序号决定 Y 位置
+            int bossIndex = 0;
+            boolean found = false;
+            for (UUID eventUUID : bossEvents.keySet()) {
+                if (eventUUID.equals(bossUUID)) {
+                    found = true;
+                    break;
+                }
+                bossIndex++;
+            }
+            // 如果在 events 中找不到此 UUID（BOSS 血条已消失），使用 manaBarIndex 作为降级
+            if (!found) {
+                bossIndex = bossEvents.size() + manaBarIndex;
+            }
+
+            // 法力条 Y 位置：紧跟对应 BOSS 血条下方
+            // BOSS_BAR_HEIGHT = 5（血条高度），+1 是间隔
+            int y = BOSS_BAR_TOP_OFFSET + bossIndex * BOSS_BAR_SPACING + BAR_HEIGHT + 1;
 
             // 计算法力比例（除零保护：maxMana<=0 时比例归零）
             float manaRatio = manaData.getMaxMana() <= 0 ? 0 : (float) manaData.getCurrentMana() / manaData.getMaxMana();
