@@ -200,8 +200,8 @@ public class DespairExecutionGoal extends Goal {
 
             double warningRadius = LAUNCH_RANGE;
             int circleSegments = 48;
-            // 地面粒子：循环外计算一次 groundY，避免每帧重复搜索地面
-            double groundY = BossUtils.findGroundY(this.evoker.level(), this.evoker.getX(), this.evoker.getZ()) + 0.05;
+            // 地面粒子：循环外计算一次 groundY，使用五参重载缩小搜索范围
+            double groundY = BossUtils.findGroundY(this.evoker.level(), this.evoker.getX(), this.evoker.getZ(), this.evoker.getY() + 5, this.evoker.getY()) + 0.05;
             for (int i = 0; i < circleSegments; i++) {
                 double angle = i * Math.PI * 2.0 / circleSegments;
                 double px = this.evoker.getX() + Math.cos(angle) * warningRadius;
@@ -577,8 +577,8 @@ public class DespairExecutionGoal extends Goal {
         }
 
         try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
-            // 地面粒子：循环外计算一次 groundY，避免每帧重复搜索地面
-            double groundY = BossUtils.findGroundY(this.evoker.level(), this.evoker.getX(), this.evoker.getZ()) + 0.05;
+            // 地面粒子：循环外计算一次 groundY，使用五参重载缩小搜索范围
+            double groundY = BossUtils.findGroundY(this.evoker.level(), this.evoker.getX(), this.evoker.getZ(), this.evoker.getY() + 5, this.evoker.getY()) + 0.05;
             for (int i = 0; i < 40; i++) {
                 double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
                 double r = this.evoker.getRandom().nextDouble() * SLAM_RADIUS;

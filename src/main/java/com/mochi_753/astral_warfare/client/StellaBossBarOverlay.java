@@ -107,7 +107,7 @@ public class StellaBossBarOverlay {
         // baseY = BOSS_BAR_TOP_OFFSET + bossIndex * BOSS_BAR_SPACING + BOSS_BAR_HEIGHT + 1
         // 这样法力条紧贴在对应 BOSS 血条正下方，不会因其他模组 BossBar 而错位
         BossHealthOverlay bossOverlay = mc.gui.getBossOverlay();
-        java.util.Map<UUID, ?> bossEvents;
+        java.util.Map<UUID, ? extends net.minecraft.world.BossEvent> bossEvents;
         try {
             bossEvents = bossOverlay.events;
         } catch (Throwable t) {

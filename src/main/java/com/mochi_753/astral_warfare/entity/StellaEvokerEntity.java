@@ -115,11 +115,6 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
             BossEvent.BossBarColor.PURPLE,
             BossEvent.BossBarOverlay.NOTCHED_12
     );
-    {
-        // 禁止原版 BossBGM 播放，使用自定义 BGM 系统替代
-        // 防止原版凋灵/末影龙 BGM 与自定义 BGM 叠加
-        bossEvent.setPlayBossMusic(false);
-    }
 
     private int anchorCheckTimer = 0;
 
@@ -289,6 +284,9 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
     public StellaEvokerEntity(EntityType<? extends StellaEvokerEntity> entityType, Level level) {
         super(entityType, level);
         this.bossEvent.setName(this.getDisplayName());
+        // 禁止原版 BossBGM 播放，使用自定义 BGM 系统替代
+        // 防止原版凋灵/末影龙 BGM 与自定义 BGM 叠加
+        this.bossEvent.setPlayBossMusic(false);
         this.setNoGravity(true);
         this.moveControl = new StellaFlyingMoveControl(this);
     }
@@ -516,6 +514,8 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
                     -1.5,
                     player.getDeltaMovement().z
             );
+            // 标记运动数据需要同步到客户端
+            // 此代码在 customServerAiStep() 中执行（服务端），NeoForge 会自动处理网络同步
             player.hurtMarked = true;
             // 魔法伤害（绕过盔甲）
             player.hurt(serverLevel.damageSources().indirectMagic(this, this), SUPPRESS_FLIGHT_DAMAGE);
@@ -783,8 +783,11 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
         // 1.21.x 适配：isFall() 已移除，改用 DamageTypeTags.IS_FALL
         if (source.is(net.minecraft.tags.DamageTypeTags.IS_FALL)) return false;
         // 溺水伤害
+        // 注：使用 DamageTypes（ResourceKey）而非 DamageTypeTags（标签）
+        // 原因：1.21.x 中溺水没有对应的 DamageTypeTag，只能用具体 ResourceKey 检查
         if (source.is(net.minecraft.world.damagesource.DamageTypes.DROWN)) return false;
         // 窒息伤害（卡在墙内）
+        // 注：同溺水，1.21.x 中窒息没有对应的 DamageTypeTag，只能用 ResourceKey
         if (source.is(net.minecraft.world.damagesource.DamageTypes.IN_WALL)) return false;
         return super.hurt(source, amount);
     }

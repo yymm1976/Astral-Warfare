@@ -300,8 +300,8 @@ public class Phase2MeleeGoal extends Goal {
 
         // 全程：弧形刃光（IMPACT_WAVE），5道连斩，每道10分段
         // 最外圈距离 1.5 + 4*1.5 = 7.5，与 SLASH_DAMAGE_RANGE 一致
-        // 地面粒子：循环外计算一次 groundY，避免每帧重复搜索地面
-        double groundY = BossUtils.findGroundY(this.evoker.level(), this.evoker.getX(), this.evoker.getZ()) + 0.05;
+        // 地面粒子：循环外计算一次 groundY，使用五参重载缩小搜索范围
+        double groundY = BossUtils.findGroundY(this.evoker.level(), this.evoker.getX(), this.evoker.getZ(), this.evoker.getY() + 5, this.evoker.getY()) + 0.05;
         try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
             for (int slash = 0; slash < 5; slash++) {
                 double slashDist = 1.5 + slash * 1.5;
@@ -372,8 +372,8 @@ public class Phase2MeleeGoal extends Goal {
                     double pz = newZ + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
                     emitter.add(StellaParticles.ID_TRANSITION_BURST, px, py, pz, 0);
                 }
-                // 新增：落点冲击波（地面粒子，使用 findGroundY 锚定地面）
-                double groundY = BossUtils.findGroundY(this.evoker.level(), newX, newZ) + 0.05;
+                // 新增：落点冲击波（地面粒子，使用五参重载锚定地面）
+                double groundY = BossUtils.findGroundY(this.evoker.level(), newX, newZ, this.evoker.getY() + 5, this.evoker.getY()) + 0.05;
                 for (int i = 0; i < 6; i++) {
                     double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
                     double r = this.evoker.getRandom().nextDouble() * 1.5;

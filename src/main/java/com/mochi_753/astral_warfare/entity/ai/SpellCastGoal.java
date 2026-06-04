@@ -420,8 +420,8 @@ public class SpellCastGoal extends Goal {
         // 手动伤害逻辑已在下方 AABB 中精确控制，只对 Player 生效
 
         // 地面爆炸粒子：在锁定位置生成大量冲击波粒子（密度×3）
-        // 地面粒子：循环外计算一次 groundY，避免每帧重复搜索地面
-        double groundY = BossUtils.findGroundY(serverLevel, targetX, targetZ) + 0.05;
+        // 地面粒子：使用五参重载缩小搜索范围
+        double groundY = BossUtils.findGroundY(serverLevel, targetX, targetZ, targetY + 5, targetY) + 0.05;
         try (ParticleEmitter emitter = new ParticleEmitter(goal.evoker)) {
             // Phase 28：粒子数量 120→360（9×），匹配 STARFALL_RADIUS 3× 放大后的面积
             for (int i = 0; i < 360; i++) {
@@ -509,10 +509,10 @@ public class SpellCastGoal extends Goal {
         try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
             // ===== 光束核心线 =====
             // 从BOSS到地面的明亮核心线，形成可见的"光柱"
-            // Phase 28：12→32（2.7×），匹配 BEAM_RANGE 18→48 的射程放大
-            for (int i = 0; i < 32; i++) {
-                // Phase 28：步长 0.8→1.5，匹配 BEAM_RANGE 放大后更长的核心线
-                double dist = 0.5 + i * 1.5;
+            // Phase 31：32→20（密度恢复），步长恢复为 0.8 避免视觉断裂
+            // BEAM_RANGE 放大后核心线自然更长，20 个粒子×0.8 步长=16 格覆盖
+            for (int i = 0; i < 20; i++) {
+                double dist = 0.5 + i * 0.8;
                 double px = bossPos.x + beamDir.x * dist;
                 double py = bossPos.y + beamDir.y * dist;
                 double pz = bossPos.z + beamDir.z * dist;
@@ -522,9 +522,9 @@ public class SpellCastGoal extends Goal {
             // ===== 锥形扩散粒子 =====
             // 围绕核心线的扩散粒子，形成宽广的圆锥形光束
             // 偏移量在垂直于beamDir的平面内，随距离线性增大形成锥形
-            // Phase 28：25→180（7.3×），匹配 BEAM_RANGE×BEAM_CONE_ANGLE 放大后的锥形体积
-            for (int i = 0; i < 180; i++) {
-                // Phase 28：距离范围 9.0→27.0（3×），匹配 BEAM_RANGE 18→48 放大
+            // Phase 31：180→60（密度恢复，面积 7.3× → 粒子约 2.4×，密度不变）
+            for (int i = 0; i < 60; i++) {
+                // 距离范围 27.0（匹配 BEAM_RANGE 48 放大）
                 double dist = 1.0 + this.evoker.getRandom().nextDouble() * 27.0;
                 double spread = dist * 0.2;
                 double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
@@ -542,8 +542,8 @@ public class SpellCastGoal extends Goal {
             // 【范围匹配】地面光斑半径与光束锥形角度和射程匹配
             // Phase 28：光斑半径 6.0→18.0，匹配 BEAM_RANGE 和 BEAM_CONE_ANGLE 放大
             if (groundDist > 0 && groundDist < ModConstants.BEAM_RANGE) {
-                // Phase 28：地面粒子 48+16→144+144（9×），匹配面积放大
-                int groundParticles = 144 + this.evoker.getRandom().nextInt(16);
+                // Phase 31：地面粒子 144→48（密度恢复，面积 9× → 粒子 3×，密度不变）
+                int groundParticles = 48 + this.evoker.getRandom().nextInt(16);
                 double groundSpotRadius = 18.0;
                 for (int i = 0; i < groundParticles; i++) {
                     double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;

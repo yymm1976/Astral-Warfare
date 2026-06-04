@@ -32,8 +32,9 @@ public class BossUtils {
     // 简化重载：从世界最高点向下搜索地面 Y 坐标
     // 适用于不确定起始高度的场景（如地面粒子锚定）
     // 性能注意：比指定 startY 的重载更慢，仅在必要时使用
+    // 内部显式传参 level.getMinBuildHeight() 作为 fallbackY，与搜索下界一致
     public static double findGroundY(Level level, double x, double z) {
-        return findGroundY(level, x, z, level.getMaxBuildHeight(), level.getSeaLevel());
+        return findGroundY(level, x, z, level.getMaxBuildHeight(), level.getMinBuildHeight());
     }
 
     // S-27修复：合并 Phase2MeleeGoal 和 DespairExecutionGoal 中的重复传送碰撞检测逻辑
