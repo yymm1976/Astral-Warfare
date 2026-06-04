@@ -5,6 +5,8 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,8 @@ import java.util.List;
 // Side 安全：此类不引用任何客户端专属类
 // 客户端处理逻辑通过 ModPayloads 中的 playToClient handler 间接引用
 public record ClientboundParticleBatchPacket(int particleTypeId, List<ParticleEntry> entries) implements CustomPacketPayload {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClientboundParticleBatchPacket.class);
 
     // 包的唯一标识符
     public static final Type<ClientboundParticleBatchPacket> TYPE =
@@ -49,14 +53,19 @@ public record ClientboundParticleBatchPacket(int particleTypeId, List<ParticleEn
     }
 
     // 解码：按相同顺序读取数据
-    // 【M10修复】添加 count 上限验证，防止恶意/损坏包导致 OOM
-    private static final int MAX_PARTICLES_PER_BATCH = 512;
+    // Phase 32：上限从 512 提升到 1024，超过时截断+日志警告而非抛异常
+    // 原因：Phase 28 将单批粒子数推到 360，某些法术同类型粒子累积超过 512 导致崩溃
+    private static final int MAX_PARTICLES_PER_BATCH = 1024;
 
     private static ClientboundParticleBatchPacket decode(RegistryFriendlyByteBuf buf) {
         int particleTypeId = buf.readInt();
         int count = buf.readInt();
-        if (count < 0 || count > MAX_PARTICLES_PER_BATCH) {
+        if (count < 0) {
             throw new IllegalArgumentException("Invalid particle batch count: " + count);
+        }
+        if (count > MAX_PARTICLES_PER_BATCH) {
+            LOGGER.warn("Particle batch count {} exceeds limit {}, truncating", count, MAX_PARTICLES_PER_BATCH);
+            count = MAX_PARTICLES_PER_BATCH;
         }
         List<ParticleEntry> entries = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {

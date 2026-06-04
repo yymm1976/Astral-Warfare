@@ -40,14 +40,21 @@ public class ParticleEmitter implements AutoCloseable {
         this.trackingEntity = trackingEntity;
     }
 
+    // Phase 32：单批粒子自动 flush 阈值，防止单包粒子数超过 1024 导致截断
+    private static final int AUTO_FLUSH_THRESHOLD = 1000;
+
     // 添加一个粒子到当前批次
     // 如果粒子类型与当前批次不同，先发送当前批次，再开启新批次
+    // Phase 32：当前批次达到阈值时自动 flush，防止单包过大
     public void add(int particleTypeId, double x, double y, double z, int extraData) {
         if (particleTypeId != currentTypeId && !currentBatch.isEmpty()) {
             flush();
         }
         currentTypeId = particleTypeId;
         currentBatch.add(new ClientboundParticleBatchPacket.ParticleEntry(x, y, z, extraData));
+        if (currentBatch.size() >= AUTO_FLUSH_THRESHOLD) {
+            flush();
+        }
     }
 
     // 发送当前收集的粒子批次

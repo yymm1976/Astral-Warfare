@@ -423,8 +423,8 @@ public class SpellCastGoal extends Goal {
         // 地面粒子：使用五参重载缩小搜索范围
         double groundY = BossUtils.findGroundY(serverLevel, targetX, targetZ, targetY + 5, targetY) + 0.05;
         try (ParticleEmitter emitter = new ParticleEmitter(goal.evoker)) {
-            // Phase 28：粒子数量 120→360（9×），匹配 STARFALL_RADIUS 3× 放大后的面积
-            for (int i = 0; i < 360; i++) {
+            // Phase 32：360→120（STARFALL_RADIUS 15→8，面积缩小到 (8/5)²≈2.56×，粒子 40→120≈3×，密度略增）
+            for (int i = 0; i < 120; i++) {
                 double angle = goal.evoker.getRandom().nextDouble() * Math.PI * 2;
                 double r = goal.evoker.getRandom().nextDouble() * ModConstants.STARFALL_RADIUS;
                 double px = targetX + Math.cos(angle) * r;
@@ -522,10 +522,10 @@ public class SpellCastGoal extends Goal {
             // ===== 锥形扩散粒子 =====
             // 围绕核心线的扩散粒子，形成宽广的圆锥形光束
             // 偏移量在垂直于beamDir的平面内，随距离线性增大形成锥形
-            // Phase 31：180→60（密度恢复，面积 7.3× → 粒子约 2.4×，密度不变）
-            for (int i = 0; i < 60; i++) {
-                // 距离范围 27.0（匹配 BEAM_RANGE 48 放大）
-                double dist = 1.0 + this.evoker.getRandom().nextDouble() * 27.0;
+            // Phase 32：60→40（BEAM_RANGE 48→30 收敛，面积缩小，粒子同比减少）
+            for (int i = 0; i < 40; i++) {
+                // 距离范围 29.0（匹配 BEAM_RANGE 30）
+                double dist = 1.0 + this.evoker.getRandom().nextDouble() * 29.0;
                 double spread = dist * 0.2;
                 double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
                 double r = this.evoker.getRandom().nextDouble() * spread;
@@ -540,11 +540,11 @@ public class SpellCastGoal extends Goal {
             // ===== 地面投影光斑 =====
             // 在光束落点处生成扩散的圆形光斑，营造"光束照射地面"的效果
             // 【范围匹配】地面光斑半径与光束锥形角度和射程匹配
-            // Phase 28：光斑半径 6.0→18.0，匹配 BEAM_RANGE 和 BEAM_CONE_ANGLE 放大
+            // Phase 32：光斑半径 18.0→3.0，缩小覆盖区给玩家躲避空间
             if (groundDist > 0 && groundDist < ModConstants.BEAM_RANGE) {
-                // Phase 31：地面粒子 144→48（密度恢复，面积 9× → 粒子 3×，密度不变）
-                int groundParticles = 48 + this.evoker.getRandom().nextInt(16);
-                double groundSpotRadius = 18.0;
+                // Phase 32：地面粒子 48→20（面积缩小后粒子同比减少）
+                int groundParticles = 20 + this.evoker.getRandom().nextInt(8);
+                double groundSpotRadius = 3.0;
                 for (int i = 0; i < groundParticles; i++) {
                     double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
                     double r = this.evoker.getRandom().nextDouble() * groundSpotRadius;
@@ -553,8 +553,8 @@ public class SpellCastGoal extends Goal {
                     emitter.add(StellaParticles.ID_STELLA_WISP, px, groundY + 0.05, pz, 1);
                 }
                 // 中心亮点
-                // Phase 28：5→15（3×），匹配光斑半径放大
-                for (int i = 0; i < 15; i++) {
+                // Phase 32：15→5（匹配光斑半径 18→3 缩小）
+                for (int i = 0; i < 5; i++) {
                     double ox = (this.evoker.getRandom().nextDouble() - 0.5) * 1.0;
                     double oz = (this.evoker.getRandom().nextDouble() - 0.5) * 1.0;
                     emitter.add(StellaParticles.ID_ASTRAL_BEAM, groundX + ox, groundY + 0.1, groundZ + oz, 0);

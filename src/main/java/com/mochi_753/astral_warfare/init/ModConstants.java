@@ -80,11 +80,11 @@ public final class ModConstants {
     // 修复：从8.0F提升到12.0F（再加强50%），配合magic伤害源绕过盔甲
     public static final float BEAM_DAMAGE = 12.0F;
     // 星界发散光束：锥形角度（度）
-    // Phase 28：从 90° 增大到 135°，扩大光束覆盖范围
-    public static final double BEAM_CONE_ANGLE = 135.0;
+    // Phase 32：从 135° 增大到 150°，光束更发散更宽，配合缩短射程形成广而短的扇形
+    public static final double BEAM_CONE_ANGLE = 150.0;
     // 星界发散光束：射程（格）
-    // Phase 28：从 18.0 增大到 48.0，大幅扩大覆盖范围
-    public static final double BEAM_RANGE = 48.0;
+    // Phase 32：从 48.0 收敛到 30.0，配合更宽的角度，给玩家更多躲避空间
+    public static final double BEAM_RANGE = 30.0;
     // 星界发散光束：每秒额外法力消耗
     public static final int BEAM_EXTRA_MANA_PER_SEC = 5;
     // 星命锁链：最大判定距离（格）
@@ -103,8 +103,9 @@ public final class ModConstants {
     // 修复：从14.0F提升到21.0F（再加强50%），配合magic伤害源绕过盔甲
     public static final float STARFALL_DAMAGE = 21.0F;
     // 星陨矩阵：爆炸半径
-    // Phase 28：从 5.0F 增大到 15.0F，扩大陨石爆炸范围（3×）
-    public static final float STARFALL_RADIUS = 15.0F;
+    // Phase 32：从 15.0F 回退到 8.0F，介于原始 5.0 和 Phase28 的 15.0 之间
+    // 有扩散感但不稀薄，配合粒子数量同步调整
+    public static final float STARFALL_RADIUS = 8.0F;
     // 星门涌动：脉冲伤害
     // 修复：从5.0F提升到8.0F（再加强50%），星门涌动是75%血量触发的大招
     public static final float SURGE_PULSE_DAMAGE = 8.0F;
