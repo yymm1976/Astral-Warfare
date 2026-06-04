@@ -456,7 +456,8 @@ public class SpellCastGoal extends Goal {
         // 地面粒子：循环外计算一次 groundY，避免每帧重复搜索地面
         double groundY = BossUtils.findGroundY(serverLevel, targetX, targetZ) + 0.05;
         try (ParticleEmitter emitter = new ParticleEmitter(goal.evoker)) {
-            for (int i = 0; i < 120; i++) {
+            // Phase 28：粒子数量 120→360（9×），匹配 STARFALL_RADIUS 3× 放大后的面积
+            for (int i = 0; i < 360; i++) {
                 double angle = goal.evoker.getRandom().nextDouble() * Math.PI * 2;
                 double r = goal.evoker.getRandom().nextDouble() * ModConstants.STARFALL_RADIUS;
                 double px = targetX + Math.cos(angle) * r;
@@ -541,8 +542,10 @@ public class SpellCastGoal extends Goal {
         try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
             // ===== 光束核心线 =====
             // 从BOSS到地面的明亮核心线，形成可见的"光柱"
-            for (int i = 0; i < 12; i++) {
-                double dist = 0.5 + i * 0.8;
+            // Phase 28：12→32（2.7×），匹配 BEAM_RANGE 18→48 的射程放大
+            for (int i = 0; i < 32; i++) {
+                // Phase 28：步长 0.8→1.5，匹配 BEAM_RANGE 放大后更长的核心线
+                double dist = 0.5 + i * 1.5;
                 double px = bossPos.x + beamDir.x * dist;
                 double py = bossPos.y + beamDir.y * dist;
                 double pz = bossPos.z + beamDir.z * dist;
@@ -552,8 +555,10 @@ public class SpellCastGoal extends Goal {
             // ===== 锥形扩散粒子 =====
             // 围绕核心线的扩散粒子，形成宽广的圆锥形光束
             // 偏移量在垂直于beamDir的平面内，随距离线性增大形成锥形
-            for (int i = 0; i < 25; i++) {
-                double dist = 1.0 + this.evoker.getRandom().nextDouble() * 9.0;
+            // Phase 28：25→180（7.3×），匹配 BEAM_RANGE×BEAM_CONE_ANGLE 放大后的锥形体积
+            for (int i = 0; i < 180; i++) {
+                // Phase 28：距离范围 9.0→27.0（3×），匹配 BEAM_RANGE 18→48 放大
+                double dist = 1.0 + this.evoker.getRandom().nextDouble() * 27.0;
                 double spread = dist * 0.2;
                 double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
                 double r = this.evoker.getRandom().nextDouble() * spread;
@@ -568,11 +573,11 @@ public class SpellCastGoal extends Goal {
             // ===== 地面投影光斑 =====
             // 在光束落点处生成扩散的圆形光斑，营造"光束照射地面"的效果
             // 【范围匹配】地面光斑半径与光束锥形角度和射程匹配
-            // BOSS在Y+6处，50度倾斜，光束落点处锥形覆盖半径约 6*tan(45°) ≈ 6 格
-            // 使用 6.0 作为地面光斑半径，与BEAM_RANGE和BEAM_CONE_ANGLE一致
+            // Phase 28：光斑半径 6.0→18.0，匹配 BEAM_RANGE 和 BEAM_CONE_ANGLE 放大
             if (groundDist > 0 && groundDist < ModConstants.BEAM_RANGE) {
-                int groundParticles = 48 + this.evoker.getRandom().nextInt(16);
-                double groundSpotRadius = 6.0;
+                // Phase 28：地面粒子 48+16→144+144（9×），匹配面积放大
+                int groundParticles = 144 + this.evoker.getRandom().nextInt(16);
+                double groundSpotRadius = 18.0;
                 for (int i = 0; i < groundParticles; i++) {
                     double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
                     double r = this.evoker.getRandom().nextDouble() * groundSpotRadius;
@@ -581,7 +586,8 @@ public class SpellCastGoal extends Goal {
                     emitter.add(StellaParticles.ID_STELLA_WISP, px, groundY + 0.05, pz, 1);
                 }
                 // 中心亮点
-                for (int i = 0; i < 5; i++) {
+                // Phase 28：5→15（3×），匹配光斑半径放大
+                for (int i = 0; i < 15; i++) {
                     double ox = (this.evoker.getRandom().nextDouble() - 0.5) * 1.0;
                     double oz = (this.evoker.getRandom().nextDouble() - 0.5) * 1.0;
                     emitter.add(StellaParticles.ID_ASTRAL_BEAM, groundX + ox, groundY + 0.1, groundZ + oz, 0);
@@ -925,8 +931,9 @@ public class SpellCastGoal extends Goal {
         }
 
         // 激光结束大爆炸粒子
+        // Phase 28：50→120（2.4×），匹配 STAR_RAIL_CUT_LENGTH 30→72 的长度放大
         try (ParticleEmitter emitter = new ParticleEmitter(goal.evoker)) {
-            for (int i = 0; i < 50; i++) {
+            for (int i = 0; i < 120; i++) {
                 double dist = goal.evoker.getRandom().nextDouble() * length;
                 double px = originX + dirX * dist + (goal.evoker.getRandom().nextDouble() - 0.5) * 1.0;
                 double pz = originZ + dirZ * dist + (goal.evoker.getRandom().nextDouble() - 0.5) * 1.0;
@@ -1054,9 +1061,10 @@ public class SpellCastGoal extends Goal {
         }
 
         // 星尘爆炸粒子（地面粒子，使用 findGroundY 锚定地面）
+        // Phase 28：50→360（9×），匹配 TELEKINETIC_THROW_RADIUS 3× 放大后的面积
         double groundY = BossUtils.findGroundY(serverLevel, targetX, targetZ) + 0.05;
         try (ParticleEmitter emitter = new ParticleEmitter(goal.evoker)) {
-            for (int i = 0; i < 50; i++) {
+            for (int i = 0; i < 360; i++) {
                 double angle = goal.evoker.getRandom().nextDouble() * Math.PI * 2;
                 double r = goal.evoker.getRandom().nextDouble() * ModConstants.TELEKINETIC_THROW_RADIUS;
                 double px = targetX + Math.cos(angle) * r;
@@ -1130,12 +1138,15 @@ public class SpellCastGoal extends Goal {
                     double z = cz + row * MAZE_CELL_SIZE;
 
                     if (isActive) {
+                        // Phase 28：每交点 2→4 粒子，网格更大交点更多，密度不变
                         emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.1, z, 0);
                         emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.1, z, 1);
                         emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.15, z, 0);
                         emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.15, z, 1);
                         emitter.add(StellaParticles.ID_VOID_TWINKLE, x, cy + 0.2, z, 1);
                         emitter.add(StellaParticles.ID_VOID_TWINKLE, x, cy + 0.2, z, 1);
+                        emitter.add(StellaParticles.ID_VOID_TWINKLE, x, cy + 0.25, z, 1);
+                        emitter.add(StellaParticles.ID_VOID_TWINKLE, x, cy + 0.25, z, 1);
                     } else {
                         if ((row + halfGrid) % 2 == 0) {
                             emitter.add(StellaParticles.ID_VOID_TWINKLE, x, cy + 0.05, z, 0);

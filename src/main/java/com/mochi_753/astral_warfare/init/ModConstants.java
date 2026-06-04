@@ -80,18 +80,16 @@ public final class ModConstants {
     // 修复：从8.0F提升到12.0F（再加强50%），配合magic伤害源绕过盔甲
     public static final float BEAM_DAMAGE = 12.0F;
     // 星界发散光束：锥形角度（度）
-    // 修复：从 60° 增大到 90°（半角 45°），适配 BOSS 飞行高度 6 格
-    // 原因：BOSS 在 Y+6 处俯视地面，半角 30° 时锥形在地面覆盖半径仅 3.5 格
-    // 增大到半角 45° 后覆盖半径扩大到 6 格，配合 lookAt 低头可稳定命中
-    public static final double BEAM_CONE_ANGLE = 90.0;
+    // Phase 28：从 90° 增大到 135°，扩大光束覆盖范围
+    public static final double BEAM_CONE_ANGLE = 135.0;
     // 星界发散光束：射程（格）
-    // 从 12.0 增大到 18.0，大幅扩大覆盖范围
-    public static final double BEAM_RANGE = 18.0;
+    // Phase 28：从 18.0 增大到 48.0，大幅扩大覆盖范围
+    public static final double BEAM_RANGE = 48.0;
     // 星界发散光束：每秒额外法力消耗
     public static final int BEAM_EXTRA_MANA_PER_SEC = 5;
     // 星命锁链：最大判定距离（格）
-    // 从 12.0 增大到 18.0，扩大逃生窗口的同时增加压迫感
-    public static final double FATE_LINK_MAX_DIST = 18.0;
+    // Phase 28：从 18.0 增大到 48.0，扩大锁链追踪范围
+    public static final double FATE_LINK_MAX_DIST = 48.0;
     // 星命锁链：斩杀伤害
     // 修复：从25.0F提升到38.0F（再加强50%），确保锁链斩杀有足够威慑力
     public static final float FATE_LINK_DAMAGE = 38.0F;
@@ -103,14 +101,14 @@ public final class ModConstants {
     // 修复：从14.0F提升到21.0F（再加强50%），配合magic伤害源绕过盔甲
     public static final float STARFALL_DAMAGE = 21.0F;
     // 星陨矩阵：爆炸半径
-    // 从 3.0F 增大到 5.0F，扩大陨石爆炸范围
-    public static final float STARFALL_RADIUS = 5.0F;
+    // Phase 28：从 5.0F 增大到 15.0F，扩大陨石爆炸范围（3×）
+    public static final float STARFALL_RADIUS = 15.0F;
     // 星门涌动：脉冲伤害
     // 修复：从5.0F提升到8.0F（再加强50%），星门涌动是75%血量触发的大招
     public static final float SURGE_PULSE_DAMAGE = 8.0F;
     // 星门涌动：脉冲范围
-    // 从 5.0 增大到 8.0，扩大星门涌动覆盖范围
-    public static final double SURGE_PULSE_RADIUS = 8.0;
+    // Phase 28：从 8.0 增大到 24.0，扩大星门涌动覆盖范围（3×）
+    public static final double SURGE_PULSE_RADIUS = 24.0;
     // 星门涌动：环特效半径
     public static final double SURGE_RING_RADIUS = 3.0;
 
@@ -120,15 +118,15 @@ public final class ModConstants {
     // 星轨切割：激光宽度（格）
     public static final double STAR_RAIL_CUT_WIDTH = 1.5;
     // 星轨切割：激光长度（格）
-    // 从 20.0 增大到 30.0，延长激光切割线
-    public static final double STAR_RAIL_CUT_LENGTH = 30.0;
+    // Phase 28：从 30.0 增大到 72.0，延长激光切割线（2.4×）
+    public static final double STAR_RAIL_CUT_LENGTH = 72.0;
 
     // 念力投掷：爆炸伤害
     // 修复：从18.0F提升到27.0F（再加强50%），配合magic伤害源绕过盔甲
     public static final float TELEKINETIC_THROW_DAMAGE = 27.0F;
     // 念力投掷：爆炸半径
-    // 从 3.0F 增大到 5.0F，扩大傀儡爆炸范围
-    public static final float TELEKINETIC_THROW_RADIUS = 5.0F;
+    // Phase 28：从 5.0F 增大到 15.0F，扩大傀儡爆炸范围（3×）
+    public static final float TELEKINETIC_THROW_RADIUS = 15.0F;
     // 念力投掷：搜索充能傀儡范围
     public static final double TELEKINETIC_THROW_GOLEM_RANGE = 15.0;
 
@@ -174,9 +172,11 @@ public final class ModConstants {
     // ==================== 星轨迷宫 ====================
 
     // 星轨迷宫：激活列伤害
-    public static final float STAR_TRACK_MAZE_DAMAGE = 12.0F;
+    // Phase 28：从 12.0F 增大到 24.0F，配合更大的网格（2×）
+    public static final float STAR_TRACK_MAZE_DAMAGE = 24.0F;
     // 星轨迷宫：网格大小（列数×行数）
-    public static final int STAR_TRACK_MAZE_GRID_SIZE = 7;
+    // Phase 28：从 7 增大到 15，扩大迷宫覆盖范围（2.1×）
+    public static final int STAR_TRACK_MAZE_GRID_SIZE = 15;
 
     // ==================== 虚空裂隙 ====================
 

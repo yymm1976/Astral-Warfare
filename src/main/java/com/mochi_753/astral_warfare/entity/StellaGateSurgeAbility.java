@@ -132,11 +132,12 @@ public class StellaGateSurgeAbility {
 
         // 脉冲波情景：能量环从中心向外扩散，冲击地面
         // 只保留 IMPACT_WAVE（冲击波扩散）+ CLOUD（原版云雾扩散），删除 VOID_SPARK、ASTRAL_BEAM，降低粒子数量
+        // Phase 28：粒子数量 12+18→108+162（9×），匹配 SURGE_PULSE_RADIUS 3× 放大后的面积
         try (ParticleEmitter emitter = new ParticleEmitter(evoker)) {
             int ringCount = 2;
             for (int ring = 0; ring < ringCount; ring++) {
                 double ringRadius = GATE_SURGE_WAVE_RADIUS * (0.3 + ring * 0.5);
-                int particlesPerRing = 12 + ring * 6;
+                int particlesPerRing = 108 + ring * 54;
                 for (int i = 0; i < particlesPerRing; i++) {
                     double angle = i * Math.PI * 2.0 / particlesPerRing;
                     double px = centerX + Math.cos(angle) * ringRadius;
@@ -147,9 +148,10 @@ public class StellaGateSurgeAbility {
         }
 
         // 原版云雾粒子：脉冲波的冲击云雾扩散
+        // Phase 28：8→72（9×），匹配面积放大
         serverLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.CLOUD,
                 centerX, groundY + 0.5, centerZ,
-                8, GATE_SURGE_WAVE_RADIUS * 0.5, 0.3, GATE_SURGE_WAVE_RADIUS * 0.5, 0.05);
+                72, GATE_SURGE_WAVE_RADIUS * 0.5, 0.3, GATE_SURGE_WAVE_RADIUS * 0.5, 0.05);
 
         AABB damageBox = new AABB(
                 centerX - GATE_SURGE_WAVE_RADIUS, groundY - 1.0, centerZ - GATE_SURGE_WAVE_RADIUS,
