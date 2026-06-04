@@ -6,6 +6,7 @@ import com.mochi_753.astral_warfare.entity.StellaEvokerEntity;
 import com.mochi_753.astral_warfare.init.ModConstants;
 import com.mochi_753.astral_warfare.init.ModEntities;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
+import com.mochi_753.astral_warfare.util.BossUtils;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import com.mochi_753.astral_warfare.network.ClientboundScreenShakePacket;
 import com.mochi_753.astral_warfare.network.ClientboundMazeSyncPacket;
@@ -452,14 +453,16 @@ public class SpellCastGoal extends Goal {
         // 手动伤害逻辑已在下方 AABB 中精确控制，只对 Player 生效
 
         // 地面爆炸粒子：在锁定位置生成大量冲击波粒子（密度×3）
+        // 地面粒子：循环外计算一次 groundY，避免每帧重复搜索地面
+        double groundY = BossUtils.findGroundY(serverLevel, targetX, targetZ) + 0.05;
         try (ParticleEmitter emitter = new ParticleEmitter(goal.evoker)) {
             for (int i = 0; i < 120; i++) {
                 double angle = goal.evoker.getRandom().nextDouble() * Math.PI * 2;
                 double r = goal.evoker.getRandom().nextDouble() * ModConstants.STARFALL_RADIUS;
                 double px = targetX + Math.cos(angle) * r;
                 double pz = targetZ + Math.sin(angle) * r;
-                emitter.add(StellaParticles.ID_IMPACT_WAVE, px, targetY + 0.3, pz, 0);
-                emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, targetY + 0.5, pz, 0);
+                emitter.add(StellaParticles.ID_IMPACT_WAVE, px, groundY, pz, 0);
+                emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, groundY + 0.05, pz, 0);
             }
         }
 
@@ -1050,15 +1053,16 @@ public class SpellCastGoal extends Goal {
             t.hurt(serverLevel.damageSources().indirectMagic(goal.evoker, goal.evoker), ModConstants.TELEKINETIC_THROW_DAMAGE);
         }
 
-        // 星尘爆炸粒子
+        // 星尘爆炸粒子（地面粒子，使用 findGroundY 锚定地面）
+        double groundY = BossUtils.findGroundY(serverLevel, targetX, targetZ) + 0.05;
         try (ParticleEmitter emitter = new ParticleEmitter(goal.evoker)) {
             for (int i = 0; i < 50; i++) {
                 double angle = goal.evoker.getRandom().nextDouble() * Math.PI * 2;
                 double r = goal.evoker.getRandom().nextDouble() * ModConstants.TELEKINETIC_THROW_RADIUS;
                 double px = targetX + Math.cos(angle) * r;
                 double pz = targetZ + Math.sin(angle) * r;
-                emitter.add(StellaParticles.ID_STELLA_WISP, px, goal.throwTarget.getY() + 0.3, pz, 0);
-                emitter.add(StellaParticles.ID_IMPACT_WAVE, px, goal.throwTarget.getY() + 0.1, pz, 1);
+                emitter.add(StellaParticles.ID_STELLA_WISP, px, groundY, pz, 0);
+                emitter.add(StellaParticles.ID_IMPACT_WAVE, px, groundY, pz, 1);
             }
         }
 

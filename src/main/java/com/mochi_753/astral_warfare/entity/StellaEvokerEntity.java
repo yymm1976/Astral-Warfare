@@ -112,6 +112,11 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
             BossEvent.BossBarColor.PURPLE,
             BossEvent.BossBarOverlay.NOTCHED_12
     );
+    {
+        // 禁止原版 BossBGM 播放，使用自定义 BGM 系统替代
+        // 防止原版凋灵/末影龙 BGM 与自定义 BGM 叠加
+        bossEvent.setPlayBossMusic(false);
+    }
 
     private int anchorCheckTimer = 0;
 
@@ -445,6 +450,57 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
             this.bossEvent.setProgress(this.getHealth() / this.getMaxHealth());
         }
         this.bossEvent.setName(this.getDisplayName());
+
+        // 禁飞镇压：每 10 tick 扫描 30 格内上升中的非创造玩家
+        // 设计意图：BOSS 不允许玩家飞行/跳跃逃脱，空中玩家会被虚空力量猛砸回地面
+        if (!isDying() && !isTransitioning() && this.tickCount % 10 == 0) {
+            suppressFlyingPlayers();
+        }
+    }
+
+    // 禁飞镇压：检测上升中的玩家，向下猛砸 + 魔法伤害
+    // 条件：玩家在 30 格内、Y轴速度 > 0.3（上升中）、非创造/旁观模式
+    // 效果：玩家被 setDeltaMovement(x, -1.5, z) 向下猛砸 + 10.0F 魔法伤害
+    // 粒子：BOSS 手部向下爆发 ID_IMPACT_WAVE 粒子
+    private static final double SUPPRESS_FLIGHT_RANGE = 30.0;
+    private static final double SUPPRESS_FLIGHT_Y_THRESHOLD = 0.3;
+    private static final float SUPPRESS_FLIGHT_DAMAGE = 10.0F;
+
+    private void suppressFlyingPlayers() {
+        if (!(this.level() instanceof ServerLevel serverLevel)) return;
+
+        AABB searchBox = this.getBoundingBox().inflate(SUPPRESS_FLIGHT_RANGE);
+        List<Player> flyingPlayers = serverLevel.getEntitiesOfClass(Player.class, searchBox,
+                player -> player.isAlive() && !player.isCreative() && !player.isSpectator()
+                        && player.getDeltaMovement().y > SUPPRESS_FLIGHT_Y_THRESHOLD
+        );
+
+        if (flyingPlayers.isEmpty()) return;
+
+        // BOSS 镇压粒子：手部向下爆发冲击波
+        try (ParticleEmitter emitter = new ParticleEmitter(this)) {
+            for (int i = 0; i < 8; i++) {
+                double angle = this.random.nextDouble() * Math.PI * 2;
+                double r = 0.3 + this.random.nextDouble() * 0.5;
+                double px = this.getX() + Math.cos(angle) * r;
+                double pz = this.getZ() + Math.sin(angle) * r;
+                // 手部高度约 Y+1.5，粒子向下扩散
+                emitter.add(StellaParticles.ID_IMPACT_WAVE, px, this.getY() + 1.5, pz, 0);
+            }
+        }
+
+        // 对每个飞行玩家施加镇压
+        for (Player player : flyingPlayers) {
+            // 向下猛砸：保留水平速度，Y 轴设为 -1.5
+            player.setDeltaMovement(
+                    player.getDeltaMovement().x,
+                    -1.5,
+                    player.getDeltaMovement().z
+            );
+            player.hurtMarked = true;
+            // 魔法伤害（绕过盔甲）
+            player.hurt(serverLevel.damageSources().indirectMagic(this, this), SUPPRESS_FLIGHT_DAMAGE);
+        }
     }
 
     @Override
@@ -537,12 +593,16 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
         // 委托给 StellaDyingStateMachine 组件处理全部演出 tick 计数、粒子序列与音效时序
         if (isDying()) {
             dyingFSM.tick(serverLevel);
+            // 死亡演出期间保持头部跟踪最近玩家，避免头部冻结
+            lookAtNearestPlayer(serverLevel);
             return;
         }
 
         // ---- 转阶段演出逻辑 ----
         if (isTransitioning()) {
             transitionFSM.tick(serverLevel);
+            // 转阶段期间保持头部跟踪最近玩家
+            lookAtNearestPlayer(serverLevel);
             return;
         }
 
@@ -678,6 +738,27 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
 
     // ==================== 无敌判定 ====================
 
+    // BOSS 环境伤害免疫：过滤火焰、爆炸、摔落、溺水、窒息
+    // 设计意图：BOSS 是星穹级存在，不应被环境伤害击杀
+    // 玩家只能通过主动战斗造成伤害，TNT/岩浆/摔落等环境因素无效
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        // 火焰伤害（火、岩浆、着火、岩浆块等）
+        // 1.21.x 适配：isFire() 已移除，改用 DamageTypeTags.IS_FIRE
+        if (source.is(net.minecraft.tags.DamageTypeTags.IS_FIRE)) return false;
+        // 爆炸伤害（TNT、末影水晶、床/重生锚爆炸等）
+        // 1.21.x 适配：isExplosion() 已移除，改用 DamageTypeTags.IS_EXPLOSION
+        if (source.is(net.minecraft.tags.DamageTypeTags.IS_EXPLOSION)) return false;
+        // 摔落伤害
+        // 1.21.x 适配：isFall() 已移除，改用 DamageTypeTags.IS_FALL
+        if (source.is(net.minecraft.tags.DamageTypeTags.IS_FALL)) return false;
+        // 溺水伤害
+        if (source.is(net.minecraft.world.damagesource.DamageTypes.DROWN)) return false;
+        // 窒息伤害（卡在墙内）
+        if (source.is(net.minecraft.world.damagesource.DamageTypes.IN_WALL)) return false;
+        return super.hurt(source, amount);
+    }
+
     @Override
     public boolean isInvulnerableTo(DamageSource source) {
         if (isTransitioning() || isDying() || isGateSurging()) {
@@ -704,6 +785,16 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
     // 防止击飞玩家超出检测范围导致 BOSS 消失
     boolean isExecutingFinisher() {
         return this.despairExecutionGoal != null && this.despairExecutionGoal.isExecuting();
+    }
+
+    // 死亡/转阶段期间保持头部跟踪最近玩家
+    // AI Goal 已停止，LookControl 不会收到 setLookAt 指令
+    // 手动查找最近玩家并设置朝向，避免头部冻结在最后朝向
+    private void lookAtNearestPlayer(ServerLevel level) {
+        Player nearest = level.getNearestPlayer(this, 50.0);
+        if (nearest != null) {
+            this.getLookControl().setLookAt(nearest, 30.0F, 30.0F);
+        }
     }
 
     private void checkAnchorDespawn(ServerLevel level) {

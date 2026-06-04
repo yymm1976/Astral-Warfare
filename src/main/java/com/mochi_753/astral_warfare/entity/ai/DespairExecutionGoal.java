@@ -8,6 +8,7 @@ import com.mochi_753.astral_warfare.entity.StellaEvokerEntity;
 import com.mochi_753.astral_warfare.entity.StarcoreGolemEntity;
 import com.mochi_753.astral_warfare.entity.VoidFissureEntity;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
+import com.mochi_753.astral_warfare.util.BossUtils;
 import com.mochi_753.astral_warfare.network.ClientboundScreenShakePacket;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import net.minecraft.server.level.ServerLevel;
@@ -199,16 +200,18 @@ public class DespairExecutionGoal extends Goal {
 
             double warningRadius = LAUNCH_RANGE;
             int circleSegments = 48;
+            // 地面粒子：循环外计算一次 groundY，避免每帧重复搜索地面
+            double groundY = BossUtils.findGroundY(this.evoker.level(), this.evoker.getX(), this.evoker.getZ()) + 0.05;
             for (int i = 0; i < circleSegments; i++) {
                 double angle = i * Math.PI * 2.0 / circleSegments;
                 double px = this.evoker.getX() + Math.cos(angle) * warningRadius;
                 double pz = this.evoker.getZ() + Math.sin(angle) * warningRadius;
-                emitter.add(StellaParticles.ID_DYING_EMBER, px, this.evoker.getY() + 0.1, pz, 0);
+                emitter.add(StellaParticles.ID_DYING_EMBER, px, groundY, pz, 0);
                 if (i % 4 == 0) {
                     double innerR = warningRadius * 0.6;
                     double innerPx = this.evoker.getX() + Math.cos(angle) * innerR;
                     double innerPz = this.evoker.getZ() + Math.sin(angle) * innerR;
-                    emitter.add(StellaParticles.ID_TRANSITION_BURST, innerPx, this.evoker.getY() + 0.15, innerPz, 0);
+                    emitter.add(StellaParticles.ID_TRANSITION_BURST, innerPx, groundY + 0.05, innerPz, 0);
                 }
             }
         }
@@ -574,12 +577,14 @@ public class DespairExecutionGoal extends Goal {
         }
 
         try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
+            // 地面粒子：循环外计算一次 groundY，避免每帧重复搜索地面
+            double groundY = BossUtils.findGroundY(this.evoker.level(), this.evoker.getX(), this.evoker.getZ()) + 0.05;
             for (int i = 0; i < 40; i++) {
                 double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
                 double r = this.evoker.getRandom().nextDouble() * SLAM_RADIUS;
                 double px = this.evoker.getX() + Math.cos(angle) * r;
                 double pz = this.evoker.getZ() + Math.sin(angle) * r;
-                double py = this.evoker.getY() + 0.3 + this.evoker.getRandom().nextDouble() * 0.5;
+                double py = groundY + this.evoker.getRandom().nextDouble() * 0.5;
                 emitter.add(StellaParticles.ID_IMPACT_WAVE, px, py, pz, 0);
             }
 
@@ -591,7 +596,7 @@ public class DespairExecutionGoal extends Goal {
                     double dist = (i + 1) * 0.8;
                     double px = this.evoker.getX() + dx * dist;
                     double pz = this.evoker.getZ() + dz * dist;
-                    emitter.add(StellaParticles.ID_IMPACT_WAVE, px, this.evoker.getY() + 0.1, pz, dir);
+                    emitter.add(StellaParticles.ID_IMPACT_WAVE, px, groundY, pz, dir);
                 }
             }
         }

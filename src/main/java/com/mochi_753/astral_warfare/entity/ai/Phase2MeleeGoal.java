@@ -4,6 +4,7 @@ import com.mochi_753.astral_warfare.init.ModEffects;
 import com.mochi_753.astral_warfare.init.ModConfig;
 import com.mochi_753.astral_warfare.entity.StellaEvokerEntity;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
+import com.mochi_753.astral_warfare.util.BossUtils;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -228,11 +229,7 @@ public class Phase2MeleeGoal extends Goal {
     private void tickSlashDelay(ServerLevel level) {
         this.evoker.getLookControl().setLookAt(this.target, 180.0F, 180.0F);
 
-        // 首次进入蓄力阶段时触发弦斩动画
-        if (this.stateTimer == 1) {
-            // 触发弦斩动画（triggerAnim 自动同步到客户端）
-            this.evoker.triggerAnim("attack_controller", "slash");
-        }
+        // 蓄力阶段不触发攻击动画，动画在实际挥砍时触发
 
         // 蓄力粒子：虚空能量在BOSS手部聚集（从2个增加到4个）
         try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
@@ -270,11 +267,18 @@ public class Phase2MeleeGoal extends Goal {
     private static final double SLASH_DAMAGE_RANGE = 7.5;
 
     private void tickSlash(ServerLevel level) {
+        // 弦斩期间持续面向目标，确保弧形刃光方向正确
+        this.evoker.getLookControl().setLookAt(this.target, 180.0F, 180.0F);
+
         Vec3 look = this.evoker.getLookAngle();
         double baseYaw = Math.atan2(look.z, look.x);
 
-        // 首tick：伤害判定 + 原版横扫攻击粒子（弧形斩击）
+        // 首tick：触发弦斩动画 + 伤害判定 + 原版横扫攻击粒子（弧形斩击）
+        // 动画在实际挥砍的第一帧触发，而非蓄力期触发
         if (this.stateTimer == 1) {
+            // 触发弦斩动画（triggerAnim 自动同步到客户端）
+            this.evoker.triggerAnim("attack_controller", "slash");
+
             if (this.target != null && this.target.isAlive()) {
                 double distToTarget = this.evoker.distanceTo(this.target);
                 // 伤害判定范围与特效弧形刃光最大距离匹配（7.5格）
@@ -294,6 +298,8 @@ public class Phase2MeleeGoal extends Goal {
 
         // 全程：弧形刃光（IMPACT_WAVE），5道连斩，每道10分段
         // 最外圈距离 1.5 + 4*1.5 = 7.5，与 SLASH_DAMAGE_RANGE 一致
+        // 地面粒子：循环外计算一次 groundY，避免每帧重复搜索地面
+        double groundY = BossUtils.findGroundY(this.evoker.level(), this.evoker.getX(), this.evoker.getZ()) + 0.05;
         try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
             for (int slash = 0; slash < 5; slash++) {
                 double slashDist = 1.5 + slash * 1.5;
@@ -301,7 +307,7 @@ public class Phase2MeleeGoal extends Goal {
                 for (int i = 0; i < arcSegments; i++) {
                     double arcAngle = baseYaw + (i / (double) arcSegments - 0.5) * Math.PI * 0.9;
                     double px = this.evoker.getX() + Math.cos(arcAngle) * slashDist;
-                    double py = this.evoker.getY() + 0.8 + (slash == 1 ? 0.3 : 0);
+                    double py = groundY;
                     double pz = this.evoker.getZ() + Math.sin(arcAngle) * slashDist;
                     emitter.add(StellaParticles.ID_IMPACT_WAVE, px, py, pz, slash);
                 }
@@ -312,7 +318,7 @@ public class Phase2MeleeGoal extends Goal {
                 double dist = 2.0 + this.evoker.getRandom().nextDouble() * 4.0;
                 double px = this.evoker.getX() + Math.cos(angle) * dist;
                 double pz = this.evoker.getZ() + Math.sin(angle) * dist;
-                emitter.add(StellaParticles.ID_VOID_SPARK, px, this.evoker.getY() + 0.8, pz, 0);
+                emitter.add(StellaParticles.ID_VOID_SPARK, px, groundY, pz, 0);
             }
         }
 
@@ -327,6 +333,9 @@ public class Phase2MeleeGoal extends Goal {
     // 突进阶段：BOSS化作紫色残影向前瞬移5-7格
     // 加强版：更长的瞬移距离、更丰富的残影和落点特效
     private void tickThrustDash(ServerLevel level) {
+        // 突进期间面向目标，确保瞬移方向正确
+        this.evoker.getLookControl().setLookAt(this.target, 180.0F, 180.0F);
+
         if (this.stateTimer == 1) {
             // 触发突进掌动画（triggerAnim 自动同步到客户端）
             this.evoker.triggerAnim("attack_controller", "thrust");
@@ -361,13 +370,14 @@ public class Phase2MeleeGoal extends Goal {
                     double pz = newZ + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
                     emitter.add(StellaParticles.ID_TRANSITION_BURST, px, py, pz, 0);
                 }
-                // 新增：落点冲击波
+                // 新增：落点冲击波（地面粒子，使用 findGroundY 锚定地面）
+                double groundY = BossUtils.findGroundY(this.evoker.level(), newX, newZ) + 0.05;
                 for (int i = 0; i < 6; i++) {
                     double angle = this.evoker.getRandom().nextDouble() * Math.PI * 2;
                     double r = this.evoker.getRandom().nextDouble() * 1.5;
                     double px = newX + Math.cos(angle) * r;
                     double pz = newZ + Math.sin(angle) * r;
-                    emitter.add(StellaParticles.ID_IMPACT_WAVE, px, this.evoker.getY() + 0.3, pz, 0);
+                    emitter.add(StellaParticles.ID_IMPACT_WAVE, px, groundY, pz, 0);
                 }
             }
         }
@@ -383,6 +393,9 @@ public class Phase2MeleeGoal extends Goal {
     private static final double THRUST_HIT_RANGE = 4.0;
 
     private void tickThrustHit(ServerLevel level) {
+        // 掌击命中期间面向目标
+        this.evoker.getLookControl().setLookAt(this.target, 180.0F, 180.0F);
+
         if (this.target != null && this.target.isAlive()) {
             double distToTarget = this.evoker.distanceTo(this.target);
             // 伤害判定范围与突进距离匹配（4.0格，突进6.0格后玩家应在范围内）
@@ -427,6 +440,9 @@ public class Phase2MeleeGoal extends Goal {
     // 消失阶段：BOSS消失，玻璃碎裂音效
     // 精简原则：只保留 TRANSITION_BURST（碎裂闪光）+ POOF（原版烟雾消散）
     private void tickBackstabVanish(ServerLevel level) {
+        // 消失阶段仍面向目标，保持头部跟踪
+        this.evoker.getLookControl().setLookAt(this.target, 180.0F, 180.0F);
+
         if (this.stateTimer == 1) {
             // 触发背刺动画（triggerAnim 自动同步到客户端）
             this.evoker.triggerAnim("attack_controller", "backstab");
@@ -481,6 +497,9 @@ public class Phase2MeleeGoal extends Goal {
     private static final double BACKSTAB_HIT_RANGE = 4.0;
 
     private void tickBackstabStrike(ServerLevel level) {
+        // 贯穿期间面向目标
+        this.evoker.getLookControl().setLookAt(this.target, 180.0F, 180.0F);
+
         if (this.target != null && this.target.isAlive()) {
             double distToTarget = this.evoker.distanceTo(this.target);
             // 伤害判定范围与传送后位置匹配（4.0格，BOSS在玩家背后1格处）
@@ -621,6 +640,9 @@ public class Phase2MeleeGoal extends Goal {
     private static final double PULL_HIT_RANGE = 3.5;
 
     private void tickPullStrike(ServerLevel level) {
+        // 重拳期间面向目标
+        this.evoker.getLookControl().setLookAt(this.target, 180.0F, 180.0F);
+
         if (this.target != null && this.target.isAlive()) {
             double distToTarget = this.evoker.distanceTo(this.target);
             // 伤害判定范围与拉人后位置匹配（3.5格，玩家在BOSS身前2格处）
