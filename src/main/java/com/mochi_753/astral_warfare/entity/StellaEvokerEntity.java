@@ -12,6 +12,7 @@ import com.mochi_753.astral_warfare.init.ModConfig;
 import com.mochi_753.astral_warfare.init.ModConstants;
 import com.mochi_753.astral_warfare.network.ClientboundStellaManaPacket;
 import com.mochi_753.astral_warfare.network.ClientboundStellaManaRemovePacket;
+import com.mochi_753.astral_warfare.network.ClientboundMazeSyncPacket;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
 import software.bernie.geckolib.animatable.GeoEntity;
@@ -39,6 +40,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -50,6 +52,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.raid.Raid;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.List;
@@ -120,10 +123,26 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
 
     private int anchorCheckTimer = 0;
 
-    // ==================== Phase 27：血量触发技能 ====================
+    // ==================== Phase 29：星轨迷宫独立触发 ====================
 
     // 星轨迷宫：80% 血量一次性触发标志
     private boolean hasTriggeredStarTrackMaze = false;
+    // 星轨迷宫：施法计时器（0~MAZE_CAST_DURATION）
+    private int mazeTick = 0;
+    // 星轨迷宫：网格中心位置
+    private Vec3 mazeCenter = null;
+    // 星轨迷宫：当前激活列组（0=偶数列，1=奇数列）
+    private int mazeActiveGroup = 0;
+    // 星轨迷宫：施法中标志
+    private boolean isCastingMaze = false;
+
+    // 星轨迷宫常量（从 SpellCastGoal 迁移）
+    private static final int MAZE_CAST_DURATION = 120;     // 迷宫总施法时长（tick）
+    private static final int MAZE_GRID_SIZE = ModConstants.STAR_TRACK_MAZE_GRID_SIZE;
+    private static final float MAZE_DAMAGE = ModConstants.STAR_TRACK_MAZE_DAMAGE;
+    private static final int MAZE_WARNING_TICKS = 40;      // 预警阶段时长
+    private static final int MAZE_SWITCH_INTERVAL = 10;    // 奇偶列切换间隔
+    private static final double MAZE_CELL_SIZE = 2.0;      // 每格大小
 
     // 虚空裂隙：25% 血量后每 30 秒触发一次
     private static final int VOID_FISSURE_INTERVAL = 600; // 30秒 = 600 tick
@@ -631,6 +650,11 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
         // ---- 半血转阶段检测 ----
         if (!transitionFSM.hasTransitioned() && getCombatPhase() == PHASE_1_CASTER) {
             if (this.getHealth() <= this.getMaxHealth() * 0.5) {
+                // 转阶段时中断正在施放的迷宫
+                this.isCastingMaze = false;
+                this.mazeCenter = null;
+                this.mazeActiveGroup = 0;
+                this.mazeTick = 0;
                 transitionFSM.startTransition(serverLevel);
                 return;
             }
@@ -648,15 +672,15 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
         }
 
         // ---- 星轨迷宫：80% 血量一次性触发 ----
-        // 从法术轮换池移除，改为血量触发，确保玩家必见此中期演出
+        // 独立于 SpellCastGoal，直接在 tick() 中管理迷宫施法
         if (!hasTriggeredStarTrackMaze && getCombatPhase() == PHASE_1_CASTER) {
             if (this.getHealth() <= this.getMaxHealth() * 0.8) {
-                hasTriggeredStarTrackMaze = true;
-                // 强制 SpellCastGoal 施放星轨迷宫
-                if (this.spellCastGoal != null) {
-                    this.spellCastGoal.forceCastSpell(SpellType.STAR_TRACK_MAZE);
-                }
+                startStarTrackMaze();
             }
+        }
+        // 迷宫施法 tick：独立于 SpellCastGoal 的法术状态机
+        if (isCastingMaze) {
+            tickStarTrackMaze(serverLevel);
         }
 
         // ---- 一阶段逻辑 ----
@@ -702,6 +726,12 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
             for (WrappedGoal goal : runningGoals) {
                 goal.stop();
             }
+
+            // 清理迷宫施法状态：死亡时中断正在施放的迷宫
+            this.isCastingMaze = false;
+            this.mazeCenter = null;
+            this.mazeActiveGroup = 0;
+            this.mazeTick = 0;
 
             // 播放凋灵死亡音效（低沉的终末感）
             this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
@@ -827,6 +857,156 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
         }
     }
 
+    // ==================== 星轨迷宫独立触发逻辑 ====================
+
+    // 启动星轨迷宫：以最近玩家位置为网格中心
+    // 独立于 SpellCastGoal，由血量 80% 触发
+    private void startStarTrackMaze() {
+        hasTriggeredStarTrackMaze = true;
+
+        // 查找最近的非创造/非旁观模式玩家作为迷宫中心
+        Player target = findNearestSurvivalPlayer();
+        if (target == null) return;
+
+        this.mazeCenter = target.position();
+        this.mazeActiveGroup = 0;
+        this.mazeTick = 0;
+        this.isCastingMaze = true;
+
+        // 施法动画：triggerAnim 自动同步到客户端
+        this.triggerAnim("attack_controller", "spell_cast");
+
+        // 技能施放提示：向所有追踪 BOSS 的玩家发送聊天框消息
+        for (ServerPlayer player : this.bossEvent.getPlayers()) {
+            player.sendSystemMessage(Component.translatable("entity.astral_warfare.stella_evoker.spell.star_track_maze"));
+        }
+    }
+
+    // 星轨迷宫 tick 逻辑：独立于 SpellCastGoal 的法术状态机
+    // 前 40 tick 预警：地面画全网格（淡蓝细线粒子）
+    // 40-120 tick：奇偶列交替，每 10 tick 切换
+    // 激活列蓝色发光粒子 + 伤害，非激活列暗色
+    private void tickStarTrackMaze(ServerLevel serverLevel) {
+        if (this.mazeCenter == null) {
+            // 无中心位置时直接结束
+            this.isCastingMaze = false;
+            return;
+        }
+
+        this.mazeTick++;
+
+        double cx = this.mazeCenter.x;
+        double cz = this.mazeCenter.z;
+        double cy = this.mazeCenter.y;
+        int halfGrid = MAZE_GRID_SIZE / 2;
+
+        // 预警阶段（0-40 tick）：画全网格淡蓝细线
+        if (this.mazeTick < MAZE_WARNING_TICKS) {
+            try (ParticleEmitter emitter = new ParticleEmitter(this)) {
+                for (int col = -halfGrid; col <= halfGrid; col++) {
+                    double x = cx + col * MAZE_CELL_SIZE;
+                    for (int row = 0; row < 20; row++) {
+                        double z = cz - halfGrid * MAZE_CELL_SIZE + row * (MAZE_GRID_SIZE * MAZE_CELL_SIZE / 20.0);
+                        emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.05, z, 0);
+                    }
+                }
+                for (int row = -halfGrid; row <= halfGrid; row++) {
+                    double z = cz + row * MAZE_CELL_SIZE;
+                    for (int col = 0; col < 20; col++) {
+                        double x = cx - halfGrid * MAZE_CELL_SIZE + col * (MAZE_GRID_SIZE * MAZE_CELL_SIZE / 20.0);
+                        emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.05, z, 0);
+                    }
+                }
+            }
+        } else if (this.mazeTick < MAZE_CAST_DURATION) {
+            // 激活阶段（40-120 tick）：奇偶列交替
+            int activeTick = this.mazeTick - MAZE_WARNING_TICKS;
+            this.mazeActiveGroup = (activeTick / MAZE_SWITCH_INTERVAL) % 2;
+
+            try (ParticleEmitter emitter = new ParticleEmitter(this)) {
+                for (int col = -halfGrid; col <= halfGrid; col++) {
+                    boolean isActive = ((col + halfGrid) % 2 == this.mazeActiveGroup);
+                    double x = cx + col * MAZE_CELL_SIZE;
+
+                    for (int row = -halfGrid; row <= halfGrid; row++) {
+                        double z = cz + row * MAZE_CELL_SIZE;
+
+                        if (isActive) {
+                            emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.1, z, 0);
+                            emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.1, z, 1);
+                            emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.15, z, 0);
+                            emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.15, z, 1);
+                            emitter.add(StellaParticles.ID_VOID_TWINKLE, x, cy + 0.2, z, 1);
+                            emitter.add(StellaParticles.ID_VOID_TWINKLE, x, cy + 0.2, z, 1);
+                            emitter.add(StellaParticles.ID_VOID_TWINKLE, x, cy + 0.25, z, 1);
+                            emitter.add(StellaParticles.ID_VOID_TWINKLE, x, cy + 0.25, z, 1);
+                        } else {
+                            if ((row + halfGrid) % 2 == 0) {
+                                emitter.add(StellaParticles.ID_VOID_TWINKLE, x, cy + 0.05, z, 0);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 伤害判定：每 10 tick 的首 tick 对激活列上的玩家造成伤害
+            // 排除 BOSS 自身和 StarcoreGolemEntity
+            if (activeTick % MAZE_SWITCH_INTERVAL == 0) {
+                for (int col = -halfGrid; col <= halfGrid; col++) {
+                    boolean isActive = ((col + halfGrid) % 2 == this.mazeActiveGroup);
+                    if (!isActive) continue;
+
+                    double x = cx + col * MAZE_CELL_SIZE;
+                    AABB colBox = new AABB(
+                            x - MAZE_CELL_SIZE * 0.4, cy - 1.0, cz - halfGrid * MAZE_CELL_SIZE,
+                            x + MAZE_CELL_SIZE * 0.4, cy + 2.0, cz + halfGrid * MAZE_CELL_SIZE
+                    );
+                    List<LivingEntity> hitEntities = serverLevel.getEntitiesOfClass(LivingEntity.class, colBox,
+                            entity -> entity.isAlive() && !entity.isSpectator()
+                                    && entity != this
+                                    && !(entity instanceof StarcoreGolemEntity));
+                    for (LivingEntity entity : hitEntities) {
+                        entity.hurt(serverLevel.damageSources().indirectMagic(this, this), MAZE_DAMAGE);
+                    }
+                }
+            }
+
+            // 发送网络同步包给客户端渲染器
+            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this,
+                    new ClientboundMazeSyncPacket(cx, cy, cz, this.mazeActiveGroup, MAZE_GRID_SIZE));
+        }
+
+        // 迷宫施法结束
+        if (this.mazeTick >= MAZE_CAST_DURATION) {
+            // 收尾音效
+            serverLevel.playSound(null, cx, cy, cz,
+                    SoundEvents.BEACON_DEACTIVATE, SoundSource.HOSTILE, 1.0F, 0.5F);
+            // 清理迷宫状态
+            this.isCastingMaze = false;
+            this.mazeCenter = null;
+            this.mazeActiveGroup = 0;
+            this.mazeTick = 0;
+        }
+    }
+
+    // 星轨迷宫是否正在施法（供外部查询，如移动限制）
+    public boolean isCastingMaze() {
+        return this.isCastingMaze;
+    }
+
+    // 查找最近的非创造/非旁观模式玩家
+    // 统一过滤逻辑：BOSS 不应追踪无法攻击的玩家
+    private Player findNearestSurvivalPlayer() {
+        var players = this.level().getEntitiesOfClass(
+                Player.class,
+                this.getBoundingBox().inflate(64.0),
+                player -> player.isAlive() && !player.isCreative() && !player.isSpectator()
+        );
+        if (players.isEmpty()) return null;
+        players.sort((a, b) -> Double.compare(this.distanceToSqr(a), this.distanceToSqr(b)));
+        return players.get(0);
+    }
+
     // ==================== 二阶段 tick 逻辑 ====================
 
     private void tickPhase2(ServerLevel serverLevel) {
@@ -936,8 +1116,16 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
         tag.putInt("CrystalManaRecoverTimer", manaSystem.getCrystalManaRecoverTimer());
         tag.putInt("PassiveManaRegenTimer", manaSystem.getPassiveManaRegenTimer());
         tag.putInt("AnchorCheckTimer", anchorCheckTimer);
-        // Phase 27：血量触发技能持久化
+        // Phase 29：星轨迷宫独立触发持久化
         tag.putBoolean("HasTriggeredStarTrackMaze", hasTriggeredStarTrackMaze);
+        tag.putBoolean("IsCastingMaze", isCastingMaze);
+        tag.putInt("MazeTick", mazeTick);
+        tag.putInt("MazeActiveGroup", mazeActiveGroup);
+        if (mazeCenter != null) {
+            tag.putDouble("MazeCenterX", mazeCenter.x);
+            tag.putDouble("MazeCenterY", mazeCenter.y);
+            tag.putDouble("MazeCenterZ", mazeCenter.z);
+        }
         tag.putInt("LastFissureSpawnTick", lastFissureSpawnTick);
         if (altarCenterPos != null) {
             tag.putInt("AltarCenterX", altarCenterPos.getX());
@@ -996,9 +1184,25 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
         if (tag.contains("AnchorCheckTimer")) {
             anchorCheckTimer = tag.getInt("AnchorCheckTimer");
         }
-        // Phase 27：恢复血量触发技能状态
+        // Phase 29：恢复星轨迷宫独立触发状态
         if (tag.contains("HasTriggeredStarTrackMaze")) {
             hasTriggeredStarTrackMaze = tag.getBoolean("HasTriggeredStarTrackMaze");
+        }
+        if (tag.contains("IsCastingMaze")) {
+            isCastingMaze = tag.getBoolean("IsCastingMaze");
+        }
+        if (tag.contains("MazeTick")) {
+            mazeTick = tag.getInt("MazeTick");
+        }
+        if (tag.contains("MazeActiveGroup")) {
+            mazeActiveGroup = tag.getInt("MazeActiveGroup");
+        }
+        if (tag.contains("MazeCenterX")) {
+            mazeCenter = new Vec3(
+                    tag.getDouble("MazeCenterX"),
+                    tag.getDouble("MazeCenterY"),
+                    tag.getDouble("MazeCenterZ")
+            );
         }
         if (tag.contains("LastFissureSpawnTick")) {
             lastFissureSpawnTick = tag.getInt("LastFissureSpawnTick");

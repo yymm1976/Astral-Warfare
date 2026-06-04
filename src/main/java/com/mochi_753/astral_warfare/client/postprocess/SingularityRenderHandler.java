@@ -76,8 +76,8 @@ public class SingularityRenderHandler {
         float screenX = (float) mc.getWindow().getGuiScaledWidth() / 2.0F;
         float screenY = (float) mc.getWindow().getGuiScaledHeight() / 2.0F;
         float radius = (float) (200.0 / Math.max(dist, 1.0));
-        // Intensity 从 2.0 提升到 5.0，增强黑洞引力透镜扭曲效果
-        float intensity = 5.0F;
+        // Phase 29：Intensity 从 5.0 提升到 8.0，增强黑洞引力透镜扭曲效果
+        float intensity = 8.0F;
         float animTime = nearest.tickCount * 0.05F;
         processor.updateSingularityData(screenX, screenY, radius, intensity, animTime);
     }

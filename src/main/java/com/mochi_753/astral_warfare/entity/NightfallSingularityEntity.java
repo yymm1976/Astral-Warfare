@@ -140,93 +140,92 @@ public class NightfallSingularityEntity extends Entity {
             return;
         }
 
-        // 黑洞特效（重设计：多层细节结构）
+        // 黑洞特效（Phase 29 重设计：四层结构 + 微弱光晕）
         // 视觉设计：
-        //   1. 事件视界核心（r<0.3）：密集的暗色粒子，几乎不透光
-        //   2. 吸积盘（r=0.3-2.5）：明亮的环形粒子，逆时针旋转
-        //   3. 引力透镜环（r=2.5-5）：稀疏的紫色粒子，缓慢旋转
-        //   4. 喷流（Y轴方向）：上下两束紫色粒子束
+        //   1. 核心（r<1.5）：8个 ID_DYING_EMBER variant=2 近黑色粒子，缓慢向外扩散→消失
+        //   2. 事件视界（r=1.5-3.0）：16个 ID_VOID_SPARK variant=0 暗紫，双层反向旋转密集环
+        //   3. 吸积盘（r=3.0-8.0）：24个 ID_ASTRAL_BEAM variant=0 亮蓝白，逆时针旋转
+        //   4. 引力透镜环（r=8.0-16.0）：每2tick 8个 ID_VOID_SPARK variant=2 极暗，极慢旋转
+        //   5. 微弱光晕：4个 ID_STELLA_WISP variant=0 缓慢上升，替代喷流
         //
         // 所有粒子都有朝向核心的运动，增强"吸入"感
         // 使用 ParticleEmitter 批量发送粒子包，减少网络开销
         try (ParticleEmitter emitter = new ParticleEmitter(this)) {
 
-        // === 1. 事件视界核心（每tick 8个密集暗色粒子，半径2.0）===
-        // 核心粒子密集且暗，像"吞噬光线的黑洞"
-        // 使用DYING_EMBER variant=2（极暗近黑色），半径从0.3扩大到2.0
+        // === 1. 核心（每tick 8个近黑色粒子，r<1.5，缓慢向外扩散→消失）===
+        // 核心粒子密集且暗，像"吞噬光线的黑洞中心"
+        // DYING_EMBER variant=2（近黑色），半径1.5内
         for (int i = 0; i < 8; i++) {
             double angle = this.random.nextDouble() * Math.PI * 2;
-            double r = this.random.nextDouble() * 2.0;
+            double r = this.random.nextDouble() * 1.5;
             double px = this.getX() + Math.cos(angle) * r;
             double pz = this.getZ() + Math.sin(angle) * r;
-            double py = this.getY() + 0.5 + (this.random.nextDouble() - 0.5) * 0.5;
+            double py = this.getY() + 0.5 + (this.random.nextDouble() - 0.5) * 0.3;
             emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 2);
         }
 
-        // === 2. 吸积盘（每tick 15-24个亮紫粒子，环形旋转，密度×3）===
-        // 吸积盘是黑洞最亮的部分，用亮紫色+较大粒子
-        // 亮度+50%：使用更亮的品红色
-        int accretionCount = 15 + this.random.nextInt(10);
-        for (int i = 0; i < accretionCount; i++) {
-            double angle = this.random.nextDouble() * Math.PI * 2;
-            double r = 0.3 + this.random.nextDouble() * 2.2;
+        // === 2. 事件视界（每tick 16个暗紫粒子，双层反向旋转密集环，r=1.5-3.0）===
+        // 双层反向旋转：内层顺时针、外层逆时针，营造"时空扭曲"感
+        // VOID_SPARK variant=0（暗紫色），密集环
+        double evRotation = this.tickCount * 0.08;
+        for (int i = 0; i < 16; i++) {
+            double baseAngle = i * Math.PI * 2.0 / 16;
+            // 内层（r≈1.8）：顺时针旋转
+            double innerAngle = baseAngle + evRotation;
+            double innerR = 1.5 + this.random.nextDouble() * 0.5;
+            emitter.add(StellaParticles.ID_VOID_SPARK,
+                    this.getX() + Math.cos(innerAngle) * innerR,
+                    this.getY() + 0.5 + (this.random.nextDouble() - 0.5) * 0.1,
+                    this.getZ() + Math.sin(innerAngle) * innerR,
+                    0);
+            // 外层（r≈2.5）：逆时针旋转
+            double outerAngle = baseAngle - evRotation * 0.7;
+            double outerR = 2.2 + this.random.nextDouble() * 0.8;
+            emitter.add(StellaParticles.ID_VOID_SPARK,
+                    this.getX() + Math.cos(outerAngle) * outerR,
+                    this.getY() + 0.5 + (this.random.nextDouble() - 0.5) * 0.1,
+                    this.getZ() + Math.sin(outerAngle) * outerR,
+                    0);
+        }
+
+        // === 3. 吸积盘（每tick 24个亮蓝白粒子，逆时针旋转，r=3.0-8.0）===
+        // 吸积盘是黑洞最亮的部分，用亮蓝白色粒子
+        // ASTRAL_BEAM variant=0（亮蓝白），逆时针旋转
+        double diskRotation = this.tickCount * 0.03;
+        for (int i = 0; i < 24; i++) {
+            double angle = i * Math.PI * 2.0 / 24 + diskRotation + this.random.nextDouble() * 0.2;
+            double r = 3.0 + this.random.nextDouble() * 5.0;
             double px = this.getX() + Math.cos(angle) * r;
             double pz = this.getZ() + Math.sin(angle) * r;
             double py = this.getY() + 0.5 + (this.random.nextDouble() - 0.5) * 0.15;
-            // 使用VOID_SPARK variant=1（亮紫品红），像炽热的吸积盘
-            emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 1);
+            emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0);
         }
 
-        // === 3. 纯黑核心柱（每2tick生成，使用LARGE_SMOKE）===
-        // 核心柱：纯黑烟雾从黑洞中心向上/下喷出，增强"吞噬"感
+        // === 4. 引力透镜环（每2tick 8个极暗粒子，极慢旋转，r=8.0-16.0）===
+        // 外围环带，极稀疏极暗，像"光线被弯曲"的视觉暗示
+        // VOID_SPARK variant=2（极暗），每2tick生成
         if (this.tickCount % 2 == 0) {
-            for (int i = 0; i < 5; i++) {
-                double jetR = this.random.nextDouble() * 0.8;
-                double jetAngle = this.random.nextDouble() * Math.PI * 2;
-                double jetH = this.random.nextDouble() * 1.5;
-                // 上方核心柱
-                emitter.add(StellaParticles.ID_DYING_EMBER,
-                        this.getX() + Math.cos(jetAngle) * jetR,
-                        this.getY() + 0.5 + jetH,
-                        this.getZ() + Math.sin(jetAngle) * jetR,
-                        2);
-                // 下方核心柱
-                emitter.add(StellaParticles.ID_DYING_EMBER,
-                        this.getX() + Math.cos(jetAngle + 0.5) * jetR,
-                        this.getY() + 0.5 - jetH,
-                        this.getZ() + Math.sin(jetAngle + 0.5) * jetR,
-                        2);
+            double lensRotation = this.tickCount * 0.01;
+            for (int i = 0; i < 8; i++) {
+                double angle = i * Math.PI * 2.0 / 8 + lensRotation + this.random.nextDouble() * 0.3;
+                double r = 8.0 + this.random.nextDouble() * 8.0;
+                double px = this.getX() + Math.cos(angle) * r;
+                double pz = this.getZ() + Math.sin(angle) * r;
+                double py = this.getY() + 0.5 + (this.random.nextDouble() - 0.5) * 0.4;
+                emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 2);
             }
         }
 
-        // === 4. 引力透镜环（每tick 2-3个稀疏紫色粒子）===
-        // 外围环带，稀疏但有层次感
-        if (this.random.nextFloat() < 0.5F) {
+        // === 5. 微弱光晕（4个 STELLA_WISP 缓慢上升，替代喷流）===
+        // 垂直于吸积盘平面的微弱光晕，替代原来的上下喷流
+        // STELLA_WISP variant=0（淡紫色），缓慢上升
+        for (int i = 0; i < 4; i++) {
             double angle = this.random.nextDouble() * Math.PI * 2;
-            double r = 2.5 + this.random.nextDouble() * 2.5;
+            double r = this.random.nextDouble() * 1.0;
             double px = this.getX() + Math.cos(angle) * r;
             double pz = this.getZ() + Math.sin(angle) * r;
-            double py = this.getY() + 0.5 + (this.random.nextDouble() - 0.5) * 0.4;
-            emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 0);
-        }
-
-        // === 5. 喷流（每2tick生成，上下两束紫色粒子柱）===
-        if (this.tickCount % 2 == 0) {
-            // 上喷流
-            double jetR = this.random.nextDouble() * 0.5;
-            double jetAngle = this.random.nextDouble() * Math.PI * 2;
-            double jetH = 1.0 + this.random.nextDouble() * 2.0;
-            emitter.add(StellaParticles.ID_VOID_SPARK,
-                    this.getX() + Math.cos(jetAngle) * jetR,
-                    this.getY() + 0.5 + jetH,
-                    this.getZ() + Math.sin(jetAngle) * jetR,
-                    2);
-            // 下喷流
-            emitter.add(StellaParticles.ID_VOID_SPARK,
-                    this.getX() + Math.cos(jetAngle + 0.5) * jetR,
-                    this.getY() + 0.5 - jetH,
-                    this.getZ() + Math.sin(jetAngle + 0.5) * jetR,
-                    2);
+            double py = this.getY() + 0.5 + this.random.nextDouble() * 1.5;
+            emitter.add(StellaParticles.ID_STELLA_WISP, px, py, pz, 0);
         }
 
         } // end ParticleEmitter

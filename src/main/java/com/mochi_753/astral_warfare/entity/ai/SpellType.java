@@ -9,14 +9,14 @@ import java.util.function.BiConsumer;
 // 法术类型枚举 - 数据驱动的法术定义
 // 每个法术包含：法力消耗、冷却时间、施法时长、执行器
 // 使用策略模式将法术施放逻辑从 SpellCastGoal 的 else-if 链迁移至枚举自身
-// 一阶段共 6 个常规法术（星门涌动已改为血量触发技能，不再参与轮换）：
+// 一阶段共 6 个常规法术：
 //   1. STARFALL_MATRIX - 星陨矩阵：在玩家头顶召唤高爆星石
 //   2. ASTRAL_BEAM - 星界发散光束：圆锥形宽广光束扫过地面
 //   3. NIGHTFALL_SINGULARITY - 夜幕黑洞：引力触点吸引玩家
 //   4. FATE_LINK - 星命锁链：星光锁链逼迫玩家跑位
 //   5. STAR_RAIL_CUT - 星轨切割：地面星轨预警，2秒后爆发高能激光
 //   6. TELEKINETIC_THROW - 念力投掷：抓起充能傀儡砸向玩家
-// 【Phase 27】星轨迷宫已从法术轮换池移除，改为血量 80% 一次性触发
+// 星轨迷宫已独立为 StellaEvokerEntity 中的血量触发技能，不再属于法术轮换池
 public enum SpellType {
 
     // 星陨矩阵：在玩家头顶召唤高爆星石
@@ -44,11 +44,7 @@ public enum SpellType {
 
     // 念力投掷：BOSS 抓起充能完毕待命的傀儡砸向玩家
     // 蓝图 B.7：落地星尘爆炸，消耗 5 点法力
-    TELEKINETIC_THROW(5, 300, 20, SpellCastGoal::executeTelekineticThrow),
-
-    // 【Phase 27】星轨迷宫：已从法术轮换池移除，仅由血量 80% 强制触发
-    // 不参与 pickRandom() 随机选取，由 StellaEvokerEntity.tick() 调用 forceCastSpell 触发
-    STAR_TRACK_MAZE(12, 300, 120, SpellCastGoal::executeStarTrackMaze);
+    TELEKINETIC_THROW(5, 300, 20, SpellCastGoal::executeTelekineticThrow);
 
     public final int manaCost;
     public final int cooldownTicks;
@@ -65,10 +61,8 @@ public enum SpellType {
     }
 
     // 随机选取一个当前可释放的法术（法力充足且冷却完毕）
-    // 【Phase 27】排除 STAR_TRACK_MAZE（已改为血量触发，不参与随机轮换）
     public static SpellType pickRandom(StellaEvokerEntity evoker) {
         List<SpellType> available = List.of(values()).stream()
-                .filter(spell -> spell != STAR_TRACK_MAZE)
                 .filter(spell -> evoker.getManaData().getCurrentMana() >= spell.manaCost)
                 .filter(spell -> evoker.getSpellCooldown(spell) <= 0)
                 .toList();
