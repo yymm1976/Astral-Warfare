@@ -230,7 +230,8 @@ public class Phase2MeleeGoal extends Goal {
 
         // 首次进入蓄力阶段时触发弦斩动画
         if (this.stateTimer == 1) {
-            this.evoker.currentAttackAnim = "stella_evoker_slash";
+            // 触发弦斩动画（triggerAnim 自动同步到客户端）
+            this.evoker.triggerAnim("attack_controller", "slash");
         }
 
         // 蓄力粒子：虚空能量在BOSS手部聚集（从2个增加到4个）
@@ -327,8 +328,8 @@ public class Phase2MeleeGoal extends Goal {
     // 加强版：更长的瞬移距离、更丰富的残影和落点特效
     private void tickThrustDash(ServerLevel level) {
         if (this.stateTimer == 1) {
-            // 触发突进掌动画
-            this.evoker.currentAttackAnim = "stella_evoker_thrust";
+            // 触发突进掌动画（triggerAnim 自动同步到客户端）
+            this.evoker.triggerAnim("attack_controller", "thrust");
 
             Vec3 toTarget = this.target.position().subtract(this.evoker.position()).normalize();
             // 突进距离从3.5增大到6.0
@@ -427,8 +428,8 @@ public class Phase2MeleeGoal extends Goal {
     // 精简原则：只保留 TRANSITION_BURST（碎裂闪光）+ POOF（原版烟雾消散）
     private void tickBackstabVanish(ServerLevel level) {
         if (this.stateTimer == 1) {
-            // 触发背刺动画（蹲伏→消失→出现→双手穿刺）
-            this.evoker.currentAttackAnim = "stella_evoker_backstab";
+            // 触发背刺动画（triggerAnim 自动同步到客户端）
+            this.evoker.triggerAnim("attack_controller", "backstab");
 
             // 碎裂闪光
             try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
@@ -657,13 +658,7 @@ public class Phase2MeleeGoal extends Goal {
     }
 
     // 冷却阶段：BOSS继续寻路追击目标，不站桩
-    // 同样使用导航失败回退方案，确保冷却期间也在追人
     private void tickCooldown() {
-        // 首次进入冷却时清除攻击动画
-        if (this.stateTimer == 1) {
-            this.evoker.currentAttackAnim = null;
-        }
-
         if (this.target != null && this.target.isAlive()) {
             this.evoker.getLookControl().setLookAt(this.target, 30.0F, 30.0F);
             pathRecalcTimer--;
@@ -690,8 +685,7 @@ public class Phase2MeleeGoal extends Goal {
         this.comboCooldownTimer = COMBO_COOLDOWN;
         this.pullCooldownTimer = PULL_COOLDOWN;
         this.evoker.setInvisible(false);
-        // 清除攻击动画，让 idle_controller 接管
-        this.evoker.currentAttackAnim = null;
+        // triggerableAnim 播完后自动回到 STOP，idle_controller 接管，无需手动清除
         this.evoker.isWalking = false;
     }
 

@@ -267,8 +267,8 @@ public class DespairExecutionGoal extends Goal {
         suppressMovement();
 
         if (!this.hasLaunched) {
-            // 击飞动画：BOSS 下沉蓄力→猛然上挥，模拟"将玩家从地面掀起"
-            this.evoker.currentAttackAnim = "stella_evoker_execution_launch";
+            // 击飞动画：triggerAnim 自动同步到客户端
+            this.evoker.triggerAnim("attack_controller", "execution_launch");
 
             // WINDUP 结束时已保证 BOSS 在范围内，此处直接执行击飞
             if (this.targetPlayer != null && this.targetPlayer.isAlive()) {
@@ -442,7 +442,8 @@ public class DespairExecutionGoal extends Goal {
     // 下刺阶段：下刺砸地，落地瞬间解除禁锢
     private void tickSlamming(ServerLevel level) {
         if (this.stateTimer == 1) {
-            this.evoker.currentAttackAnim = "stella_evoker_execution_slam";
+            // 下砸动画：triggerAnim 自动同步到客户端
+            this.evoker.triggerAnim("attack_controller", "execution_slam");
         }
 
         this.evoker.setNoGravity(false);
@@ -472,7 +473,7 @@ public class DespairExecutionGoal extends Goal {
 
         if (this.evoker.onGround()) {
             executeSlamImpact(level);
-            this.evoker.currentAttackAnim = null;
+            // triggerableAnim 播完后自动回到 STOP，无需手动清除
             this.state = State.IDLE;
             this.stateTimer = 0;
             this.cooldownTimer = Math.max(COOLDOWN_TICKS, MIN_INTERVAL_TICKS);
@@ -483,7 +484,6 @@ public class DespairExecutionGoal extends Goal {
             if (this.targetPlayer != null && this.targetPlayer.hasEffect(ModEffects.VOID_ENTRAPMENT)) {
                 this.targetPlayer.removeEffect(ModEffects.VOID_ENTRAPMENT);
             }
-            this.evoker.currentAttackAnim = null;
             cleanupExecution();
         }
     }
@@ -511,7 +511,7 @@ public class DespairExecutionGoal extends Goal {
     private void cleanupExecution() {
         this.state = State.IDLE;
         this.stateTimer = 0;
-        this.evoker.currentAttackAnim = null;
+        // triggerableAnim 播完后自动回到 STOP，无需手动清除
         // 落空惩罚：COOLDOWN_TICKS * 3/4 = 300 tick = 15 秒
         this.cooldownTimer = COOLDOWN_TICKS * 3 / 4;
         this.evoker.setNoGravity(false);
@@ -610,7 +610,8 @@ public class DespairExecutionGoal extends Goal {
 
     // 在 BOSS 周围生成虚空裂隙
     // 随机 3 个位置，最小间距 3 格，防止裂隙重叠
-    private void spawnVoidFissures(ServerLevel level) {
+    // public：供 StellaEvokerEntity.tick() 血量触发调用
+    public void spawnVoidFissures(ServerLevel level) {
         java.util.List<net.minecraft.world.phys.Vec3> fissurePositions = new java.util.ArrayList<>();
         int count = ModConstants.VOID_FISSURE_COUNT;
         double range = 12.0;
@@ -653,13 +654,19 @@ public class DespairExecutionGoal extends Goal {
         this.cooldownTimer = COOLDOWN_TICKS * 3 / 4;
         this.state = State.IDLE;
         this.stateTimer = 0;
-        this.evoker.currentAttackAnim = null;
+        // triggerableAnim 播完后自动回到 STOP，无需手动清除
         if (this.targetPlayer != null && this.targetPlayer.hasEffect(ModEffects.VOID_ENTRAPMENT)) {
             this.targetPlayer.removeEffect(ModEffects.VOID_ENTRAPMENT);
         }
         if (this.evoker.getCombatPhase() == StellaEvokerEntity.PHASE_2_MELEE) {
             this.evoker.setNoGravity(false);
         }
+    }
+
+    // 供 StellaEvokerEntity.isExecutingFinisher() 调用
+    // 终结技执行中 = 状态非 IDLE（WINDUP/LAUNCHING/ENTRAPMENT/TELEPORTING/CHARGING/SLAMMING）
+    public boolean isExecuting() {
+        return this.state != State.IDLE;
     }
 
     private enum State {

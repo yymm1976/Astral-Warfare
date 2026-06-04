@@ -115,16 +115,20 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
 
     private int anchorCheckTimer = 0;
 
+    // ==================== Phase 27：血量触发技能 ====================
+
+    // 星轨迷宫：80% 血量一次性触发标志
+    private boolean hasTriggeredStarTrackMaze = false;
+
+    // 虚空裂隙：25% 血量后每 30 秒触发一次
+    private static final int VOID_FISSURE_INTERVAL = 600; // 30秒 = 600 tick
+    private int lastFissureSpawnTick = -VOID_FISSURE_INTERVAL; // 初始值确保首次可触发
+
     // ==================== GeckoLib 动画系统 ====================
 
     // 动画实例缓存：GeckoLib 要求每个 GeoEntity 实例拥有独立的缓存
     // 用于存储动画状态、控制器数据等，避免多实体间动画状态串扰
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
-
-    // 当前攻击动画名称，由 AI Goal 在各攻击状态开始时设置，动画播完后清除
-    // public：Phase2MeleeGoal 在 entity.ai 子包中，Java 包可见性不跨子包
-    // null = 无攻击动画播放中，idle_controller 接管
-    public String currentAttackAnim = null;
 
     // 行走动画标记：由 Phase2MeleeGoal 在冷却期/追击期设置
     // idle_controller 检测此标记切换到 walk 动画
@@ -181,32 +185,33 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
             .thenLoop("stella_evoker_walk");
 
     // GeckoLib 动画控制器注册
-    // attack_controller 优先级高于 idle_controller：
-    //   isTransitioning() → 播放转阶段动画（硬切，过渡时间 0）
-    //   currentAttackAnim 非空时播放对应攻击动画（硬切，过渡时间 0）
-    //   攻击动画播完后 currentAttackAnim 被清除，idle_controller 接管
     //
-    // idle_controller 根据实体状态切换待机动画：
-    //   isDying() → 播放死亡动画（跪地→内爆），播完后 STOP 保持最后一帧
-    //   getCombatPhase() == PHASE_2_MELEE → 播放二阶段地面待机（持武器、扫视）
-    //   否则 → 播放一阶段悬浮待机（浮动呼吸）
+    // 【Phase 27 根因修复】用 triggerableAnim + triggerAnim 替代 currentAttackAnim 字段
+    // 根因：currentAttackAnim 是普通 Java 字段，服务端设置后不同步到客户端，
+    //       客户端 attack_controller 回调始终看到 null，攻击/施法动画从未播放
+    // 修复：GeckoLib 的 triggerAnim() 会发送网络包自动同步到客户端
+    //
+    // attack_controller（高优先级，后注册）：
+    //   回调只处理 isTransitioning() → 播放转阶段动画
+    //   其余动画通过 triggerableAnim 注册，由 AI Goal 调用 triggerAnim() 触发
+    //   无触发动画时返回 STOP，idle_controller 接管
+    //
+    // idle_controller（低优先级，先注册）：
+    //   isDying() → 死亡动画
+    //   PHASE_2_MELEE + isWalking → 行走动画
+    //   PHASE_2_MELEE → 二阶段待机
+    //   否则 → 一阶段悬浮待机
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        // 【A2修复】idle_controller 先注册（低优先级），attack_controller 后注册（高优先级）
-        // GeckoLib 中后注册的控制器先执行，返回 CONTINUE 时覆盖先注册控制器的骨骼变换
-        // 原先 attack 先注册导致攻击动画被 idle 覆盖，交换后攻击动画优先级更高
-
         // 待机控制器：过渡时间 10 tick（平滑切换）
         // 死亡动画例外：检测到 isDying() 时临时将过渡时间设为 0，确保跪地动作瞬间开始
         controllers.add(new AnimationController<>(this, "idle_controller", 10, state -> {
             if (this.isDying()) {
-                // 死亡动画：硬切（过渡时间 0），跪地动作干脆无过渡
                 state.getController().transitionLength(0);
                 state.getController().setAnimation(DEATH_ANIM);
                 return software.bernie.geckolib.animation.PlayState.CONTINUE;
             }
             if (this.getCombatPhase() == PHASE_2_MELEE) {
-                // 二阶段：行走时播放 walk 动画，站立时播放 idle_phase2
                 if (this.isWalking) {
                     state.getController().setAnimation(WALK_ANIM);
                 } else {
@@ -214,38 +219,33 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
                 }
                 return software.bernie.geckolib.animation.PlayState.CONTINUE;
             }
-            // 一阶段待机：悬浮浮动呼吸动画
             state.getController().setAnimation(IDLE_PHASE1_ANIM);
             return software.bernie.geckolib.animation.PlayState.CONTINUE;
         }));
 
-        // 攻击/演出控制器：过渡时间 0（出招/演出瞬间硬切，不放过渡）
-        // 后注册 = 高优先级：攻击/死亡动画的骨骼变换覆盖待机动画
+        // 攻击/演出控制器：过渡时间 0（出招瞬间硬切）
+        // 后注册 = 高优先级：攻击动画的骨骼变换覆盖待机动画
+        // 回调只处理 isTransitioning()，其余通过 triggerableAnim 由 AI Goal 触发
+        // triggerableAnim 注册后，调用 entity.triggerAnim("attack_controller", "trigger名") 即可播放
+        // GeckoLib 自动发送网络包同步到客户端，解决 currentAttackAnim 不同步的根因
         controllers.add(new AnimationController<>(this, "attack_controller", 0, state -> {
             // 转阶段动画优先级最高：isTransitioning() 时强制播放
             if (this.isTransitioning()) {
                 state.getController().setAnimation(PHASE_TRANSITION_ANIM);
                 return software.bernie.geckolib.animation.PlayState.CONTINUE;
             }
-            if (this.currentAttackAnim != null) {
-                RawAnimation anim = switch (this.currentAttackAnim) {
-                    case "stella_evoker_slash" -> SLASH_ANIM;
-                    case "stella_evoker_thrust" -> THRUST_ANIM;
-                    case "stella_evoker_backstab" -> BACKSTAB_ANIM;
-                    case "stella_evoker_execution_slam" -> EXECUTION_SLAM_ANIM;
-                    case "stella_evoker_phase_transition" -> PHASE_TRANSITION_ANIM;
-                    case "stella_evoker_spell_cast" -> SPELL_CAST_ANIM;
-                    case "stella_evoker_execution_launch" -> EXECUTION_LAUNCH_ANIM;
-                    default -> null;
-                };
-                if (anim != null) {
-                    state.getController().setAnimation(anim);
-                    return software.bernie.geckolib.animation.PlayState.CONTINUE;
-                }
-            }
-            // 无攻击/演出动画：让 idle_controller 接管
+            // 无攻击/演出动画触发：让 idle_controller 接管
             return software.bernie.geckolib.animation.PlayState.STOP;
-        }));
+        })
+        // 注册 7 个可触发动画，对应 AI Goal 中的 triggerAnim() 调用
+        .triggerableAnim("slash", SLASH_ANIM)
+        .triggerableAnim("thrust", THRUST_ANIM)
+        .triggerableAnim("backstab", BACKSTAB_ANIM)
+        .triggerableAnim("execution_slam", EXECUTION_SLAM_ANIM)
+        .triggerableAnim("spell_cast", SPELL_CAST_ANIM)
+        .triggerableAnim("execution_launch", EXECUTION_LAUNCH_ANIM)
+        .triggerableAnim("phase_transition", PHASE_TRANSITION_ANIM)
+        );
     }
 
     // 返回动画实例缓存（GeoEntity 接口要求）
@@ -587,6 +587,18 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
             return;
         }
 
+        // ---- 星轨迷宫：80% 血量一次性触发 ----
+        // 从法术轮换池移除，改为血量触发，确保玩家必见此中期演出
+        if (!hasTriggeredStarTrackMaze && getCombatPhase() == PHASE_1_CASTER) {
+            if (this.getHealth() <= this.getMaxHealth() * 0.8) {
+                hasTriggeredStarTrackMaze = true;
+                // 强制 SpellCastGoal 施放星轨迷宫
+                if (this.spellCastGoal != null) {
+                    this.spellCastGoal.forceCastSpell(SpellType.STAR_TRACK_MAZE);
+                }
+            }
+        }
+
         // ---- 一阶段逻辑 ----
         if (getCombatPhase() == PHASE_1_CASTER) {
             manaSystem.tick(serverLevel);
@@ -595,6 +607,16 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
         // ---- 二阶段逻辑 ----
         if (getCombatPhase() == PHASE_2_MELEE) {
             tickPhase2(serverLevel);
+            // ---- 虚空裂隙：25% 血量后每 30 秒自动生成 ----
+            // 从终结技砸地触发改为血量触发，提供持续战场压力
+            if (this.getHealth() <= this.getMaxHealth() * 0.25) {
+                if (this.tickCount - this.lastFissureSpawnTick >= VOID_FISSURE_INTERVAL) {
+                    this.lastFissureSpawnTick = this.tickCount;
+                    if (this.despairExecutionGoal != null) {
+                        this.despairExecutionGoal.spawnVoidFissures(serverLevel);
+                    }
+                }
+            }
         }
     }
 
@@ -677,7 +699,17 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
 
     // ==================== 脱战检测 ====================
 
+    // 终结技执行中判断：供 checkAnchorDespawn 调用
+    // 终结技期间（WINDUP/LAUNCHING/ENTRAPMENT/TELEPORTING/CHARGING/SLAMMING）禁止脱战检测
+    // 防止击飞玩家超出检测范围导致 BOSS 消失
+    boolean isExecutingFinisher() {
+        return this.despairExecutionGoal != null && this.despairExecutionGoal.isExecuting();
+    }
+
     private void checkAnchorDespawn(ServerLevel level) {
+        // 终结技执行中禁止脱战检测：击飞玩家可能超出检测范围
+        if (isExecutingFinisher()) return;
+
         AABB checkBox = this.getBoundingBox().inflate(ANCHOR_CHECK_RADIUS);
         List<Player> nearbyPlayers = level.getEntitiesOfClass(Player.class, checkBox,
                 player -> player.isAlive() && !player.isSpectator());
@@ -813,6 +845,9 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
         tag.putInt("CrystalManaRecoverTimer", manaSystem.getCrystalManaRecoverTimer());
         tag.putInt("PassiveManaRegenTimer", manaSystem.getPassiveManaRegenTimer());
         tag.putInt("AnchorCheckTimer", anchorCheckTimer);
+        // Phase 27：血量触发技能持久化
+        tag.putBoolean("HasTriggeredStarTrackMaze", hasTriggeredStarTrackMaze);
+        tag.putInt("LastFissureSpawnTick", lastFissureSpawnTick);
         if (altarCenterPos != null) {
             tag.putInt("AltarCenterX", altarCenterPos.getX());
             tag.putInt("AltarCenterY", altarCenterPos.getY());
@@ -869,6 +904,13 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
         }
         if (tag.contains("AnchorCheckTimer")) {
             anchorCheckTimer = tag.getInt("AnchorCheckTimer");
+        }
+        // Phase 27：恢复血量触发技能状态
+        if (tag.contains("HasTriggeredStarTrackMaze")) {
+            hasTriggeredStarTrackMaze = tag.getBoolean("HasTriggeredStarTrackMaze");
+        }
+        if (tag.contains("LastFissureSpawnTick")) {
+            lastFissureSpawnTick = tag.getInt("LastFissureSpawnTick");
         }
         if (tag.contains("AltarCenterX")) {
             altarCenterPos = new BlockPos(

@@ -75,10 +75,18 @@ public class SpellCastGoal extends Goal {
     // 念力投掷：目标玩家
     private Player throwTarget = null;
 
-    // 星轨迷宫：网格中心位置
+    // 星轨迷宫：网格中心位置（Phase 27 保留，仅由 forceCastSpell 触发）
     private Vec3 mazeCenter = null;
     // 星轨迷宫：当前激活列组（0=偶数列，1=奇数列）
     private int mazeActiveGroup = 0;
+
+    // 强制触发法术：供 StellaEvokerEntity.tick() 血量触发调用
+    // 设置 pendingSpell，下次 canUse() 时优先处理
+    private SpellType pendingSpell = null;
+
+    public void forceCastSpell(SpellType spell) {
+        this.pendingSpell = spell;
+    }
 
     public SpellCastGoal(StellaEvokerEntity evoker) {
         this.evoker = evoker;
@@ -119,6 +127,15 @@ public class SpellCastGoal extends Goal {
 
         if (this.currentSpell != null) return false;
 
+        // 【Phase 27】优先处理强制触发的法术（如血量触发的星轨迷宫）
+        // pendingSpell 跳过冷却和法力检查，确保血量触发技能必定施放
+        if (this.pendingSpell != null) {
+            this.currentSpell = this.pendingSpell;
+            this.pendingSpell = null;
+            this.castTick = 0;
+            return true;
+        }
+
         // 检查是否有任何法术冷却完毕
         boolean allOnCooldown = true;
         for (SpellType spell : SpellType.values()) {
@@ -158,10 +175,8 @@ public class SpellCastGoal extends Goal {
         this.castTick = 0;
         this.beamDamageTimer = 0;
 
-        // 施法动画：BOSS 举手→下挥，增强法术释放的视觉反馈
-        // 先清除旧值再设置，强制 GeckoLib 重新播放动画（而非继续上次残留帧）
-        this.evoker.currentAttackAnim = null;
-        this.evoker.currentAttackAnim = "stella_evoker_spell_cast";
+        // 施法动画：triggerAnim 自动同步到客户端
+        this.evoker.triggerAnim("attack_controller", "spell_cast");
 
         // 星命锁链：记录目标玩家和起始位置
         if (this.currentSpell == SpellType.FATE_LINK) {
@@ -234,7 +249,7 @@ public class SpellCastGoal extends Goal {
             }
         }
 
-        // 星轨迷宫：以目标玩家位置为网格中心
+        // 星轨迷宫：以目标玩家位置为网格中心（仅由 forceCastSpell 触发）
         if (this.currentSpell == SpellType.STAR_TRACK_MAZE) {
             Player target = findNearestSurvivalPlayer();
             if (target != null) {
@@ -297,8 +312,7 @@ public class SpellCastGoal extends Goal {
             this.evoker.setCurrentMana(newMana);
             this.cooldowns.put(this.currentSpell, this.currentSpell.cooldownTicks);
             this.nextCastAttempt = 100 + this.evoker.getRandom().nextInt(40);
-            // 施法动画结束，清除攻击动画引用，让 idle_controller 接管
-            this.evoker.currentAttackAnim = null;
+            // triggerableAnim 播完后自动回到 STOP，无需手动清除
             cleanupSpell();
             this.currentSpell = null;
         }
@@ -1062,13 +1076,11 @@ public class SpellCastGoal extends Goal {
     // 前 40 tick 预警：地面画全网格（淡蓝细线粒子）
     // 40-120 tick：奇偶列交替，每 10 tick 切换
     // 激活列蓝色发光粒子 + 伤害，非激活列暗色
+    // 【Phase 27】仅由 forceCastSpell 触发，不参与随机轮换
     private static final int MAZE_GRID_SIZE = ModConstants.STAR_TRACK_MAZE_GRID_SIZE;
     private static final float MAZE_DAMAGE = ModConstants.STAR_TRACK_MAZE_DAMAGE;
-    // 预警阶段持续时间（tick）
     private static final int MAZE_WARNING_TICKS = 40;
-    // 列切换间隔（tick）
     private static final int MAZE_SWITCH_INTERVAL = 10;
-    // 网格间距（格）
     private static final double MAZE_CELL_SIZE = 2.0;
 
     private void tickStarTrackMaze() {
@@ -1083,7 +1095,6 @@ public class SpellCastGoal extends Goal {
         // 预警阶段（0-40 tick）：画全网格淡蓝细线
         if (this.castTick < MAZE_WARNING_TICKS) {
             try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
-                // 纵向线（沿 Z 轴）
                 for (int col = -halfGrid; col <= halfGrid; col++) {
                     double x = cx + col * MAZE_CELL_SIZE;
                     for (int row = 0; row < 20; row++) {
@@ -1091,7 +1102,6 @@ public class SpellCastGoal extends Goal {
                         emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.05, z, 0);
                     }
                 }
-                // 横向线（沿 X 轴）
                 for (int row = -halfGrid; row <= halfGrid; row++) {
                     double z = cz + row * MAZE_CELL_SIZE;
                     for (int col = 0; col < 20; col++) {
@@ -1105,7 +1115,6 @@ public class SpellCastGoal extends Goal {
 
         // 激活阶段（40-120 tick）：奇偶列交替
         int activeTick = this.castTick - MAZE_WARNING_TICKS;
-        // 每 10 tick 切换激活列组
         this.mazeActiveGroup = (activeTick / MAZE_SWITCH_INTERVAL) % 2;
 
         try (ParticleEmitter emitter = new ParticleEmitter(this.evoker)) {
@@ -1117,7 +1126,6 @@ public class SpellCastGoal extends Goal {
                     double z = cz + row * MAZE_CELL_SIZE;
 
                     if (isActive) {
-                        // 激活列：蓝色发光粒子（交点密集×3 + 额外亮度）
                         emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.1, z, 0);
                         emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.1, z, 1);
                         emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.15, z, 0);
@@ -1125,7 +1133,6 @@ public class SpellCastGoal extends Goal {
                         emitter.add(StellaParticles.ID_VOID_TWINKLE, x, cy + 0.2, z, 1);
                         emitter.add(StellaParticles.ID_VOID_TWINKLE, x, cy + 0.2, z, 1);
                     } else {
-                        // 非激活列：暗色稀疏粒子
                         if ((row + halfGrid) % 2 == 0) {
                             emitter.add(StellaParticles.ID_VOID_TWINKLE, x, cy + 0.05, z, 0);
                         }
@@ -1141,7 +1148,6 @@ public class SpellCastGoal extends Goal {
                 if (!isActive) continue;
 
                 double x = cx + col * MAZE_CELL_SIZE;
-                // 激活列的 AABB 判定区域（宽 1 格，高 2 格）
                 AABB colBox = new AABB(
                         x - MAZE_CELL_SIZE * 0.4, cy - 1.0, cz - halfGrid * MAZE_CELL_SIZE,
                         x + MAZE_CELL_SIZE * 0.4, cy + 2.0, cz + halfGrid * MAZE_CELL_SIZE
@@ -1163,7 +1169,6 @@ public class SpellCastGoal extends Goal {
 
     // 星轨迷宫执行阶段：施法结束时的收尾效果
     static void executeStarTrackMaze(SpellCastGoal goal, ServerLevel serverLevel) {
-        // 迷宫在 tick 中已持续处理，execute 阶段播放收尾音效
         if (goal.mazeCenter != null) {
             serverLevel.playSound(null, goal.mazeCenter.x, goal.mazeCenter.y, goal.mazeCenter.z,
                     SoundEvents.BEACON_DEACTIVATE, SoundSource.HOSTILE, 1.0F, 0.5F);

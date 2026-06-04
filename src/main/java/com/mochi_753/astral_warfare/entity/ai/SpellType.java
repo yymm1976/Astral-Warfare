@@ -16,6 +16,7 @@ import java.util.function.BiConsumer;
 //   4. FATE_LINK - 星命锁链：星光锁链逼迫玩家跑位
 //   5. STAR_RAIL_CUT - 星轨切割：地面星轨预警，2秒后爆发高能激光
 //   6. TELEKINETIC_THROW - 念力投掷：抓起充能傀儡砸向玩家
+// 【Phase 27】星轨迷宫已从法术轮换池移除，改为血量 80% 一次性触发
 public enum SpellType {
 
     // 星陨矩阵：在玩家头顶召唤高爆星石
@@ -45,8 +46,8 @@ public enum SpellType {
     // 蓝图 B.7：落地星尘爆炸，消耗 5 点法力
     TELEKINETIC_THROW(5, 300, 20, SpellCastGoal::executeTelekineticThrow),
 
-    // 星轨迷宫：地面网格奇偶列交替伤害，消耗 12 点法力
-    // 前 40 tick 预警画全网格，40-120 tick 奇偶列交替每 10 tick 切换
+    // 【Phase 27】星轨迷宫：已从法术轮换池移除，仅由血量 80% 强制触发
+    // 不参与 pickRandom() 随机选取，由 StellaEvokerEntity.tick() 调用 forceCastSpell 触发
     STAR_TRACK_MAZE(12, 300, 120, SpellCastGoal::executeStarTrackMaze);
 
     public final int manaCost;
@@ -64,8 +65,10 @@ public enum SpellType {
     }
 
     // 随机选取一个当前可释放的法术（法力充足且冷却完毕）
+    // 【Phase 27】排除 STAR_TRACK_MAZE（已改为血量触发，不参与随机轮换）
     public static SpellType pickRandom(StellaEvokerEntity evoker) {
         List<SpellType> available = List.of(values()).stream()
+                .filter(spell -> spell != STAR_TRACK_MAZE)
                 .filter(spell -> evoker.getManaData().getCurrentMana() >= spell.manaCost)
                 .filter(spell -> evoker.getSpellCooldown(spell) <= 0)
                 .toList();

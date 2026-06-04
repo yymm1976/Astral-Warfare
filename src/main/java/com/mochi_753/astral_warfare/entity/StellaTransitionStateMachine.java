@@ -41,7 +41,7 @@ public class StellaTransitionStateMachine {
         transitionTimer = TRANSITION_DURATION_TICKS;
         evoker.getEntityData().set(StellaEvokerEntity.DATA_IS_TRANSITIONING, true);
         // 转阶段动画由 attack_controller 中的 isTransitioning() 判断触发
-        // 不在此处设置 currentAttackAnim，避免双重触发路径
+        // 不在此处调用 triggerAnim，避免双重触发路径
         evoker.spellCastGoal.stop();
         level.playSound(null, evoker.getX(), evoker.getY(), evoker.getZ(),
                 SoundEvents.WITHER_SPAWN, SoundSource.HOSTILE, 2.0F, 0.5F);
@@ -92,7 +92,7 @@ public class StellaTransitionStateMachine {
     private void finishTransition(ServerLevel level) {
         evoker.getEntityData().set(StellaEvokerEntity.DATA_IS_TRANSITIONING, false);
         // 转阶段动画由 attack_controller 中 isTransitioning() 自动停止
-        // isTransitioning() 返回 false 后，attack_controller 回退到 idle/currentAttackAnim 判断
+        // isTransitioning() 返回 false 后，attack_controller 返回 STOP，idle_controller 接管
         evoker.getEntityData().set(StellaEvokerEntity.DATA_COMBAT_PHASE, StellaEvokerEntity.PHASE_2_MELEE);
         evoker.getEntityData().set(StellaEvokerEntity.DATA_MANA_SYSTEM_DISABLED, true);
         evoker.getManaData().setManaSystemDisabled(true);
