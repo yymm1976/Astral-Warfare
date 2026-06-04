@@ -90,12 +90,14 @@ public class Phase2MeleeGoal extends Goal {
     private static final int SLASH_DURATION_TICKS = 15;
 
     // 伤害值（二阶段伤害大幅加强）
-    // S-29修复：从硬编码改为 ModConfig 配置项，服主可在 toml 中调整
-    // DoubleValue.get() 返回 Double 包装类，需要 .floatValue() 转换
-    private static final float SLASH_DAMAGE = ModConfig.SLASH_DAMAGE.get().floatValue();
-    private static final float THRUST_DAMAGE = ModConfig.THRUST_DAMAGE.get().floatValue();
-    private static final float BACKSTAB_DAMAGE = ModConfig.BACKSTAB_DAMAGE.get().floatValue();
-    private static final float PULL_PUNCH_DAMAGE = ModConfig.PULL_PUNCH_DAMAGE.get().floatValue();
+    // B-1修复：从 static final 改为实例方法
+    // 原因：static final 在类加载时求值，ModConfig 尚未从 toml 文件加载，
+    // 导致伤害值始终为默认值，热重载修改配置不生效
+    // 改为实例方法后，每次调用都从 ModConfig 实时读取，支持热重载
+    private float getSlashDamage() { return ModConfig.SLASH_DAMAGE.get().floatValue(); }
+    private float getThrustDamage() { return ModConfig.THRUST_DAMAGE.get().floatValue(); }
+    private float getBackstabDamage() { return ModConfig.BACKSTAB_DAMAGE.get().floatValue(); }
+    private float getPullPunchDamage() { return ModConfig.PULL_PUNCH_DAMAGE.get().floatValue(); }
 
     // 虚空流血持续时间：6秒 = 120tick
     private static final int VOID_BLEED_DURATION = 120;
@@ -283,7 +285,7 @@ public class Phase2MeleeGoal extends Goal {
                 double distToTarget = this.evoker.distanceTo(this.target);
                 // 伤害判定范围与特效弧形刃光最大距离匹配（7.5格）
                 if (distToTarget <= SLASH_DAMAGE_RANGE && isInCone(this.evoker, this.target, 90.0)) {
-                    this.target.hurt(level.damageSources().mobAttack(this.evoker), SLASH_DAMAGE);
+                    this.target.hurt(level.damageSources().mobAttack(this.evoker), getSlashDamage());
                 }
             }
             level.sendParticles(net.minecraft.core.particles.ParticleTypes.SWEEP_ATTACK,
@@ -400,7 +402,7 @@ public class Phase2MeleeGoal extends Goal {
             double distToTarget = this.evoker.distanceTo(this.target);
             // 伤害判定范围与突进距离匹配（4.0格，突进6.0格后玩家应在范围内）
             if (distToTarget <= THRUST_HIT_RANGE) {
-                this.target.hurt(level.damageSources().mobAttack(this.evoker), THRUST_DAMAGE);
+                this.target.hurt(level.damageSources().mobAttack(this.evoker), getThrustDamage());
                 // 轻微击退：调整玩家位置为背刺做准备
                 this.target.knockback(0.5F,
                         this.evoker.getX() - this.target.getX(),
@@ -504,7 +506,7 @@ public class Phase2MeleeGoal extends Goal {
             double distToTarget = this.evoker.distanceTo(this.target);
             // 伤害判定范围与传送后位置匹配（4.0格，BOSS在玩家背后1格处）
             if (distToTarget <= BACKSTAB_HIT_RANGE) {
-                this.target.hurt(level.damageSources().mobAttack(this.evoker), BACKSTAB_DAMAGE);
+                this.target.hurt(level.damageSources().mobAttack(this.evoker), getBackstabDamage());
                 // 施加虚空流血效果：持续掉血DoT，不是虚空禁锢（定身）
                 if (!this.target.hasEffect(ModEffects.VOID_BLEED)) {
                     this.target.addEffect(new MobEffectInstance(
@@ -647,7 +649,7 @@ public class Phase2MeleeGoal extends Goal {
             double distToTarget = this.evoker.distanceTo(this.target);
             // 伤害判定范围与拉人后位置匹配（3.5格，玩家在BOSS身前2格处）
             if (distToTarget <= PULL_HIT_RANGE) {
-                this.target.hurt(level.damageSources().mobAttack(this.evoker), PULL_PUNCH_DAMAGE);
+                this.target.hurt(level.damageSources().mobAttack(this.evoker), getPullPunchDamage());
                 this.target.knockback(1.5F,
                         this.evoker.getX() - this.target.getX(),
                         this.evoker.getZ() - this.target.getZ()

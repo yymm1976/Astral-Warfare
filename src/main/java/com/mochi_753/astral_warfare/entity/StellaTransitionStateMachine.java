@@ -154,6 +154,10 @@ public class StellaTransitionStateMachine {
                         && !(entity instanceof StarcoreGolemEntity));
 
         for (LivingEntity target : targets) {
+            // B-3修复：距离守卫，防止目标与 BOSS 重合时 normalize() 产生 NaN
+            // NaN 会导致 knockback() 中 dx/dz 变为 NaN，玩家被传送到世界外
+            double distSq = target.distanceToSqr(evoker);
+            if (distSq < 0.01) continue;
             Vec3 knockbackDir = target.position().subtract(evoker.position()).normalize();
             target.knockback(2.5F, -knockbackDir.x, -knockbackDir.z);
             target.hurt(evoker.damageSources().indirectMagic(evoker, evoker), 12.0F);

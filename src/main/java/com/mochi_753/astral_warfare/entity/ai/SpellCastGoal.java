@@ -294,11 +294,13 @@ public class SpellCastGoal extends Goal {
 
     // 清理法术残留状态
     private void cleanupSpell() {
-        // 夜幕黑洞：施法结束后移除引力触点
-        if (this.singularity != null) {
+        // B-2修复：黑洞法术结束时 singularity 不 discard
+        // 原因：黑洞是持续存在的实体，施法结束后仍需继续存在（引力+伤害）
+        // 只有非黑洞法术切换时才清理残留的 singularity（理论上不应有残留）
+        if (this.singularity != null && this.currentSpell != SpellType.NIGHTFALL_SINGULARITY) {
             this.singularity.discard();
-            this.singularity = null;
         }
+        this.singularity = null;
         this.fateLinkTarget = null;
         this.fateLinkOrigin = null;
         this.starfallTarget = null;

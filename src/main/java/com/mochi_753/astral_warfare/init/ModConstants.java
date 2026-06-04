@@ -88,8 +88,10 @@ public final class ModConstants {
     // 星界发散光束：每秒额外法力消耗
     public static final int BEAM_EXTRA_MANA_PER_SEC = 5;
     // 星命锁链：最大判定距离（格）
-    // Phase 28：从 18.0 增大到 48.0，扩大锁链追踪范围
-    public static final double FATE_LINK_MAX_DIST = 48.0;
+    // B-4修复：从 48.0 降低到 24.0
+    // 理由：3秒内玩家极限奔跑距离约 18-20 格（疾跑+跳跃），24 格提供合理容错
+    // 48 格是必中距离，锁链变成无解技能，降低到 24 格让玩家有跑脱的可能
+    public static final double FATE_LINK_MAX_DIST = 24.0;
     // 星命锁链：斩杀伤害
     // 修复：从25.0F提升到38.0F（再加强50%），确保锁链斩杀有足够威慑力
     public static final float FATE_LINK_DAMAGE = 38.0F;
