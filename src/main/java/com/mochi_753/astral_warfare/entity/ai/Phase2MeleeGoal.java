@@ -99,8 +99,10 @@ public class Phase2MeleeGoal extends Goal {
     private float getBackstabDamage() { return ModConfig.BACKSTAB_DAMAGE.get().floatValue(); }
     private float getPullPunchDamage() { return ModConfig.PULL_PUNCH_DAMAGE.get().floatValue(); }
 
-    // 虚空流血持续时间：6秒 = 120tick
-    private static final int VOID_BLEED_DURATION = 120;
+    // 虚空流血持续时间：10秒 = 200tick
+    // 叠层爆发机制需要足够时间叠满5层（每40tick升1层，4次升级需160tick）
+    // 留40tick余量确保叠层完成
+    private static final int VOID_BLEED_DURATION = 200;
     // 背刺最大范围：如果玩家在消失阶段跑出此范围，背刺落空
     // 从 12.0 增大到 18.0，扩大背刺追击范围
     private static final double BACKSTAB_MAX_RANGE = 18.0;

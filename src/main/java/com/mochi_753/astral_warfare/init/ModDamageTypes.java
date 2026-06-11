@@ -23,6 +23,14 @@ public class ModDamageTypes {
             ResourceLocation.fromNamespaceAndPath(AstralWarfare.MOD_ID, "void_bleed")
     );
 
+    // 虚空爆发伤害类型：虚空流血叠层满5层时的爆发伤害
+    // 与虚空流血同属虚空本源力量，但爆发伤害更高、更具冲击感
+    // 死亡消息：death.attack.astral_warfare.void_eruption
+    public static final ResourceKey<DamageType> VOID_ERUPTION = ResourceKey.create(
+            Registries.DAMAGE_TYPE,
+            ResourceLocation.fromNamespaceAndPath(AstralWarfare.MOD_ID, "void_eruption")
+    );
+
     // 创建虚空流血伤害源
     // 无实体归因：虚空流血是"效果伤害"，类似原版中毒/凋零
     // 死亡消息只显示"被虚空侵蚀而亡"，不归因于特定实体
@@ -31,6 +39,16 @@ public class ModDamageTypes {
                 level.registryAccess()
                         .registryOrThrow(Registries.DAMAGE_TYPE)
                         .getHolderOrThrow(VOID_BLEED)
+        );
+    }
+
+    // 创建虚空爆发伤害源
+    // 虚空流血叠层满5层时触发的爆发伤害，无实体归因
+    public static DamageSource voidEruption(ServerLevel level) {
+        return new DamageSource(
+                level.registryAccess()
+                        .registryOrThrow(Registries.DAMAGE_TYPE)
+                        .getHolderOrThrow(VOID_ERUPTION)
         );
     }
 }

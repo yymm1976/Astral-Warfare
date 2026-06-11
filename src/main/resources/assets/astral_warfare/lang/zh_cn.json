@@ -16,6 +16,8 @@
   "effect.astral_warfare.void_bleed": "虚空流血",
   "death.attack.astral_warfare.void_bleed": "%1$s被虚空侵蚀而亡",
   "death.attack.astral_warfare.void_bleed.player": "%1$s在与%2$s战斗时被虚空侵蚀而亡",
+  "death.attack.astral_warfare.void_eruption": "%1$s被虚空爆发吞噬",
+  "death.attack.astral_warfare.void_eruption.player": "%1$s在与%2$s战斗时被虚空爆发吞噬",
   "entity.astral_warfare.stella_evoker.defeated": "星穹唤星者已被驱逐回深空...",
   "entity.astral_warfare.stella_evoker.despawn": "星穹唤星者已回归虚空...",
   "entity.astral_warfare.stella_evoker.phase2": "星穹唤星者进入了狂暴状态！",

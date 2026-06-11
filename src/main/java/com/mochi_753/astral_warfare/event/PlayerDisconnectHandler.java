@@ -1,6 +1,7 @@
 package com.mochi_753.astral_warfare.event;
 
 import com.mochi_753.astral_warfare.AstralWarfare;
+import com.mochi_753.astral_warfare.effect.VoidEntrapmentEffect;
 import com.mochi_753.astral_warfare.init.ModEffects;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -28,5 +29,9 @@ public class PlayerDisconnectHandler {
         if (player.hasEffect(ModEffects.VOID_ENTRAPMENT)) {
             player.removeEffect(ModEffects.VOID_ENTRAPMENT);
         }
+
+        // 清理跳跃挣脱追踪状态，防止静态 Map 内存泄漏
+        // 玩家下线时效果已移除，但 onEffectRemoved 可能未触发（断线时序问题）
+        VoidEntrapmentEffect.cleanupPlayer(player.getUUID());
     }
 }

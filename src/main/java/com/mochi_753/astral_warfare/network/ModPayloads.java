@@ -4,8 +4,10 @@ import com.mochi_753.astral_warfare.attachment.ManaData;
 import com.mochi_753.astral_warfare.client.ClientManaData;
 import com.mochi_753.astral_warfare.client.ScreenShakeManager;
 import com.mochi_753.astral_warfare.client.particle.StellaParticles;
+import com.mochi_753.astral_warfare.effect.VoidEntrapmentEffect;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
@@ -124,6 +126,22 @@ public class ModPayloads {
                 ClientboundMazeSyncPacket.STREAM_CODEC,
                 (ClientboundMazeSyncPacket pkt, IPayloadContext ctx) ->
                         ctx.enqueueWork(() -> pkt.updateClientCache())
+        );
+
+        // 跳跃输入包：客户端→服务端
+        // 当玩家被虚空禁锢时，客户端检测跳跃键按下并发送此包
+        // 服务端收到后累加跳跃计数，达到阈值（3秒10次）时挣脱禁锢
+        // Side 安全：VoidEntrapmentEffect.handleJumpInput 是通用代码，不引用客户端类
+        registrar.playToServer(
+                ServerboundJumpInputPacket.TYPE,
+                ServerboundJumpInputPacket.STREAM_CODEC,
+                (ServerboundJumpInputPacket pkt, IPayloadContext ctx) ->
+                        ctx.enqueueWork(() -> {
+                            // IPayloadContext.player() 返回发送此包的玩家
+                            if (ctx.player() instanceof ServerPlayer serverPlayer) {
+                                VoidEntrapmentEffect.handleJumpInput(serverPlayer);
+                            }
+                        })
         );
     }
 }

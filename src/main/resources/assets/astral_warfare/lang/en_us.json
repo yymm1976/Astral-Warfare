@@ -16,6 +16,8 @@
   "effect.astral_warfare.void_bleed": "Void Bleed",
   "death.attack.astral_warfare.void_bleed": "%1$s was consumed by the void",
   "death.attack.astral_warfare.void_bleed.player": "%1$s was consumed by the void whilst fighting %2$s",
+  "death.attack.astral_warfare.void_eruption": "%1$s was obliterated by the void eruption",
+  "death.attack.astral_warfare.void_eruption.player": "%1$s was obliterated by the void eruption whilst fighting %2$s",
   "entity.astral_warfare.stella_evoker.defeated": "The Stella Evoker has been banished to the deep sky...",
   "entity.astral_warfare.stella_evoker.despawn": "The Stella Evoker has returned to the void...",
   "entity.astral_warfare.stella_evoker.phase2": "The Stella Evoker enters a frenzied state!",
