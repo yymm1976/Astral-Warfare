@@ -1,6 +1,6 @@
 package com.mochi_753.astral_warfare.entity;
 
-import com.mochi_753.astral_warfare.client.particle.StellaParticles;
+import com.mochi_753.astral_warfare.network.ParticleIds;
 import com.mochi_753.astral_warfare.init.ModConstants;
 import com.mochi_753.astral_warfare.init.ModEntities;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
@@ -26,7 +26,7 @@ public class StellaGateSurgeAbility {
     private static final int GATE_SURGE_RISING_DURATION = 20;
     private static final int GATE_SURGE_CASTING_DURATION = 60;
     private static final double GATE_SURGE_RISE_HEIGHT = 15.0;
-    // 【范围匹配】使用 ModConstants.SURGE_PULSE_RADIUS = 8.0，与特效扩散范围一致
+    // 【范围匹配】使用 ModConstants.SURGE_PULSE_RADIUS = 24.0，与特效扩散范围一致
     private static final double GATE_SURGE_WAVE_RADIUS = ModConstants.SURGE_PULSE_RADIUS;
     private static final float GATE_SURGE_WAVE_DAMAGE = ModConstants.SURGE_PULSE_DAMAGE;
     private static final double GATE_SURGE_RING_RADIUS = ModConstants.SURGE_RING_RADIUS;
@@ -106,7 +106,7 @@ public class StellaGateSurgeAbility {
                     double px = evoker.getX() + Math.cos(angle) * GATE_SURGE_RING_RADIUS;
                     double pz = evoker.getZ() + Math.sin(angle) * GATE_SURGE_RING_RADIUS;
                     double py = evoker.getY() + (evoker.getRandom().nextDouble() - 0.5) * 0.5;
-                    emitter.add(StellaParticles.ID_STELLA_WISP, px, py, pz, 0);
+                    emitter.add(ParticleIds.ID_STELLA_WISP, px, py, pz, 0);
                 }
             }
         }
@@ -142,7 +142,7 @@ public class StellaGateSurgeAbility {
                     double angle = i * Math.PI * 2.0 / particlesPerRing;
                     double px = centerX + Math.cos(angle) * ringRadius;
                     double pz = centerZ + Math.sin(angle) * ringRadius;
-                    emitter.add(StellaParticles.ID_IMPACT_WAVE, px, groundY + 0.3, pz, 0);
+                    emitter.add(ParticleIds.ID_IMPACT_WAVE, px, groundY + 0.3, pz, 0);
                 }
             }
         }
@@ -160,6 +160,9 @@ public class StellaGateSurgeAbility {
         List<Player> targets = serverLevel.getEntitiesOfClass(Player.class, damageBox,
                 player -> player.isAlive() && !player.isSpectator());
         for (Player target : targets) {
+            // C-04修复：距离守卫，防止目标与 BOSS 重合时 normalize() 产生 NaN
+            double distSq = target.distanceToSqr(evoker);
+            if (distSq < 0.01) continue;
             target.hurt(serverLevel.damageSources().indirectMagic(evoker, evoker), GATE_SURGE_WAVE_DAMAGE);
             Vec3 knockbackDir = target.position().subtract(evoker.position()).normalize();
             target.knockback(1.0F, -knockbackDir.x, -knockbackDir.z);

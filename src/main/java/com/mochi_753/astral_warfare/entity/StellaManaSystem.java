@@ -1,7 +1,7 @@
 package com.mochi_753.astral_warfare.entity;
 
 import com.mochi_753.astral_warfare.attachment.ManaData;
-import com.mochi_753.astral_warfare.client.particle.StellaParticles;
+import com.mochi_753.astral_warfare.network.ParticleIds;
 import com.mochi_753.astral_warfare.entity.ai.SpellType;
 import com.mochi_753.astral_warfare.init.ModConstants;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
@@ -92,7 +92,7 @@ public class StellaManaSystem {
                             // 环在 BOSS 身体中部（Y+0.8 到 Y+1.2），略有高度波动
                             double py = evoker.getY() + 0.8 + Math.sin(angle * 2 + evoker.tickCount * 0.1) * 0.2;
                             double pz = evoker.getZ() + Math.sin(angle) * radius;
-                            emitter.add(StellaParticles.ID_STELLA_WISP, px, py, pz, 1);
+                            emitter.add(ParticleIds.ID_STELLA_WISP, px, py, pz, 1);
                         }
                     }
                 }
@@ -102,7 +102,8 @@ public class StellaManaSystem {
             if (passiveManaRegenTimer >= ModConstants.PASSIVE_MANA_REGEN_INTERVAL) {
                 passiveManaRegenTimer = 0;
                 if (currentMana < manaData.getMaxMana()) {
-                    evoker.setCurrentMana(Math.min(currentMana + ModConstants.PASSIVE_MANA_REGEN_PER_TICK, manaData.getMaxMana()));
+                    // I-04修复：使用 ManaData.addMana 原子操作替代非原子的 read-compute-write
+                    evoker.setCurrentMana(manaData.addMana(ModConstants.PASSIVE_MANA_REGEN_PER_TICK));
                 }
             }
 
@@ -130,8 +131,8 @@ public class StellaManaSystem {
                 double radius = evoker.getRandom().nextDouble() * IMPACT_RADIUS;
                 double px = evoker.getX() + Math.cos(angle) * radius;
                 double pz = evoker.getZ() + Math.sin(angle) * radius;
-                emitter.add(StellaParticles.ID_VOID_SPARK, px, evoker.getY() + 0.5, pz, 0);
-                emitter.add(StellaParticles.ID_IMPACT_WAVE, px, evoker.getY() + 0.3, pz, 0);
+                emitter.add(ParticleIds.ID_VOID_SPARK, px, evoker.getY() + 0.5, pz, 0);
+                emitter.add(ParticleIds.ID_IMPACT_WAVE, px, evoker.getY() + 0.3, pz, 0);
             }
         }
 
@@ -174,13 +175,13 @@ public class StellaManaSystem {
 
         if (totalRecover > 0) {
             ManaData manaData = evoker.getManaData();
-            int newMana = Math.min(manaData.getCurrentMana() + totalRecover, manaData.getMaxMana());
-            evoker.setCurrentMana(newMana);
+            // I-04修复：使用 ManaData.addMana 原子操作替代非原子的 read-compute-write
+            evoker.setCurrentMana(manaData.addMana(totalRecover));
 
             if (evoker.getRandom().nextFloat() < 0.3F) {
                 try (ParticleEmitter emitter = new ParticleEmitter(evoker)) {
                     for (AstralCrystalEntity crystal : nearbyCrystals) {
-                        emitter.add(StellaParticles.ID_ASTRAL_BEAM,
+                        emitter.add(ParticleIds.ID_ASTRAL_BEAM,
                                 crystal.getX(), crystal.getY() + 0.5, crystal.getZ(), 1);
                     }
                     for (StarcoreGolemEntity golem : nearbyGolems) {
@@ -196,7 +197,7 @@ public class StellaManaSystem {
                             double px = golemPos.x + dir.x * dist * t + (evoker.getRandom().nextDouble() - 0.5) * 0.3;
                             double py = golemPos.y + dir.y * dist * t + (evoker.getRandom().nextDouble() - 0.5) * 0.3;
                             double pz = golemPos.z + dir.z * dist * t + (evoker.getRandom().nextDouble() - 0.5) * 0.3;
-                            emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 1);
+                            emitter.add(ParticleIds.ID_ASTRAL_BEAM, px, py, pz, 1);
                         }
                     }
                 }

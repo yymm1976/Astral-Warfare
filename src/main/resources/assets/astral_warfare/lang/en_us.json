@@ -12,6 +12,7 @@
   "entity.astral_warfare.starcore_golem": "Starcore Golem",
   "entity.astral_warfare.astral_crystal": "Astral Crystal",
   "entity.astral_warfare.nightfall_singularity": "Nightfall Singularity",
+  "entity.astral_warfare.void_fissure": "Void Fissure",
   "effect.astral_warfare.void_entrapment": "Void Entrapment",
   "effect.astral_warfare.void_bleed": "Void Bleed",
   "death.attack.astral_warfare.void_bleed": "%1$s was consumed by the void",

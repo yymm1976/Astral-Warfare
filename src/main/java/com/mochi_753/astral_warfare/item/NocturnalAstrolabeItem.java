@@ -149,19 +149,19 @@ public class NocturnalAstrolabeItem extends Item {
 
         if (bossSpawned) {
             player.sendSystemMessage(Component.translatable("item.astral_warfare.nocturnal_astrolabe.resonance"));
-        }
 
-        // 在祭坛四角基座位置生成 4 个星界水晶
-        // 水晶位置与 AstralAltarStructure 中的四角基座对齐
-        try {
-            spawnCrystalsAtAltarCorners(serverLevel, player.blockPosition());
-        } catch (Exception e) {
-            LOGGER.error("星界水晶生成失败", e);
-        }
+            // 在祭坛四角基座位置生成 4 个星界水晶
+            // 水晶位置与 AstralAltarStructure 中的四角基座对齐
+            try {
+                spawnCrystalsAtAltarCorners(serverLevel, player.blockPosition());
+            } catch (Exception e) {
+                LOGGER.error("星界水晶生成失败", e);
+            }
 
-        // 播放空灵音效（末影龙死亡音效变调，营造仪式感）
-        serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(),
-                SoundEvents.END_PORTAL_SPAWN, SoundSource.PLAYERS, 1.0F, 0.5F);
+            // 播放空灵音效（末影龙死亡音效变调，营造仪式感）
+            serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(),
+                    SoundEvents.END_PORTAL_SPAWN, SoundSource.PLAYERS, 1.0F, 0.5F);
+        }
 
         // B-07修复：生成失败时返回 pass（不消耗、不播放成功动画）
         // 生成成功时返回 sidedSuccess（播放成功动画 + 消耗道具）

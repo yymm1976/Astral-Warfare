@@ -77,6 +77,31 @@ public class ManaData {
         this.manaSystemDisabled = disabled;
     }
 
+    // I-04修复：原子法力消耗 — 检查当前法力是否足够，足够则扣除并返回 true
+    // 解决非原子的 read-compute-write 模式（getCurrentMana → 计算 → setCurrentMana）
+    // 在并发环境下防止 read 和 write 之间被其他线程修改导致法力值不一致
+    public synchronized boolean tryConsumeMana(int cost) {
+        if (currentMana >= cost) {
+            currentMana -= cost;
+            return true;
+        }
+        return false;
+    }
+
+    // I-04修复：原子法力扣除 — 直接扣除指定量并钳位到 [0, ∞)，返回扣除后的值
+    // 无论法力是否充足都会扣除（不足时钳位到 0），调用方根据返回值判断结果
+    public synchronized int deductMana(int amount) {
+        currentMana = Math.max(0, currentMana - amount);
+        return currentMana;
+    }
+
+    // I-04修复：原子法力恢复 — 增加法力并钳位到 (-∞, max]，返回恢复后的值
+    // 替代非原子的 getCurrentMana() + 计算 + setCurrentMana() 模式
+    public synchronized int addMana(int amount) {
+        currentMana = Math.min(maxMana, currentMana + amount);
+        return currentMana;
+    }
+
     // 序列化快照方法：synchronized 确保读取时字段不被并发修改
     // Codec 逐字段调用 getter，synchronized 保证每次读取时对象处于一致状态
     // 在多人服务器环境下是必要的数据竞争防护

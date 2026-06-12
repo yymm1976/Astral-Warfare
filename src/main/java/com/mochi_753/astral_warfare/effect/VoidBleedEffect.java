@@ -1,7 +1,7 @@
 package com.mochi_753.astral_warfare.effect;
 
 import com.mochi_753.astral_warfare.AstralWarfare;
-import com.mochi_753.astral_warfare.client.particle.StellaParticles;
+import com.mochi_753.astral_warfare.network.ParticleIds;
 import com.mochi_753.astral_warfare.init.ModDamageTypes;
 import com.mochi_753.astral_warfare.init.ModEffects;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
@@ -75,14 +75,14 @@ public class VoidBleedEffect extends MobEffect {
                         double px = entity.getX() + Math.cos(angle) * r;
                         double py = entity.getY() + 0.5;
                         double pz = entity.getZ() + Math.sin(angle) * r;
-                        emitter.add(StellaParticles.ID_IMPACT_WAVE, px, py, pz, 0);
+                        emitter.add(ParticleIds.ID_IMPACT_WAVE, px, py, pz, 0);
                     }
                     // 星光粒子：从身体中心向上爆发
                     for (int i = 0; i < 8; i++) {
                         double px = entity.getX() + (entity.level().random.nextDouble() - 0.5) * 0.8;
                         double py = entity.getY() + entity.level().random.nextDouble() * 2.0;
                         double pz = entity.getZ() + (entity.level().random.nextDouble() - 0.5) * 0.8;
-                        emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0);
+                        emitter.add(ParticleIds.ID_ASTRAL_BEAM, px, py, pz, 0);
                     }
                 }
             }
@@ -121,14 +121,14 @@ public class VoidBleedEffect extends MobEffect {
                     double px = entity.getX() + Math.cos(angle) * r;
                     double py = entity.getY() + entity.level().random.nextDouble() * 1.5;
                     double pz = entity.getZ() + Math.sin(angle) * r;
-                    emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 0);
+                    emitter.add(ParticleIds.ID_DYING_EMBER, px, py, pz, 0);
                 }
                 // 虚空火花：偶尔闪烁的紫色能量点，体现虚空侵蚀
                 for (int i = 0; i < 2; i++) {
                     double px = entity.getX() + (entity.level().random.nextDouble() - 0.5) * 0.8;
                     double py = entity.getY() + 0.5 + entity.level().random.nextDouble() * 1.0;
                     double pz = entity.getZ() + (entity.level().random.nextDouble() - 0.5) * 0.8;
-                    emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 0);
+                    emitter.add(ParticleIds.ID_VOID_SPARK, px, py, pz, 0);
                 }
             }
             // 额外纯红色血雾层：使用 DustParticleOptions

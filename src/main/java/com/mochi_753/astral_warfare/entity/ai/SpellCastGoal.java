@@ -5,7 +5,7 @@ import com.mochi_753.astral_warfare.entity.StarcoreGolemEntity;
 import com.mochi_753.astral_warfare.entity.StellaEvokerEntity;
 import com.mochi_753.astral_warfare.init.ModConstants;
 import com.mochi_753.astral_warfare.init.ModEntities;
-import com.mochi_753.astral_warfare.client.particle.StellaParticles;
+import com.mochi_753.astral_warfare.network.ParticleIds;
 import com.mochi_753.astral_warfare.util.BossUtils;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import com.mochi_753.astral_warfare.network.ClientboundScreenShakePacket;
@@ -275,9 +275,8 @@ public class SpellCastGoal extends Goal {
         if (this.castTick >= this.currentSpell.castDuration) {
             executeSpell(this.currentSpell);
             // 法力扣减：统一入口，仅在此处扣减法术基础消耗
-            // setCurrentMana 内部做边界钳位（Math.max(0, mana)），不会产生负值
-            int newMana = Math.max(0, this.evoker.getManaData().getCurrentMana() - this.currentSpell.manaCost);
-            this.evoker.setCurrentMana(newMana);
+            // I-04修复：使用 ManaData.deductMana 原子操作替代非原子的 read-compute-write
+            this.evoker.setCurrentMana(this.evoker.getManaData().deductMana(this.currentSpell.manaCost));
             this.cooldowns.put(this.currentSpell, this.currentSpell.cooldownTicks);
             this.nextCastAttempt = 100 + this.evoker.getRandom().nextInt(40);
             // triggerableAnim 播完后自动回到 STOP，无需手动清除
@@ -372,7 +371,7 @@ public class SpellCastGoal extends Goal {
                 double t = this.evoker.getRandom().nextDouble();
                 // 粒子从Y+30到Y+5分布，模拟陨石下落轨迹
                 double py = (targetY + 5.0) + (topY - targetY - 5.0) * t;
-                emitter.add(StellaParticles.ID_ASTRAL_BEAM, targetX + (this.evoker.getRandom().nextDouble() - 0.5) * 0.3, py, targetZ + (this.evoker.getRandom().nextDouble() - 0.5) * 0.3, 0);
+                emitter.add(ParticleIds.ID_ASTRAL_BEAM, targetX + (this.evoker.getRandom().nextDouble() - 0.5) * 0.3, py, targetZ + (this.evoker.getRandom().nextDouble() - 0.5) * 0.3, 0);
             }
 
             // 修复：头顶预警圈替代脚下预警圈
@@ -385,7 +384,7 @@ public class SpellCastGoal extends Goal {
                 double pz = targetZ + Math.sin(angle) * r;
                 // 预警圆环在头顶Y+5到Y+10之间
                 double warningY = targetY + 5.0 + this.evoker.getRandom().nextDouble() * 5.0;
-                emitter.add(StellaParticles.ID_DYING_EMBER, px, warningY, pz, 0);
+                emitter.add(ParticleIds.ID_DYING_EMBER, px, warningY, pz, 0);
             }
 
             // 修复：最后10tick在Y+5处生成密集"陨石头部"粒子簇，模拟陨石即将砸到
@@ -393,13 +392,13 @@ public class SpellCastGoal extends Goal {
                 for (int i = 0; i < 8; i++) {
                     double ox = (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
                     double oz = (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
-                    emitter.add(StellaParticles.ID_IMPACT_WAVE, targetX + ox, targetY + 5.0, targetZ + oz, 0);
+                    emitter.add(ParticleIds.ID_IMPACT_WAVE, targetX + ox, targetY + 5.0, targetZ + oz, 0);
                 }
                 // 陨石核心：密集的星界光束粒子
                 for (int i = 0; i < 4; i++) {
                     double ox = (this.evoker.getRandom().nextDouble() - 0.5) * 0.8;
                     double oz = (this.evoker.getRandom().nextDouble() - 0.5) * 0.8;
-                    emitter.add(StellaParticles.ID_ASTRAL_BEAM, targetX + ox, targetY + 4.5, targetZ + oz, 0);
+                    emitter.add(ParticleIds.ID_ASTRAL_BEAM, targetX + ox, targetY + 4.5, targetZ + oz, 0);
                 }
             }
         }
@@ -429,8 +428,8 @@ public class SpellCastGoal extends Goal {
                 double r = goal.evoker.getRandom().nextDouble() * ModConstants.STARFALL_RADIUS;
                 double px = targetX + Math.cos(angle) * r;
                 double pz = targetZ + Math.sin(angle) * r;
-                emitter.add(StellaParticles.ID_IMPACT_WAVE, px, groundY, pz, 0);
-                emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, groundY + 0.05, pz, 0);
+                emitter.add(ParticleIds.ID_IMPACT_WAVE, px, groundY, pz, 0);
+                emitter.add(ParticleIds.ID_ASTRAL_BEAM, px, groundY + 0.05, pz, 0);
             }
         }
 
@@ -516,7 +515,7 @@ public class SpellCastGoal extends Goal {
                 double px = bossPos.x + beamDir.x * dist;
                 double py = bossPos.y + beamDir.y * dist;
                 double pz = bossPos.z + beamDir.z * dist;
-                emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0);
+                emitter.add(ParticleIds.ID_ASTRAL_BEAM, px, py, pz, 0);
             }
 
             // ===== 锥形扩散粒子 =====
@@ -534,7 +533,7 @@ public class SpellCastGoal extends Goal {
                 double px = bossPos.x + beamDir.x * dist + perp1.x * offsetX + perp2.x * offsetY;
                 double py = bossPos.y + beamDir.y * dist + perp1.y * offsetX + perp2.y * offsetY;
                 double pz = bossPos.z + beamDir.z * dist + perp1.z * offsetX + perp2.z * offsetY;
-                emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0);
+                emitter.add(ParticleIds.ID_ASTRAL_BEAM, px, py, pz, 0);
             }
 
             // ===== 地面投影光斑 =====
@@ -550,14 +549,14 @@ public class SpellCastGoal extends Goal {
                     double r = this.evoker.getRandom().nextDouble() * groundSpotRadius;
                     double px = groundX + Math.cos(angle) * r;
                     double pz = groundZ + Math.sin(angle) * r;
-                    emitter.add(StellaParticles.ID_STELLA_WISP, px, groundY + 0.05, pz, 1);
+                    emitter.add(ParticleIds.ID_STELLA_WISP, px, groundY + 0.05, pz, 1);
                 }
                 // 中心亮点
                 // Phase 32：15→5（匹配光斑半径 18→3 缩小）
                 for (int i = 0; i < 5; i++) {
                     double ox = (this.evoker.getRandom().nextDouble() - 0.5) * 1.0;
                     double oz = (this.evoker.getRandom().nextDouble() - 0.5) * 1.0;
-                    emitter.add(StellaParticles.ID_ASTRAL_BEAM, groundX + ox, groundY + 0.1, groundZ + oz, 0);
+                    emitter.add(ParticleIds.ID_ASTRAL_BEAM, groundX + ox, groundY + 0.1, groundZ + oz, 0);
                 }
             }
         }
@@ -593,10 +592,8 @@ public class SpellCastGoal extends Goal {
                 target.hurt(serverLevel.damageSources().indirectMagic(this.evoker, this.evoker), ModConstants.BEAM_DAMAGE);
             }
 
-            // 每次伤害判定时额外消耗法力
-            this.evoker.setCurrentMana(
-                    Math.max(0, this.evoker.getManaData().getCurrentMana() - ModConstants.BEAM_EXTRA_MANA_PER_SEC)
-            );
+            // I-04修复：使用 ManaData.deductMana 原子操作替代非原子的 read-compute-write
+            this.evoker.setCurrentMana(this.evoker.getManaData().deductMana(ModConstants.BEAM_EXTRA_MANA_PER_SEC));
         }
     }
 
@@ -693,10 +690,10 @@ public class SpellCastGoal extends Goal {
                 if (isWarningPhase) {
                     // 后 1.5 秒：鲜红色链环（variant=1 更鲜红）
                     // variant=3：短生命周期（5 tick），快速消散不拖影
-                    emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 3);
+                    emitter.add(ParticleIds.ID_DYING_EMBER, px, py, pz, 3);
                 } else {
                     // 前 1.5 秒：淡蓝色链环，使用 ASTRAL_BEAM（星空蓝，温和提示）
-                    emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0);
+                    emitter.add(ParticleIds.ID_ASTRAL_BEAM, px, py, pz, 0);
                 }
             }
 
@@ -719,10 +716,10 @@ public class SpellCastGoal extends Goal {
                 py += swayOffset;
 
                 if (isWarningPhase) {
-                    emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 3);
+                    emitter.add(ParticleIds.ID_DYING_EMBER, px, py, pz, 3);
                 } else {
                     // 非预警连接线：淡蓝色 ASTRAL_BEAM
-                    emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0);
+                    emitter.add(ParticleIds.ID_ASTRAL_BEAM, px, py, pz, 0);
                 }
             }
         }
@@ -788,7 +785,7 @@ public class SpellCastGoal extends Goal {
                     double ox = (goal.evoker.getRandom().nextDouble() - 0.5) * 2.0;
                     double oy = goal.evoker.getRandom().nextDouble() * 2.0;
                     double oz = (goal.evoker.getRandom().nextDouble() - 0.5) * 2.0;
-                    emitter.add(StellaParticles.ID_VOID_SPARK, goal.fateLinkTarget.getX() + ox, goal.fateLinkTarget.getY() + oy, goal.fateLinkTarget.getZ() + oz, 0);
+                    emitter.add(ParticleIds.ID_VOID_SPARK, goal.fateLinkTarget.getX() + ox, goal.fateLinkTarget.getY() + oy, goal.fateLinkTarget.getZ() + oz, 0);
                 }
             }
         } else {
@@ -801,7 +798,7 @@ public class SpellCastGoal extends Goal {
                     double ox = (goal.evoker.getRandom().nextDouble() - 0.5) * 1.5;
                     double oy = goal.evoker.getRandom().nextDouble() * 1.5;
                     double oz = (goal.evoker.getRandom().nextDouble() - 0.5) * 1.5;
-                    emitter.add(StellaParticles.ID_STELLA_WISP, goal.fateLinkTarget.getX() + ox, goal.fateLinkTarget.getY() + oy, goal.fateLinkTarget.getZ() + oz, 0);
+                    emitter.add(ParticleIds.ID_STELLA_WISP, goal.fateLinkTarget.getX() + ox, goal.fateLinkTarget.getY() + oy, goal.fateLinkTarget.getZ() + oz, 0);
                 }
             }
         }
@@ -840,7 +837,7 @@ public class SpellCastGoal extends Goal {
                     if (dist > ModConstants.STAR_RAIL_CUT_LENGTH) break;
                     double px = originX + dirX * dist + (this.evoker.getRandom().nextDouble() - 0.5) * 0.3;
                     double pz = originZ + dirZ * dist + (this.evoker.getRandom().nextDouble() - 0.5) * 0.3;
-                    emitter.add(StellaParticles.ID_STELLA_WISP, px, originY, pz, 0);
+                    emitter.add(ParticleIds.ID_STELLA_WISP, px, originY, pz, 0);
                 }
 
                 // 预警音效：每 10 tick 一次滴答声
@@ -859,9 +856,9 @@ public class SpellCastGoal extends Goal {
                     double px = originX + dirX * dist;
                     double pz = originZ + dirZ * dist;
                     // 激光主体：亮蓝色，宽度1.5格
-                    emitter.add(StellaParticles.ID_ASTRAL_BEAM, px + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5, originY, pz + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5, 0);
+                    emitter.add(ParticleIds.ID_ASTRAL_BEAM, px + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5, originY, pz + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5, 0);
                     // 激光边缘：冲击波粒子
-                    emitter.add(StellaParticles.ID_IMPACT_WAVE, px + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5, originY, pz + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5, 0);
+                    emitter.add(ParticleIds.ID_IMPACT_WAVE, px + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5, originY, pz + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5, 0);
                 }
             }
         }
@@ -904,7 +901,7 @@ public class SpellCastGoal extends Goal {
                 double dist = goal.evoker.getRandom().nextDouble() * length;
                 double px = originX + dirX * dist + (goal.evoker.getRandom().nextDouble() - 0.5) * 1.0;
                 double pz = originZ + dirZ * dist + (goal.evoker.getRandom().nextDouble() - 0.5) * 1.0;
-                emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, originY + goal.evoker.getRandom().nextDouble() * 1.5, pz, 0);
+                emitter.add(ParticleIds.ID_ASTRAL_BEAM, px, originY + goal.evoker.getRandom().nextDouble() * 1.5, pz, 0);
             }
         }
 
@@ -953,7 +950,7 @@ public class SpellCastGoal extends Goal {
                     double r = 0.5 + this.evoker.getRandom().nextDouble() * 0.5;
                     double px = this.throwGolem.getX() + Math.cos(angle) * r;
                     double pz = this.throwGolem.getZ() + Math.sin(angle) * r;
-                    emitter.add(StellaParticles.ID_VOID_SPARK, px, this.throwGolem.getY() + this.evoker.getRandom().nextDouble() * 1.0, pz, 0);
+                    emitter.add(ParticleIds.ID_VOID_SPARK, px, this.throwGolem.getY() + this.evoker.getRandom().nextDouble() * 1.0, pz, 0);
                 }
             }
 
@@ -971,7 +968,7 @@ public class SpellCastGoal extends Goal {
                     double pr = 0.3 + this.evoker.getRandom().nextDouble() * 0.8;
                     double ppx = px + Math.cos(pAngle) * pr;
                     double ppz = pz + Math.sin(pAngle) * pr;
-                    emitter.add(StellaParticles.ID_STELLA_WISP, ppx, this.evoker.getY() - 0.5 + this.evoker.getRandom().nextDouble() * 1.0, ppz, 0);
+                    emitter.add(ParticleIds.ID_STELLA_WISP, ppx, this.evoker.getY() - 0.5 + this.evoker.getRandom().nextDouble() * 1.0, ppz, 0);
                 }
             }
         }
@@ -998,7 +995,7 @@ public class SpellCastGoal extends Goal {
                 double px = goal.evoker.getX() + (targetX - goal.evoker.getX()) * t + (goal.evoker.getRandom().nextDouble() - 0.5) * 1.0;
                 double pz = goal.evoker.getZ() + (targetZ - goal.evoker.getZ()) * t + (goal.evoker.getRandom().nextDouble() - 0.5) * 1.0;
                 double py = goal.evoker.getY() + (targetY - goal.evoker.getY()) * t;
-                emitter.add(StellaParticles.ID_STELLA_WISP, px, py, pz, 0);
+                emitter.add(ParticleIds.ID_STELLA_WISP, px, py, pz, 0);
             }
         }
 
@@ -1036,8 +1033,8 @@ public class SpellCastGoal extends Goal {
                 double r = goal.evoker.getRandom().nextDouble() * ModConstants.TELEKINETIC_THROW_RADIUS;
                 double px = targetX + Math.cos(angle) * r;
                 double pz = targetZ + Math.sin(angle) * r;
-                emitter.add(StellaParticles.ID_STELLA_WISP, px, groundY, pz, 0);
-                emitter.add(StellaParticles.ID_IMPACT_WAVE, px, groundY, pz, 1);
+                emitter.add(ParticleIds.ID_STELLA_WISP, px, groundY, pz, 0);
+                emitter.add(ParticleIds.ID_IMPACT_WAVE, px, groundY, pz, 1);
             }
         }
 

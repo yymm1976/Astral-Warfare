@@ -1,7 +1,7 @@
 package com.mochi_753.astral_warfare.effect;
 
 import com.mochi_753.astral_warfare.AstralWarfare;
-import com.mochi_753.astral_warfare.client.particle.StellaParticles;
+import com.mochi_753.astral_warfare.network.ParticleIds;
 import com.mochi_753.astral_warfare.init.ModEffects;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import net.minecraft.server.level.ServerLevel;
@@ -39,6 +39,9 @@ public class VoidEntrapmentEffect extends MobEffect {
     private static final Map<UUID, Integer> jumpPressCount = new ConcurrentHashMap<>();
     // 当前时间窗口内首次按键的游戏时间（tick）
     private static final Map<UUID, Long> firstPressTick = new ConcurrentHashMap<>();
+    // I-06: 上次跳跃按键的 tick，用于速率限制（防作弊刷包）
+    private static final int JUMP_RATE_LIMIT_TICKS = 2;
+    private static final Map<UUID, Long> lastJumpTick = new ConcurrentHashMap<>();
 
     public VoidEntrapmentEffect(MobEffectCategory category, int color) {
         super(category, color);
@@ -85,7 +88,7 @@ public class VoidEntrapmentEffect extends MobEffect {
                 ).isEmpty();
                 if (hasNearbyPlayer) {
                     try (ParticleEmitter emitter = new ParticleEmitter(entity)) {
-                        emitter.add(StellaParticles.ID_VOID_SPARK,
+                        emitter.add(ParticleIds.ID_VOID_SPARK,
                                 entity.getX(), entity.getY() + entity.getEyeHeight(), entity.getZ(), 2);
                     }
                 }
@@ -110,6 +113,14 @@ public class VoidEntrapmentEffect extends MobEffect {
 
         UUID uuid = player.getUUID();
         long currentTick = player.level().getGameTime();
+
+        // I-06: 速率限制 — 拒绝 2 tick 内的重复跳跃包，防止作弊刷包
+        Long lastTick = lastJumpTick.get(uuid);
+        if (lastTick != null && (currentTick - lastTick) < JUMP_RATE_LIMIT_TICKS) {
+            return;
+        }
+        lastJumpTick.put(uuid, currentTick);
+
         Long firstTick = firstPressTick.get(uuid);
 
         // 检查时间窗口：如果首次按键距今超过 60 tick，重置计数器
@@ -124,10 +135,10 @@ public class VoidEntrapmentEffect extends MobEffect {
 
             // 达到挣脱阈值：移除禁锢效果
             if (newCount >= ESCAPE_JUMP_COUNT) {
-                // 挣脱成功！移除效果（属性修饰符由原版自动清理）
-                player.removeEffect(ModEffects.VOID_ENTRAPMENT);
-                // 清理追踪状态
+                // 挣脱成功！先清理静态追踪数据，再移除效果
+                // 1.21.1 的 MobEffect 移除回调不再携带实体参数，无法在 removeAttributeModifiers 中定位玩家
                 cleanupPlayer(uuid);
+                player.removeEffect(ModEffects.VOID_ENTRAPMENT);
 
                 // 挣脱粒子反馈：一圈虚空火花爆发
                 if (player.level() instanceof ServerLevel serverLevel) {
@@ -138,7 +149,7 @@ public class VoidEntrapmentEffect extends MobEffect {
                             double px = player.getX() + Math.cos(angle) * r;
                             double py = player.getY() + 0.5;
                             double pz = player.getZ() + Math.sin(angle) * r;
-                            emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 0);
+                            emitter.add(ParticleIds.ID_VOID_SPARK, px, py, pz, 0);
                         }
                     }
                 }
@@ -147,9 +158,10 @@ public class VoidEntrapmentEffect extends MobEffect {
     }
 
     // 清理指定玩家的跳跃挣脱追踪状态，防止内存泄漏
-    // 在效果移除、玩家断线时调用
+    // 在效果移除（自然到期、手动移除、挣脱）、玩家断线时调用
     public static void cleanupPlayer(UUID uuid) {
         jumpPressCount.remove(uuid);
         firstPressTick.remove(uuid);
+        lastJumpTick.remove(uuid);
     }
 }

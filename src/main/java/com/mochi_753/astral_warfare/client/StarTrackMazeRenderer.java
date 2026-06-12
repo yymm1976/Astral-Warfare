@@ -71,7 +71,8 @@ public class StarTrackMazeRenderer {
 
         drawMaze(poseStack, bufferSource, cameraPos, mazeData, shouldSpawnParticles, mc);
 
-        bufferSource.endBatch();
+        // M-06修复：指定 RenderType 避免 flush 所有缓冲
+        bufferSource.endBatch(RenderType.lines());
     }
 
     private static void drawMaze(PoseStack poseStack, MultiBufferSource bufferSource,

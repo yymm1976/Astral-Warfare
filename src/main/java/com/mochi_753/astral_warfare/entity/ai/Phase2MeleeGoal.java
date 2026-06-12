@@ -3,7 +3,7 @@ package com.mochi_753.astral_warfare.entity.ai;
 import com.mochi_753.astral_warfare.init.ModEffects;
 import com.mochi_753.astral_warfare.init.ModConfig;
 import com.mochi_753.astral_warfare.entity.StellaEvokerEntity;
-import com.mochi_753.astral_warfare.client.particle.StellaParticles;
+import com.mochi_753.astral_warfare.network.ParticleIds;
 import com.mochi_753.astral_warfare.util.BossUtils;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import net.minecraft.server.level.ServerLevel;
@@ -189,12 +189,12 @@ public class Phase2MeleeGoal extends Goal {
             // 替代 strafe()：strafe 是原版横向平移，不转身体不迈腿，像螃蟹滑行
             this.evoker.getMoveControl().setWantedPosition(
                     this.target.getX(), this.target.getY(), this.target.getZ(), 0.4);
-            this.evoker.isWalking = true;
+            this.evoker.setWalking(true);
             return;
         }
 
         // 非冷却期：满速追击玩家
-        this.evoker.isWalking = true;
+        this.evoker.setWalking(true);
         pathRecalcTimer--;
         if (pathRecalcTimer <= 0) {
             pathRecalcTimer = 4 + this.evoker.getRandom().nextInt(4);
@@ -222,7 +222,7 @@ public class Phase2MeleeGoal extends Goal {
             this.state = State.SLASH_DELAY;
             this.stateTimer = 0;
             this.evoker.getNavigation().stop();
-            this.evoker.isWalking = false;
+            this.evoker.setWalking(false);
         }
     }
 
@@ -241,14 +241,14 @@ public class Phase2MeleeGoal extends Goal {
                 double px = this.evoker.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.0;
                 double py = this.evoker.getY() + 1.5 + this.evoker.getRandom().nextDouble() * 0.5;
                 double pz = this.evoker.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.0;
-                emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 0);
+                emitter.add(ParticleIds.ID_VOID_SPARK, px, py, pz, 0);
             }
             // 新增：星穹微光环绕蓄力
             for (int i = 0; i < 2; i++) {
                 double px = this.evoker.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.2;
                 double py = this.evoker.getY() + 1.0 + this.evoker.getRandom().nextDouble() * 0.8;
                 double pz = this.evoker.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.2;
-                emitter.add(StellaParticles.ID_STELLA_WISP, px, py, pz, 1);
+                emitter.add(ParticleIds.ID_STELLA_WISP, px, py, pz, 1);
             }
         }
 
@@ -313,7 +313,7 @@ public class Phase2MeleeGoal extends Goal {
                     double px = this.evoker.getX() + Math.cos(arcAngle) * slashDist;
                     double py = groundY;
                     double pz = this.evoker.getZ() + Math.sin(arcAngle) * slashDist;
-                    emitter.add(StellaParticles.ID_IMPACT_WAVE, px, py, pz, slash);
+                    emitter.add(ParticleIds.ID_IMPACT_WAVE, px, py, pz, slash);
                 }
             }
             // 新增：虚空火花尾随刃光
@@ -322,7 +322,7 @@ public class Phase2MeleeGoal extends Goal {
                 double dist = 2.0 + this.evoker.getRandom().nextDouble() * 4.0;
                 double px = this.evoker.getX() + Math.cos(angle) * dist;
                 double pz = this.evoker.getZ() + Math.sin(angle) * dist;
-                emitter.add(StellaParticles.ID_VOID_SPARK, px, groundY, pz, 0);
+                emitter.add(ParticleIds.ID_VOID_SPARK, px, groundY, pz, 0);
             }
         }
 
@@ -356,10 +356,10 @@ public class Phase2MeleeGoal extends Goal {
                     double t = i / 8.0;
                     double px = this.evoker.getX() + toTarget.x * dashDist * t;
                     double pz = this.evoker.getZ() + toTarget.z * dashDist * t;
-                    emitter.add(StellaParticles.ID_STELLA_WISP, px, this.evoker.getY() + 1.0, pz, 0);
+                    emitter.add(ParticleIds.ID_STELLA_WISP, px, this.evoker.getY() + 1.0, pz, 0);
                     // 新增：虚空火花残影
                     if (i % 2 == 0) {
-                        emitter.add(StellaParticles.ID_VOID_SPARK, px, this.evoker.getY() + 0.8, pz, 1);
+                        emitter.add(ParticleIds.ID_VOID_SPARK, px, this.evoker.getY() + 0.8, pz, 1);
                     }
                 }
 
@@ -372,7 +372,7 @@ public class Phase2MeleeGoal extends Goal {
                     double px = newX + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
                     double py = this.evoker.getY() + 1.0 + this.evoker.getRandom().nextDouble() * 0.8;
                     double pz = newZ + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
-                    emitter.add(StellaParticles.ID_TRANSITION_BURST, px, py, pz, 0);
+                    emitter.add(ParticleIds.ID_TRANSITION_BURST, px, py, pz, 0);
                 }
                 // 新增：落点冲击波（地面粒子，使用五参重载锚定地面）
                 double groundY = BossUtils.findGroundY(this.evoker.level(), newX, newZ, this.evoker.getY() + 5, this.evoker.getY()) + 0.05;
@@ -381,7 +381,7 @@ public class Phase2MeleeGoal extends Goal {
                     double r = this.evoker.getRandom().nextDouble() * 1.5;
                     double px = newX + Math.cos(angle) * r;
                     double pz = newZ + Math.sin(angle) * r;
-                    emitter.add(StellaParticles.ID_IMPACT_WAVE, px, groundY, pz, 0);
+                    emitter.add(ParticleIds.ID_IMPACT_WAVE, px, groundY, pz, 0);
                 }
             }
         }
@@ -425,7 +425,7 @@ public class Phase2MeleeGoal extends Goal {
                 double px = this.evoker.getX() + Math.cos(angle) * r;
                 double py = this.evoker.getY() + 0.8 + this.evoker.getRandom().nextDouble() * 0.6;
                 double pz = this.evoker.getZ() + Math.sin(angle) * r;
-                emitter.add(StellaParticles.ID_IMPACT_WAVE, px, py, pz, 0);
+                emitter.add(ParticleIds.ID_IMPACT_WAVE, px, py, pz, 0);
             }
         }
 
@@ -457,7 +457,7 @@ public class Phase2MeleeGoal extends Goal {
                     double px = this.evoker.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
                     double py = this.evoker.getY() + this.evoker.getRandom().nextDouble() * 2.0;
                     double pz = this.evoker.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
-                    emitter.add(StellaParticles.ID_TRANSITION_BURST, px, py, pz, 0);
+                    emitter.add(ParticleIds.ID_TRANSITION_BURST, px, py, pz, 0);
                 }
             }
             // 原版烟雾消散
@@ -542,10 +542,10 @@ public class Phase2MeleeGoal extends Goal {
                 double px = this.evoker.getX() + toTarget.x * t * 3.0;
                 double py = this.evoker.getY() + 1.0 + (this.evoker.getRandom().nextDouble() - 0.5) * 0.5;
                 double pz = this.evoker.getZ() + toTarget.z * t * 3.0;
-                emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0);
+                emitter.add(ParticleIds.ID_ASTRAL_BEAM, px, py, pz, 0);
                 // 新增：虚空火花混合轨迹
                 if (i % 3 == 0) {
-                    emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 2);
+                    emitter.add(ParticleIds.ID_VOID_SPARK, px, py, pz, 2);
                 }
             }
 
@@ -556,7 +556,7 @@ public class Phase2MeleeGoal extends Goal {
                 double px = this.target.getX() + Math.cos(angle) * r;
                 double py = this.target.getY() + 1.0 + this.evoker.getRandom().nextDouble() * 0.8;
                 double pz = this.target.getZ() + Math.sin(angle) * r;
-                emitter.add(StellaParticles.ID_IMPACT_WAVE, px, py, pz, 0);
+                emitter.add(ParticleIds.ID_IMPACT_WAVE, px, py, pz, 0);
             }
             // 新增：刺入点星形爆发
             for (int i = 0; i < 6; i++) {
@@ -564,7 +564,7 @@ public class Phase2MeleeGoal extends Goal {
                 double r = 0.5 + this.evoker.getRandom().nextDouble() * 1.0;
                 double px = this.target.getX() + Math.cos(angle) * r;
                 double pz = this.target.getZ() + Math.sin(angle) * r;
-                emitter.add(StellaParticles.ID_TRANSITION_BURST, px, this.target.getY() + 1.2, pz, 0);
+                emitter.add(ParticleIds.ID_TRANSITION_BURST, px, this.target.getY() + 1.2, pz, 0);
             }
         }
 
@@ -591,7 +591,7 @@ public class Phase2MeleeGoal extends Goal {
                 double px = this.evoker.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 0.5;
                 double py = this.evoker.getY() + 1.5 + this.evoker.getRandom().nextDouble() * 0.5;
                 double pz = this.evoker.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 0.5;
-                emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 0);
+                emitter.add(ParticleIds.ID_VOID_SPARK, px, py, pz, 0);
             }
         }
 
@@ -622,7 +622,7 @@ public class Phase2MeleeGoal extends Goal {
                         double px = this.target.getX() + (this.evoker.getX() - this.target.getX()) * t;
                         double pz = this.target.getZ() + (this.evoker.getZ() - this.target.getZ()) * t;
                         double py = this.target.getY() + 1.0 + (this.evoker.getRandom().nextDouble() - 0.5) * 0.5;
-                        emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 0);
+                        emitter.add(ParticleIds.ID_VOID_SPARK, px, py, pz, 0);
                     }
                 }
 
@@ -669,7 +669,7 @@ public class Phase2MeleeGoal extends Goal {
                 double px = this.evoker.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
                 double py = this.evoker.getY() + 1.0 + (this.evoker.getRandom().nextDouble() - 0.5) * 1.0;
                 double pz = this.evoker.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
-                emitter.add(StellaParticles.ID_IMPACT_WAVE, px, py, pz, 0);
+                emitter.add(ParticleIds.ID_IMPACT_WAVE, px, py, pz, 0);
             }
         }
 
@@ -712,7 +712,7 @@ public class Phase2MeleeGoal extends Goal {
         this.pullCooldownTimer = PULL_COOLDOWN;
         this.evoker.setInvisible(false);
         // triggerableAnim 播完后自动回到 STOP，idle_controller 接管，无需手动清除
-        this.evoker.isWalking = false;
+        this.evoker.setWalking(false);
     }
 
     @Override

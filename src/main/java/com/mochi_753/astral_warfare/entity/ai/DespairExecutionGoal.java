@@ -7,7 +7,7 @@ import com.mochi_753.astral_warfare.init.ModEntities;
 import com.mochi_753.astral_warfare.entity.StellaEvokerEntity;
 import com.mochi_753.astral_warfare.entity.StarcoreGolemEntity;
 import com.mochi_753.astral_warfare.entity.VoidFissureEntity;
-import com.mochi_753.astral_warfare.client.particle.StellaParticles;
+import com.mochi_753.astral_warfare.network.ParticleIds;
 import com.mochi_753.astral_warfare.util.BossUtils;
 import com.mochi_753.astral_warfare.network.ClientboundScreenShakePacket;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
@@ -71,8 +71,8 @@ public class DespairExecutionGoal extends Goal {
     private static final float TRIGGER_HEALTH_PERCENT = ModConstants.EXECUTION_TRIGGER_HEALTH_PERCENT;
     private static final double TRIGGER_RANGE = ModConstants.EXECUTION_TRIGGER_RANGE;
 
-    // 【H4修复】终结技伤害改用 ModConfig 动态读取，而非 ModConstants 硬编码
-    // ModConstants.EXECUTION_DAMAGE=30.0F 是死值，ModConfig 默认=80.0 且服主可调
+    // 【H4修复】终结技伤害改用 ModConfig 动态读取，而非硬编码常量
+    // ModConfig 默认=80.0 且服主可调
     // 不能用 static final（编译时常量），必须运行时 .get() 读取
     private float getExecutionDamage() {
         return ModConfig.EXECUTION_DAMAGE.get().floatValue();
@@ -161,7 +161,6 @@ public class DespairExecutionGoal extends Goal {
             case TELEPORTING -> tickTeleporting(serverLevel);
             case CHARGING -> tickCharging(serverLevel);
             case SLAMMING -> tickSlamming(serverLevel);
-            case COOLDOWN -> tickCooldown(serverLevel);
             case IDLE -> {}
         }
     }
@@ -192,9 +191,9 @@ public class DespairExecutionGoal extends Goal {
                 double px = this.evoker.getX() + Math.cos(angle) * r;
                 double py = this.evoker.getY() + 0.5 + (this.stateTimer % 20) / 20.0 * 3.0;
                 double pz = this.evoker.getZ() + Math.sin(angle) * r;
-                emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 0);
+                emitter.add(ParticleIds.ID_VOID_SPARK, px, py, pz, 0);
                 if (i % 2 == 0) {
-                    emitter.add(StellaParticles.ID_STELLA_WISP, px, py + 0.5, pz, 2);
+                    emitter.add(ParticleIds.ID_STELLA_WISP, px, py + 0.5, pz, 2);
                 }
             }
 
@@ -206,12 +205,12 @@ public class DespairExecutionGoal extends Goal {
                 double angle = i * Math.PI * 2.0 / circleSegments;
                 double px = this.evoker.getX() + Math.cos(angle) * warningRadius;
                 double pz = this.evoker.getZ() + Math.sin(angle) * warningRadius;
-                emitter.add(StellaParticles.ID_DYING_EMBER, px, groundY, pz, 0);
+                emitter.add(ParticleIds.ID_DYING_EMBER, px, groundY, pz, 0);
                 if (i % 4 == 0) {
                     double innerR = warningRadius * 0.6;
                     double innerPx = this.evoker.getX() + Math.cos(angle) * innerR;
                     double innerPz = this.evoker.getZ() + Math.sin(angle) * innerR;
-                    emitter.add(StellaParticles.ID_TRANSITION_BURST, innerPx, groundY + 0.05, innerPz, 0);
+                    emitter.add(ParticleIds.ID_TRANSITION_BURST, innerPx, groundY + 0.05, innerPz, 0);
                 }
             }
         }
@@ -298,7 +297,7 @@ public class DespairExecutionGoal extends Goal {
                         double px = this.targetPlayer.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
                         double py = this.targetPlayer.getY() + this.evoker.getRandom().nextDouble() * 1.5;
                         double pz = this.targetPlayer.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 1.5;
-                        emitter.add(StellaParticles.ID_TRANSITION_BURST, px, py, pz, 0);
+                        emitter.add(ParticleIds.ID_TRANSITION_BURST, px, py, pz, 0);
                     }
                 }
                 level.sendParticles(net.minecraft.core.particles.ParticleTypes.EXPLOSION,
@@ -414,7 +413,7 @@ public class DespairExecutionGoal extends Goal {
                 double px = this.evoker.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 0.5;
                 double py = this.evoker.getY() - 0.5 + (this.evoker.getRandom().nextDouble() - 0.5) * 0.5;
                 double pz = this.evoker.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 0.5;
-                emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 0);
+                emitter.add(ParticleIds.ID_VOID_SPARK, px, py, pz, 0);
             }
 
             if (this.stateTimer % 4 == 0) {
@@ -422,7 +421,7 @@ public class DespairExecutionGoal extends Goal {
                     double px = this.evoker.getX() + (this.evoker.getRandom().nextDouble() - 0.5) * 0.8;
                     double py = this.evoker.getY() - 0.3;
                     double pz = this.evoker.getZ() + (this.evoker.getRandom().nextDouble() - 0.5) * 0.8;
-                    emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 0);
+                    emitter.add(ParticleIds.ID_DYING_EMBER, px, py, pz, 0);
                 }
             }
         }
@@ -465,10 +464,10 @@ public class DespairExecutionGoal extends Goal {
                     double px = ex + trailDir.x * t * 4.0;
                     double py = ey + trailDir.y * t * 4.0;
                     double pz = ez + trailDir.z * t * 4.0;
-                    emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 0);
-                    emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 0);
+                    emitter.add(ParticleIds.ID_VOID_SPARK, px, py, pz, 0);
+                    emitter.add(ParticleIds.ID_DYING_EMBER, px, py, pz, 0);
                     if (i % 2 == 0) {
-                        emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0);
+                        emitter.add(ParticleIds.ID_ASTRAL_BEAM, px, py, pz, 0);
                     }
                 }
             }
@@ -488,17 +487,6 @@ public class DespairExecutionGoal extends Goal {
                 this.targetPlayer.removeEffect(ModEffects.VOID_ENTRAPMENT);
             }
             cleanupExecution();
-        }
-    }
-
-    private void tickCooldown(ServerLevel level) {
-        if (this.cooldownTimer > 0) {
-            this.cooldownTimer--;
-        }
-        if (this.cooldownTimer <= 0) {
-            this.state = State.IDLE;
-            this.stateTimer = 0;
-            this.targetPlayer = null;
         }
     }
 
@@ -585,7 +573,7 @@ public class DespairExecutionGoal extends Goal {
                 double px = this.evoker.getX() + Math.cos(angle) * r;
                 double pz = this.evoker.getZ() + Math.sin(angle) * r;
                 double py = groundY + this.evoker.getRandom().nextDouble() * 0.5;
-                emitter.add(StellaParticles.ID_IMPACT_WAVE, px, py, pz, 0);
+                emitter.add(ParticleIds.ID_IMPACT_WAVE, px, py, pz, 0);
             }
 
             for (int dir = 0; dir < 4; dir++) {
@@ -596,7 +584,7 @@ public class DespairExecutionGoal extends Goal {
                     double dist = (i + 1) * 0.8;
                     double px = this.evoker.getX() + dx * dist;
                     double pz = this.evoker.getZ() + dz * dist;
-                    emitter.add(StellaParticles.ID_IMPACT_WAVE, px, groundY, pz, dir);
+                    emitter.add(ParticleIds.ID_IMPACT_WAVE, px, groundY, pz, dir);
                 }
             }
         }
@@ -629,8 +617,9 @@ public class DespairExecutionGoal extends Goal {
             double fz = this.evoker.getZ() + Math.sin(angle) * dist;
             // S-48修复：使用 BossUtils.findGroundY 替代 evoker.getY()
             // 终结技砸地后 BOSS 可能在空中，裂隙应生成在地面而非空中
+            // I-07修复：fallback 使用 level.getMinBuildHeight()，避免 BOSS 在空中时 fallback 到错误高度
             double fy = com.mochi_753.astral_warfare.util.BossUtils.findGroundY(
-                    level, fx, fz, this.evoker.getY(), this.evoker.getY());
+                    level, fx, fz, this.evoker.getY(), level.getMinBuildHeight());
 
             // 检查与已有裂隙位置的最小间距
             boolean tooClose = false;
@@ -675,7 +664,7 @@ public class DespairExecutionGoal extends Goal {
     }
 
     private enum State {
-        IDLE, WINDUP, LAUNCHING, ENTRAPMENT, TELEPORTING, CHARGING, SLAMMING, COOLDOWN
+        IDLE, WINDUP, LAUNCHING, ENTRAPMENT, TELEPORTING, CHARGING, SLAMMING
     }
 
     private void spawnHalberdImpactTrail(ServerLevel level, LivingEntity target) {
@@ -697,9 +686,9 @@ public class DespairExecutionGoal extends Goal {
                 double px = startX + dir.x * dist * t;
                 double py = startY + dir.y * dist * t;
                 double pz = startZ + dir.z * dist * t;
-                emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0);
+                emitter.add(ParticleIds.ID_ASTRAL_BEAM, px, py, pz, 0);
                 if (i > steps * 0.7) {
-                    emitter.add(StellaParticles.ID_TRANSITION_BURST, px, py, pz, 0);
+                    emitter.add(ParticleIds.ID_TRANSITION_BURST, px, py, pz, 0);
                 }
             }
         }

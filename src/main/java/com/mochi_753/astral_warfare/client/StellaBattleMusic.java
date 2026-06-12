@@ -238,15 +238,15 @@ public class StellaBattleMusic {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;
 
+        // C-07修复：覆盖前先停止旧的渐隐 BGM，防止多次快速切换阶段时旧 BGM 堆积未停止
+        if (fadingOutBgm != null) {
+            mc.getSoundManager().stop(fadingOutBgm);
+        }
+
         // 将当前 BGM 移入渐隐队列
         if (currentBgm != null) {
             fadingOutBgm = currentBgm;
-        }
-
-        // 音频泄漏修复：覆盖前先停止旧的渐隐 BGM
-        // 防止多次快速切换阶段时旧 BGM 堆积未停止
-        if (fadingOutBgm != null && fadingOutBgm != currentBgm) {
-            mc.getSoundManager().stop(fadingOutBgm);
+        } else {
             fadingOutBgm = null;
         }
 

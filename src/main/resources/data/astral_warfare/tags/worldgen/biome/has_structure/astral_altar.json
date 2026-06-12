@@ -1,8 +1,8 @@
 {
   "replace": false,
   "values": [
-    "#neoforge:is_plains",
-    "#neoforge:is_savanna",
-    "#neoforge:is_dry"
+    "#c:is_plains",
+    "#c:is_savanna",
+    "#c:is_dry"
   ]
 }

@@ -1,6 +1,6 @@
 package com.mochi_753.astral_warfare.entity;
 
-import com.mochi_753.astral_warfare.client.particle.StellaParticles;
+import com.mochi_753.astral_warfare.network.ParticleIds;
 import com.mochi_753.astral_warfare.init.ModConstants;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import com.mochi_753.astral_warfare.util.BossUtils;
@@ -70,7 +70,7 @@ public class StellaTransitionStateMachine {
                     double px = evoker.getX() + (evoker.getRandom().nextDouble() - 0.5) * 3.0;
                     double py = evoker.getY() + evoker.getRandom().nextDouble() * 2.0;
                     double pz = evoker.getZ() + (evoker.getRandom().nextDouble() - 0.5) * 3.0;
-                    emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 0);
+                    emitter.add(ParticleIds.ID_VOID_SPARK, px, py, pz, 0);
                 }
             }
             // 原版反向传送门粒子：转阶段的紫色能量释放
@@ -134,9 +134,9 @@ public class StellaTransitionStateMachine {
                     double r = evoker.getRandom().nextDouble() * 2.0;
                     double px = golem.getX() + Math.cos(angle) * r;
                     double pz = golem.getZ() + Math.sin(angle) * r;
-                    emitter.add(StellaParticles.ID_VOID_SPARK,
+                    emitter.add(ParticleIds.ID_VOID_SPARK,
                             px, golem.getY() + evoker.getRandom().nextDouble() * 1.5, pz, 0);
-                    emitter.add(StellaParticles.ID_IMPACT_WAVE,
+                    emitter.add(ParticleIds.ID_IMPACT_WAVE,
                             px, golem.getY() + 0.3, pz, 0);
                 }
             }
@@ -176,13 +176,14 @@ public class StellaTransitionStateMachine {
                 double r = evoker.getRandom().nextDouble() * radius;
                 double px = evoker.getX() + Math.cos(angle) * r;
                 double pz = evoker.getZ() + Math.sin(angle) * r;
-                emitter.add(StellaParticles.ID_IMPACT_WAVE, px, evoker.getY() + 0.5, pz, 1);
+                emitter.add(ParticleIds.ID_IMPACT_WAVE, px, evoker.getY() + 0.5, pz, 1);
             }
         }
     }
 
     private double findGroundY(ServerLevel level) {
-        return BossUtils.findGroundY(level, evoker.getX(), evoker.getZ(), evoker.getY(), evoker.getY());
+        // I-09修复：fallback 使用 level.getMinBuildHeight()，避免 BOSS 在空中时 fallback 到错误高度
+        return BossUtils.findGroundY(level, evoker.getX(), evoker.getZ(), evoker.getY(), level.getMinBuildHeight());
     }
 
     public boolean isActive() {

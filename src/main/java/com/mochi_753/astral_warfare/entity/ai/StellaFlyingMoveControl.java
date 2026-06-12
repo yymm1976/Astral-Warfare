@@ -4,6 +4,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 // StellaEvoker 专属飞行移动控制器
@@ -175,7 +176,15 @@ public class StellaFlyingMoveControl extends MoveControl {
         double dy = idealY - this.mob.getY();
         double moveY = Math.clamp(dy * 0.15, -speed * 0.5, speed * 0.5);
 
-        this.mob.setDeltaMovement(moveX, moveY, moveZ);
+        // I-11修复：平滑插值趋近目标速度，而非直接覆盖整个速度向量
+        // 直接 setDeltaMovement(moveX, moveY, moveZ) 会丢弃外部施加的速度（如击退）
+        // 使用 0.3 混合因子：newVel = currentVel + (targetVel - currentVel) * 0.3
+        // 保留 70% 当前速度（含击退等外力），30% 趋近目标速度，兼顾操控性和击退响应
+        Vec3 currentMotion = this.mob.getDeltaMovement();
+        double newMoveX = currentMotion.x + (moveX - currentMotion.x) * 0.3;
+        double newMoveY = currentMotion.y + (moveY - currentMotion.y) * 0.3;
+        double newMoveZ = currentMotion.z + (moveZ - currentMotion.z) * 0.3;
+        this.mob.setDeltaMovement(newMoveX, newMoveY, newMoveZ);
 
         // 设置朝向：始终面向玩家
         float targetYaw = (float) (Math.atan2(dz, dx) * 180.0 / Math.PI) - 90.0f;

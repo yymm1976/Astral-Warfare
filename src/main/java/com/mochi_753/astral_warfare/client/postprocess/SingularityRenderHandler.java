@@ -63,9 +63,20 @@ public class SingularityRenderHandler {
             return;
         }
 
-        // 处理最近的一个黑洞实体
-        // 将黑洞世界坐标投影到屏幕坐标，更新后处理器参数
-        NightfallSingularityEntity nearest = singularities.get(0);
+        // I-08修复：遍历找到最近的黑洞实体（get(0) 不保证最近）
+        NightfallSingularityEntity nearest = null;
+        double nearestDistSq = Double.MAX_VALUE;
+        for (NightfallSingularityEntity s : singularities) {
+            double distSq = mc.player.distanceToSqr(s);
+            if (distSq < nearestDistSq) {
+                nearestDistSq = distSq;
+                nearest = s;
+            }
+        }
+        if (nearest == null) {
+            processor.clearSingularity();
+            return;
+        }
         // 计算屏幕坐标：将世界坐标转换为归一化设备坐标
         var camera = mc.gameRenderer.getMainCamera();
         double dx = nearest.getX() - camera.getPosition().x;

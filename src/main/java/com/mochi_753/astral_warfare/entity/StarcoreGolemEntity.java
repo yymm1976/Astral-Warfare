@@ -1,6 +1,6 @@
 package com.mochi_753.astral_warfare.entity;
 
-import com.mochi_753.astral_warfare.client.particle.StellaParticles;
+import com.mochi_753.astral_warfare.network.ParticleIds;
 import com.mochi_753.astral_warfare.entity.ai.GolemMoveToBossGoal;
 import com.mochi_753.astral_warfare.init.ModConstants;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
@@ -103,29 +103,28 @@ public class StarcoreGolemEntity extends Monster {
                     double px = this.getX() + Math.cos(angle) * radius;
                     double py = this.getY() + this.random.nextDouble() * 1.2;
                     double pz = this.getZ() + Math.sin(angle) * radius;
-                    emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0);
+                    emitter.add(ParticleIds.ID_ASTRAL_BEAM, px, py, pz, 0);
                 }
             }
         }
     }
 
     // 傀儡不反击：被玩家攻击时不产生仇恨
+    // 傀儡无目标 AI（无 MeleeAttackGoal / HurtByTargetGoal / NearestAttackableTargetGoal），
+    // hurt() 仅委托 super.hurt() 处理伤害逻辑，不调用 setTarget()
     @Override
     public boolean hurt(net.minecraft.world.damagesource.DamageSource source, float amount) {
-        boolean result = super.hurt(source, amount);
-        // 被攻击后清除目标，确保傀儡不会反击
-        this.setTarget(null);
-        return result;
+        return super.hurt(source, amount);
     }
 
-    // 【M1修复】充能延迟状态持久化到 NBT
-    // 原先 chargeDelayTimer 和 chargeScheduled 未保存，区块卸载重载后充能倒计时丢失
-    // 导致傀儡永久处于未充能状态，无法再变为充能
+    // 【M1修复】充能状态持久化到 NBT
+    // SynchedEntityData 只负责服务端到客户端同步，不会自动写入存档，因此倒计时和已充能状态都要手动保存
     @Override
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putInt("ChargeDelayTimer", this.chargeDelayTimer);
         tag.putBoolean("ChargeScheduled", this.chargeScheduled);
+        tag.putBoolean("IsCharged", this.isCharged());
     }
 
     @Override
@@ -133,9 +132,11 @@ public class StarcoreGolemEntity extends Monster {
         super.readAdditionalSaveData(tag);
         this.chargeDelayTimer = tag.getInt("ChargeDelayTimer");
         this.chargeScheduled = tag.getBoolean("ChargeScheduled");
-        // NBT 恢复后重新应用充能状态的速度修饰符
-        // 原因：区块卸载重载后 AttributeModifier 丢失，isCharged() 返回 true 但速度未提升
-        if (isCharged()) {
+        boolean charged = tag.getBoolean("IsCharged");
+        this.entityData.set(DATA_IS_CHARGED, charged);
+        // NBT 恢复后重新应用充能速度修饰符
+        // 原因：EntityData 恢复的是同步状态，AttributeModifier 需要重新挂到属性实例上
+        if (charged) {
             setCharged(true);
         }
     }
@@ -144,24 +145,18 @@ public class StarcoreGolemEntity extends Monster {
             ResourceLocation.fromNamespaceAndPath("astral_warfare", "golem_charged_speed");
 
     public void setCharged(boolean charged) {
-        boolean oldCharged = this.entityData.get(DATA_IS_CHARGED);
-        if (oldCharged == charged) {
-            return;
-        }
-
-        this.entityData.set(DATA_IS_CHARGED, charged);
-
         if (!this.level().isClientSide && this.getAttribute(Attributes.MOVEMENT_SPEED) != null) {
             var speedAttr = this.getAttribute(Attributes.MOVEMENT_SPEED);
+            speedAttr.removeModifier(CHARGED_SPEED_MODIFIER_ID);
             if (charged) {
                 speedAttr.addPermanentModifier(new AttributeModifier(
                         CHARGED_SPEED_MODIFIER_ID,
                         CHARGED_SPEED_MULTIPLIER - 1.0,
                         AttributeModifier.Operation.ADD_MULTIPLIED_BASE
                 ));
-            } else {
-                speedAttr.removeModifier(CHARGED_SPEED_MODIFIER_ID);
             }
         }
+
+        this.entityData.set(DATA_IS_CHARGED, charged);
     }
 }

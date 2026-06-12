@@ -56,6 +56,10 @@ public class StarcoreGolemModel extends HierarchicalModel<StarcoreGolemEntity> {
     private final ModelPart leftHand;
     private final ModelPart rightFoot;
     private final ModelPart leftFoot;
+    // C-08修复：补充 createBodyLayer() 中注册但未 retrieve 的 3 个模型部件
+    private final ModelPart chestCore;
+    private final ModelPart chestPlate;
+    private final ModelPart waist;
 
     public StarcoreGolemModel(ModelPart root) {
         this.root = root;
@@ -79,6 +83,10 @@ public class StarcoreGolemModel extends HierarchicalModel<StarcoreGolemEntity> {
         this.leftHand = root.getChild("left_hand");
         this.rightFoot = root.getChild("right_foot");
         this.leftFoot = root.getChild("left_foot");
+        // C-08修复：retrieve createBodyLayer() 中注册的 3 个遗漏部件
+        this.chestCore = root.getChild("chest_core");
+        this.chestPlate = root.getChild("chest_plate");
+        this.waist = root.getChild("waist");
     }
 
     public static LayerDefinition createBodyLayer() {

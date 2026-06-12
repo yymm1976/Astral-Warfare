@@ -3,6 +3,7 @@ package com.mochi_753.astral_warfare.entity.ai;
 import com.mochi_753.astral_warfare.entity.StellaEvokerEntity;
 import net.minecraft.server.level.ServerLevel;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
 
@@ -62,7 +63,7 @@ public enum SpellType {
 
     // 随机选取一个当前可释放的法术（法力充足且冷却完毕）
     public static SpellType pickRandom(StellaEvokerEntity evoker) {
-        List<SpellType> available = List.of(values()).stream()
+        List<SpellType> available = Arrays.stream(values())
                 .filter(spell -> evoker.getManaData().getCurrentMana() >= spell.manaCost)
                 .filter(spell -> evoker.getSpellCooldown(spell) <= 0)
                 .toList();

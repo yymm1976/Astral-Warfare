@@ -11,7 +11,6 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
 
 /**
  * 星界水晶实体渲染器
@@ -44,9 +43,8 @@ public class AstralCrystalRenderer extends EntityRenderer<AstralCrystalEntity> {
 
         poseStack.pushPose();
 
-        // 垂直浮动效果
-        float floatOffset = Mth.sin(entity.tickCount * 0.2F + partialTick) * 0.15F + 0.5F;
-        poseStack.translate(0.0, floatOffset + 0.25, 0.0);
+        // M-07修复：移除渲染器的浮动动画（模型 setupAnim 已有浮动效果），仅保留静态 Y 偏移
+        poseStack.translate(0.0, 0.25, 0.0);
 
         // 整体缓慢自转
         float rotation = entity.tickCount * 2.0F + partialTick;

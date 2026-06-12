@@ -14,7 +14,7 @@ import com.mochi_753.astral_warfare.network.ClientboundStellaManaPacket;
 import com.mochi_753.astral_warfare.network.ClientboundStellaManaRemovePacket;
 import com.mochi_753.astral_warfare.network.ClientboundMazeSyncPacket;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
-import com.mochi_753.astral_warfare.client.particle.StellaParticles;
+import com.mochi_753.astral_warfare.network.ParticleIds;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
@@ -151,7 +151,15 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
 
     // 行走动画标记：由 Phase2MeleeGoal 在冷却期/追击期设置
     // idle_controller 检测此标记切换到 walk 动画
-    public boolean isWalking = false;
+    private boolean isWalking = false;
+
+    public boolean isWalking() {
+        return this.isWalking;
+    }
+
+    public void setWalking(boolean walking) {
+        this.isWalking = walking;
+    }
 
     // 一阶段待机动画的 RawAnimation 定义
     // 对应 animations/stella_evoker_idle_phase1.animation.json 中的 stella_evoker_idle_phase1
@@ -231,7 +239,7 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
                 return software.bernie.geckolib.animation.PlayState.CONTINUE;
             }
             if (this.getCombatPhase() == PHASE_2_MELEE) {
-                if (this.isWalking) {
+                if (this.isWalking()) {
                     state.getController().setAnimation(WALK_ANIM);
                 } else {
                     state.getController().setAnimation(IDLE_PHASE2_ANIM);
@@ -502,7 +510,7 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
                 double px = this.getX() + Math.cos(angle) * r;
                 double pz = this.getZ() + Math.sin(angle) * r;
                 // 手部高度约 Y+1.5，粒子向下扩散
-                emitter.add(StellaParticles.ID_IMPACT_WAVE, px, this.getY() + 1.5, pz, 0);
+                emitter.add(ParticleIds.ID_IMPACT_WAVE, px, this.getY() + 1.5, pz, 0);
             }
         }
 
@@ -574,9 +582,10 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
 
     private void syncManaToPlayer(ServerPlayer player) {
         ManaData data = this.getManaData();
-        lastSyncedMana = data.getCurrentMana();
-        lastSyncedMaxMana = data.getMaxMana();
-        lastSyncedManaSystemDisabled = isManaSystemDisabled();
+        // I-02: Do NOT update lastSyncedMana / lastSyncedMaxMana / lastSyncedManaSystemDisabled here.
+        // Those shared dirty-tracking fields are exclusively owned by the broadcast path in setCurrentMana().
+        // Mutating them here (called from startSeenByPlayer) would suppress the next legitimate broadcast
+        // when a new player joins tracking, because setCurrentMana would see no diff and skip the packet.
         PacketDistributor.sendToPlayer(
                 player,
                 new ClientboundStellaManaPacket(this.getUUID(), data.getCurrentMana(), data.getMaxMana(), isManaSystemDisabled())
@@ -855,7 +864,7 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
                 double px = this.getX() + (this.random.nextDouble() - 0.5) * 2.0;
                 double py = this.getY() + this.random.nextDouble() * 2.0;
                 double pz = this.getZ() + (this.random.nextDouble() - 0.5) * 2.0;
-                emitter.add(StellaParticles.ID_STELLA_WISP, px, py, pz, 0);
+                emitter.add(ParticleIds.ID_STELLA_WISP, px, py, pz, 0);
             }
         }
     }
@@ -910,14 +919,14 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
                     double x = cx + col * MAZE_CELL_SIZE;
                     for (int row = 0; row < 20; row++) {
                         double z = cz - halfGrid * MAZE_CELL_SIZE + row * (MAZE_GRID_SIZE * MAZE_CELL_SIZE / 20.0);
-                        emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.05, z, 0);
+                        emitter.add(ParticleIds.ID_ASTRAL_BEAM, x, cy + 0.05, z, 0);
                     }
                 }
                 for (int row = -halfGrid; row <= halfGrid; row++) {
                     double z = cz + row * MAZE_CELL_SIZE;
                     for (int col = 0; col < 20; col++) {
                         double x = cx - halfGrid * MAZE_CELL_SIZE + col * (MAZE_GRID_SIZE * MAZE_CELL_SIZE / 20.0);
-                        emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.05, z, 0);
+                        emitter.add(ParticleIds.ID_ASTRAL_BEAM, x, cy + 0.05, z, 0);
                     }
                 }
             }
@@ -927,6 +936,8 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
             this.mazeActiveGroup = (activeTick / MAZE_SWITCH_INTERVAL) % 2;
 
             try (ParticleEmitter emitter = new ParticleEmitter(this)) {
+                // M-03: 激活列粒子每3tick生成一次，减少约67%粒子包
+                boolean particleTick = (activeTick % 3 == 0);
                 for (int col = -halfGrid; col <= halfGrid; col++) {
                     boolean isActive = ((col + halfGrid) % 2 == this.mazeActiveGroup);
                     double x = cx + col * MAZE_CELL_SIZE;
@@ -935,17 +946,17 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
                         double z = cz + row * MAZE_CELL_SIZE;
 
                         if (isActive) {
-                            emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.1, z, 0);
-                            emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.1, z, 1);
-                            emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.15, z, 0);
-                            emitter.add(StellaParticles.ID_ASTRAL_BEAM, x, cy + 0.15, z, 1);
-                            emitter.add(StellaParticles.ID_VOID_TWINKLE, x, cy + 0.2, z, 1);
-                            emitter.add(StellaParticles.ID_VOID_TWINKLE, x, cy + 0.2, z, 1);
-                            emitter.add(StellaParticles.ID_VOID_TWINKLE, x, cy + 0.25, z, 1);
-                            emitter.add(StellaParticles.ID_VOID_TWINKLE, x, cy + 0.25, z, 1);
+                            // M-03: 从每cell 8粒子减至4粒子，配合每3tick生成
+                            // 有效从~480粒子/tick降至~53粒子/tick
+                            if (particleTick) {
+                                emitter.add(ParticleIds.ID_ASTRAL_BEAM, x, cy + 0.1, z, 0);
+                                emitter.add(ParticleIds.ID_ASTRAL_BEAM, x, cy + 0.15, z, 1);
+                                emitter.add(ParticleIds.ID_VOID_TWINKLE, x, cy + 0.2, z, 1);
+                                emitter.add(ParticleIds.ID_VOID_TWINKLE, x, cy + 0.25, z, 1);
+                            }
                         } else {
                             if ((row + halfGrid) % 2 == 0) {
-                                emitter.add(StellaParticles.ID_VOID_TWINKLE, x, cy + 0.05, z, 0);
+                                emitter.add(ParticleIds.ID_VOID_TWINKLE, x, cy + 0.05, z, 0);
                             }
                         }
                     }
@@ -972,11 +983,13 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
                         entity.hurt(serverLevel.damageSources().indirectMagic(this, this), MAZE_DAMAGE);
                     }
                 }
-            }
 
-            // 发送网络同步包给客户端渲染器
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(this,
-                    new ClientboundMazeSyncPacket(cx, cy, cz, this.mazeActiveGroup, MAZE_GRID_SIZE));
+                // I-01: 网络同步包仅在 mazeActiveGroup 变化时发送（每 MAZE_SWITCH_INTERVAL tick）
+                // 原来每tick发送，9/10的包数据完全相同，浪费带宽
+                // 客户端渲染器使用最后收到的 group 值持续渲染，无需每tick同步
+                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this,
+                        new ClientboundMazeSyncPacket(cx, cy, cz, this.mazeActiveGroup, MAZE_GRID_SIZE));
+            }
         }
 
         // 迷宫施法结束
@@ -1021,7 +1034,7 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
                     double px = this.getX() + Math.cos(angle) * radius;
                     double py = this.getY() + this.random.nextDouble() * 1.8;
                     double pz = this.getZ() + Math.sin(angle) * radius;
-                    emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 2);
+                    emitter.add(ParticleIds.ID_VOID_SPARK, px, py, pz, 2);
                 }
             }
         }
@@ -1113,6 +1126,7 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
         tag.putInt("CombatPhase", getCombatPhase());
         tag.putBoolean("HasTransitioned", transitionFSM.hasTransitioned());
         tag.putBoolean("ManaSystemDisabled", isManaSystemDisabled());
+        tag.putBoolean("IsWeakened", isWeakened());
         tag.putInt("WeakenedTicks", manaSystem.getWeakenedTimer());
         tag.putBoolean("IsFallingFromExhaustion", manaSystem.isFalling());
         tag.putBoolean("ImpactTriggered", manaSystem.isImpactTriggered());
@@ -1307,8 +1321,8 @@ public class StellaEvokerEntity extends AbstractIllager implements GeoEntity {
         // Raider 在构造函数中添加了 MeleeAttackGoal 等使用 MOVE+LOOK Flag 的 Goal
         // 这些 Goal 会与 Phase2MeleeGoal 产生 Flag 互斥，导致 BOSS 不追人
         // 必须全部清除后只注册二阶段专用 Goal
-        this.goalSelector.getAvailableGoals().forEach(WrappedGoal::stop);
-        this.goalSelector.getAvailableGoals().clear();
+        // I-03: Use public API removeAllGoals instead of directly clearing internal collection
+        this.goalSelector.removeAllGoals(goal -> true);
 
         this.phase2MeleeGoal = new Phase2MeleeGoal(this);
         this.despairExecutionGoal = new DespairExecutionGoal(this);

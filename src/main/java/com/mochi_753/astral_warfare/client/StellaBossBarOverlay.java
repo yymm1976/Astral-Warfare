@@ -108,10 +108,11 @@ public class StellaBossBarOverlay {
         // 这样法力条紧贴在对应 BOSS 血条正下方，不会因其他模组 BossBar 而错位
         BossHealthOverlay bossOverlay = mc.gui.getBossOverlay();
         java.util.Map<UUID, ? extends net.minecraft.world.BossEvent> bossEvents;
+        // I-09修复：收窄为 Exception，避免吞掉 OOM/StackOverflowError 等致命错误
         try {
             bossEvents = bossOverlay.events;
-        } catch (Throwable t) {
-            LOGGER.warn("bossEvents 降级", t);
+        } catch (Exception e) {
+            LOGGER.error("Failed to access BossHealthOverlay events, falling back to empty map", e);
             bossEvents = java.util.Collections.emptyMap();
         }
 

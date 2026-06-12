@@ -53,6 +53,15 @@ public class VoidSigilRenderer {
     private static final float OUTER_RADIUS = 1.2F;
     // 星阵 Y 轴偏移（防止 Z-fighting）
     private static final float Y_OFFSET = 0.02F;
+
+    // M-04修复：缓存 Color 实例，避免渲染热路径中每帧分配新对象
+    private static final Color INNER_PARTICLE_START = new Color(80, 10, 120);
+    private static final Color INNER_PARTICLE_END = new Color(160, 50, 200);
+    private static final Color OUTER_PARTICLE_START = new Color(160, 60, 240);
+    private static final Color OUTER_PARTICLE_END = new Color(230, 160, 255);
+    private static final Color CENTER_PARTICLE_START = new Color(120, 0, 200);
+    private static final Color CENTER_PARTICLE_END = new Color(200, 80, 255);
+
     // 粒子生成限流：每 2 帧生成一次粒子（约等于每 tick 一次）
     // 渲染帧率（60-240 FPS）远高于 tick 率（20 TPS），必须限流避免粒子过多
     private static int particleTickCounter = 0;
@@ -99,7 +108,8 @@ public class VoidSigilRenderer {
             drawVoidSigil(poseStack, bufferSource, cameraPos, entity, partialTick, shouldSpawnParticles);
         }
 
-        bufferSource.endBatch();
+        // M-06修复：指定 RenderType 避免 flush 所有缓冲
+        bufferSource.endBatch(RenderType.lines());
     }
 
     // 在实体脚下绘制虚空星阵
@@ -157,7 +167,7 @@ public class VoidSigilRenderer {
                 double pz = entity.getZ() + Math.sin(angle) * INNER_RADIUS;
                 WorldParticleBuilder.create(LodestoneParticleTypes.SPARKLE_PARTICLE)
                     .setColorData(ColorParticleData.create(
-                        new Color(80, 10, 120), new Color(160, 50, 200)).build())
+                        INNER_PARTICLE_START, INNER_PARTICLE_END).build())
                     .setScaleData(GenericParticleData.create(
                         0.4f, 0.1f).setEasing(Easing.QUINTIC_OUT).build())
                     .setTransparencyData(GenericParticleData.create(
@@ -175,7 +185,7 @@ public class VoidSigilRenderer {
                 double pz = entity.getZ() + Math.sin(angle) * OUTER_RADIUS;
                 WorldParticleBuilder.create(LodestoneParticleTypes.WISP_PARTICLE)
                     .setColorData(ColorParticleData.create(
-                        new Color(160, 60, 240), new Color(230, 160, 255)).build())
+                        OUTER_PARTICLE_START, OUTER_PARTICLE_END).build())
                     .setScaleData(GenericParticleData.create(
                         0.3f, 0.05f).setEasing(Easing.QUINTIC_OUT).build())
                     .setTransparencyData(GenericParticleData.create(
@@ -190,7 +200,7 @@ public class VoidSigilRenderer {
                 double oz = (entity.getRandom().nextDouble() - 0.5) * 0.4;
                 WorldParticleBuilder.create(LodestoneParticleTypes.SPARKLE_PARTICLE)
                     .setColorData(ColorParticleData.create(
-                        new Color(120, 0, 200), new Color(200, 80, 255)).build())
+                        CENTER_PARTICLE_START, CENTER_PARTICLE_END).build())
                     .setScaleData(GenericParticleData.create(
                         0.25f, 0f).setEasing(Easing.QUINTIC_OUT).build())
                     .setTransparencyData(GenericParticleData.create(
@@ -220,28 +230,27 @@ public class VoidSigilRenderer {
     }
 
     // 绘制一个等边三角形
+    // M-05修复：内联顶点计算，避免每次调用分配 float[3][3] 数组
     private static void drawTriangle(VertexConsumer consumer, PoseStack.Pose pose,
                                       float radius, float alpha, float r, float g, float b,
                                       float rotationOffset) {
-        // 三角形三个顶点
-        float[][] vertices = new float[3][3];
-        for (int i = 0; i < 3; i++) {
-            double angle = Math.toRadians(rotationOffset + i * 120.0F);
-            vertices[i][0] = (float) Math.cos(angle) * radius;
-            vertices[i][1] = 0;
-            vertices[i][2] = (float) Math.sin(angle) * radius;
-        }
+        // 预计算三个顶点的 x/z 坐标，无需堆分配
+        float x0 = (float) Math.cos(Math.toRadians(rotationOffset)) * radius;
+        float z0 = (float) Math.sin(Math.toRadians(rotationOffset)) * radius;
+        float x1 = (float) Math.cos(Math.toRadians(rotationOffset + 120.0F)) * radius;
+        float z1 = (float) Math.sin(Math.toRadians(rotationOffset + 120.0F)) * radius;
+        float x2 = (float) Math.cos(Math.toRadians(rotationOffset + 240.0F)) * radius;
+        float z2 = (float) Math.sin(Math.toRadians(rotationOffset + 240.0F)) * radius;
 
-        // 绘制三条边
-        for (int i = 0; i < 3; i++) {
-            int next = (i + 1) % 3;
-            consumer.addVertex(pose, vertices[i][0], vertices[i][1], vertices[i][2])
-                    .setColor(r, g, b, alpha)
-                    .setNormal(pose, 0, 1, 0);
-            consumer.addVertex(pose, vertices[next][0], vertices[next][1], vertices[next][2])
-                    .setColor(r, g, b, alpha)
-                    .setNormal(pose, 0, 1, 0);
-        }
+        // 边 0→1
+        consumer.addVertex(pose, x0, 0, z0).setColor(r, g, b, alpha).setNormal(pose, 0, 1, 0);
+        consumer.addVertex(pose, x1, 0, z1).setColor(r, g, b, alpha).setNormal(pose, 0, 1, 0);
+        // 边 1→2
+        consumer.addVertex(pose, x1, 0, z1).setColor(r, g, b, alpha).setNormal(pose, 0, 1, 0);
+        consumer.addVertex(pose, x2, 0, z2).setColor(r, g, b, alpha).setNormal(pose, 0, 1, 0);
+        // 边 2→0
+        consumer.addVertex(pose, x2, 0, z2).setColor(r, g, b, alpha).setNormal(pose, 0, 1, 0);
+        consumer.addVertex(pose, x0, 0, z0).setColor(r, g, b, alpha).setNormal(pose, 0, 1, 0);
     }
 
     // 绘制圆环（多边形近似）

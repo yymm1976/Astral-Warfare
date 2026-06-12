@@ -12,6 +12,7 @@
   "entity.astral_warfare.starcore_golem": "星核傀儡",
   "entity.astral_warfare.astral_crystal": "星界水晶",
   "entity.astral_warfare.nightfall_singularity": "夜幕黑洞",
+  "entity.astral_warfare.void_fissure": "虚空裂隙",
   "effect.astral_warfare.void_entrapment": "虚空禁锢",
   "effect.astral_warfare.void_bleed": "虚空流血",
   "death.attack.astral_warfare.void_bleed": "%1$s被虚空侵蚀而亡",

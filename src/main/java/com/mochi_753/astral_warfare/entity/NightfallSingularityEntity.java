@@ -2,7 +2,7 @@ package com.mochi_753.astral_warfare.entity;
 
 import com.mochi_753.astral_warfare.init.ModConstants;
 import com.mochi_753.astral_warfare.init.ModEffects;
-import com.mochi_753.astral_warfare.client.particle.StellaParticles;
+import com.mochi_753.astral_warfare.network.ParticleIds;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -26,6 +26,7 @@ import java.util.UUID;
 //   1. 扫描频率从每 tick 降为每 4 tick（减少 75% 的 getEntitiesOfClass 调用）
 //   2. 使用平滑吸引力公式：Velocity = (Target - Current) / Distance^2
 //   3. 粒子密度通过随机数控制，避免低配电脑卡死
+//   4. C-05: 粒子总量从每tick 68个降为每2tick 19个（~90%网络包削减）
 public class NightfallSingularityEntity extends Entity {
 
     // 引力吸引范围
@@ -141,39 +142,44 @@ public class NightfallSingularityEntity extends Entity {
         }
 
         // 黑洞特效（Phase 29 重设计：四层结构 + 微弱光晕）
-        // 视觉设计：
-        //   1. 核心（r<1.5）：8个 ID_DYING_EMBER variant=2 近黑色粒子，缓慢向外扩散→消失
-        //   2. 事件视界（r=1.5-3.0）：16个 ID_VOID_SPARK variant=0 暗紫，双层反向旋转密集环
-        //   3. 吸积盘（r=3.0-8.0）：24个 ID_ASTRAL_BEAM variant=0 亮蓝白，逆时针旋转
-        //   4. 引力透镜环（r=8.0-16.0）：每2tick 8个 ID_VOID_SPARK variant=2 极暗，极慢旋转
-        //   5. 微弱光晕：4个 ID_STELLA_WISP variant=0 缓慢上升，替代喷流
+        // C-05 性能优化：
+        //   - 所有粒子每2tick生成一次（减少50%粒子包）
+        //   - 各层粒子数减半：核心3, 事件视界4+4, 吸积盘6, 光晕2
+        //   - 引力透镜环改为每4tick生成（外层稀疏环带视觉变化慢，可进一步降频）
+        //   - 伤害/吸引逻辑不受影响，仍然每tick执行
+        // 视觉设计（降频后每2tick粒子数）：
+        //   1. 核心（r<1.5）：3个 ID_DYING_EMBER variant=2 近黑色粒子，缓慢向外扩散→消失
+        //   2. 事件视界（r=1.5-3.0）：4+4个 ID_VOID_SPARK variant=0 暗紫，双层反向旋转密集环
+        //   3. 吸积盘（r=3.0-8.0）：6个 ID_ASTRAL_BEAM variant=0 亮蓝白，逆时针旋转
+        //   4. 引力透镜环（r=8.0-16.0）：每4tick 8个 ID_VOID_SPARK variant=2 极暗，极慢旋转
+        //   5. 微弱光晕：2个 ID_STELLA_WISP variant=0 缓慢上升，替代喷流
         //
         // 所有粒子都有朝向核心的运动，增强"吸入"感
         // 使用 ParticleEmitter 批量发送粒子包，减少网络开销
+        // C-05: 粒子生成每2tick执行一次，伤害和吸引逻辑不受影响
+        if (this.tickCount % 2 == 0) {
         try (ParticleEmitter emitter = new ParticleEmitter(this)) {
 
-        // === 1. 核心（每tick 8个近黑色粒子，r<1.5，缓慢向外扩散→消失）===
-        // 核心粒子密集且暗，像"吞噬光线的黑洞中心"
-        // DYING_EMBER variant=2（近黑色），半径1.5内
-        for (int i = 0; i < 8; i++) {
+        // === 1. 核心（每2tick 3个近黑色粒子，r<1.5，缓慢向外扩散→消失）===
+        // C-05: 从8个减至3个，配合每2tick生成，有效~1.5/tick
+        for (int i = 0; i < 3; i++) {
             double angle = this.random.nextDouble() * Math.PI * 2;
             double r = this.random.nextDouble() * 1.5;
             double px = this.getX() + Math.cos(angle) * r;
             double pz = this.getZ() + Math.sin(angle) * r;
             double py = this.getY() + 0.5 + (this.random.nextDouble() - 0.5) * 0.3;
-            emitter.add(StellaParticles.ID_DYING_EMBER, px, py, pz, 2);
+            emitter.add(ParticleIds.ID_DYING_EMBER, px, py, pz, 2);
         }
 
-        // === 2. 事件视界（每tick 16个暗紫粒子，双层反向旋转密集环，r=1.5-3.0）===
-        // 双层反向旋转：内层顺时针、外层逆时针，营造"时空扭曲"感
-        // VOID_SPARK variant=0（暗紫色），密集环
+        // === 2. 事件视界（每2tick 4+4个暗紫粒子，双层反向旋转密集环，r=1.5-3.0）===
+        // C-05: 从16次循环(32粒子)减至4次循环(8粒子)，保持双层反向旋转视觉效果
         double evRotation = this.tickCount * 0.08;
-        for (int i = 0; i < 16; i++) {
-            double baseAngle = i * Math.PI * 2.0 / 16;
+        for (int i = 0; i < 4; i++) {
+            double baseAngle = i * Math.PI * 2.0 / 4;
             // 内层（r≈1.8）：顺时针旋转
             double innerAngle = baseAngle + evRotation;
             double innerR = 1.5 + this.random.nextDouble() * 0.5;
-            emitter.add(StellaParticles.ID_VOID_SPARK,
+            emitter.add(ParticleIds.ID_VOID_SPARK,
                     this.getX() + Math.cos(innerAngle) * innerR,
                     this.getY() + 0.5 + (this.random.nextDouble() - 0.5) * 0.1,
                     this.getZ() + Math.sin(innerAngle) * innerR,
@@ -181,30 +187,28 @@ public class NightfallSingularityEntity extends Entity {
             // 外层（r≈2.5）：逆时针旋转
             double outerAngle = baseAngle - evRotation * 0.7;
             double outerR = 2.2 + this.random.nextDouble() * 0.8;
-            emitter.add(StellaParticles.ID_VOID_SPARK,
+            emitter.add(ParticleIds.ID_VOID_SPARK,
                     this.getX() + Math.cos(outerAngle) * outerR,
                     this.getY() + 0.5 + (this.random.nextDouble() - 0.5) * 0.1,
                     this.getZ() + Math.sin(outerAngle) * outerR,
                     0);
         }
 
-        // === 3. 吸积盘（每tick 24个亮蓝白粒子，逆时针旋转，r=3.0-8.0）===
-        // 吸积盘是黑洞最亮的部分，用亮蓝白色粒子
-        // ASTRAL_BEAM variant=0（亮蓝白），逆时针旋转
+        // === 3. 吸积盘（每2tick 6个亮蓝白粒子，逆时针旋转，r=3.0-8.0）===
+        // C-05: 从24个减至6个，保持逆时针旋转和蓝白视觉效果
         double diskRotation = this.tickCount * 0.03;
-        for (int i = 0; i < 24; i++) {
-            double angle = i * Math.PI * 2.0 / 24 + diskRotation + this.random.nextDouble() * 0.2;
+        for (int i = 0; i < 6; i++) {
+            double angle = i * Math.PI * 2.0 / 6 + diskRotation + this.random.nextDouble() * 0.2;
             double r = 3.0 + this.random.nextDouble() * 5.0;
             double px = this.getX() + Math.cos(angle) * r;
             double pz = this.getZ() + Math.sin(angle) * r;
             double py = this.getY() + 0.5 + (this.random.nextDouble() - 0.5) * 0.15;
-            emitter.add(StellaParticles.ID_ASTRAL_BEAM, px, py, pz, 0);
+            emitter.add(ParticleIds.ID_ASTRAL_BEAM, px, py, pz, 0);
         }
 
-        // === 4. 引力透镜环（每2tick 8个极暗粒子，极慢旋转，r=8.0-16.0）===
-        // 外围环带，极稀疏极暗，像"光线被弯曲"的视觉暗示
-        // VOID_SPARK variant=2（极暗），每2tick生成
-        if (this.tickCount % 2 == 0) {
+        // === 4. 引力透镜环（每4tick 8个极暗粒子，极慢旋转，r=8.0-16.0）===
+        // C-05: 从每2tick改为每4tick，外围极稀疏环带视觉变化极慢，降频不影响观感
+        if (this.tickCount % 4 == 0) {
             double lensRotation = this.tickCount * 0.01;
             for (int i = 0; i < 8; i++) {
                 double angle = i * Math.PI * 2.0 / 8 + lensRotation + this.random.nextDouble() * 0.3;
@@ -212,23 +216,23 @@ public class NightfallSingularityEntity extends Entity {
                 double px = this.getX() + Math.cos(angle) * r;
                 double pz = this.getZ() + Math.sin(angle) * r;
                 double py = this.getY() + 0.5 + (this.random.nextDouble() - 0.5) * 0.4;
-                emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 2);
+                emitter.add(ParticleIds.ID_VOID_SPARK, px, py, pz, 2);
             }
         }
 
-        // === 5. 微弱光晕（4个 STELLA_WISP 缓慢上升，替代喷流）===
-        // 垂直于吸积盘平面的微弱光晕，替代原来的上下喷流
-        // STELLA_WISP variant=0（淡紫色），缓慢上升
-        for (int i = 0; i < 4; i++) {
+        // === 5. 微弱光晕（每2tick 2个 STELLA_WISP 缓慢上升，替代喷流）===
+        // C-05: 从4个减至2个
+        for (int i = 0; i < 2; i++) {
             double angle = this.random.nextDouble() * Math.PI * 2;
             double r = this.random.nextDouble() * 1.0;
             double px = this.getX() + Math.cos(angle) * r;
             double pz = this.getZ() + Math.sin(angle) * r;
             double py = this.getY() + 0.5 + this.random.nextDouble() * 1.5;
-            emitter.add(StellaParticles.ID_STELLA_WISP, px, py, pz, 0);
+            emitter.add(ParticleIds.ID_STELLA_WISP, px, py, pz, 0);
         }
 
         } // end ParticleEmitter
+        } // end C-05 tick guard
 
         // 扫描计数器：每 4 tick 执行一次高消耗的 getEntitiesOfClass
         scanTimer++;

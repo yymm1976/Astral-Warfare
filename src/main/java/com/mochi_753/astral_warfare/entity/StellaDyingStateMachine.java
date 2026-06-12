@@ -1,7 +1,7 @@
 package com.mochi_753.astral_warfare.entity;
 
 import com.mochi_753.astral_warfare.init.ModConstants;
-import com.mochi_753.astral_warfare.client.particle.StellaParticles;
+import com.mochi_753.astral_warfare.network.ParticleIds;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -70,7 +70,7 @@ public class StellaDyingStateMachine {
                     double py = this.evoker.getY() + this.evoker.getRandom().nextDouble() * 2.0;
 
                     // 虚空火花（默认变体）：反向吸入粒子
-                    emitter.add(StellaParticles.ID_VOID_SPARK, px, py, pz, 0);
+                    emitter.add(ParticleIds.ID_VOID_SPARK, px, py, pz, 0);
                 }
             }
             // 原版传送门粒子：死亡吸入的虚空旋转效果
@@ -102,7 +102,7 @@ public class StellaDyingStateMachine {
                 double px = this.evoker.getX() + Math.cos(angle) * r;
                 double pz = this.evoker.getZ() + Math.sin(angle) * r;
                 // 冲击波（大爆炸变体）：死亡爆炸
-                emitter.add(StellaParticles.ID_IMPACT_WAVE, px, this.evoker.getY() + 1.0, pz, 1);
+                emitter.add(ParticleIds.ID_IMPACT_WAVE, px, this.evoker.getY() + 1.0, pz, 1);
             }
         }
 

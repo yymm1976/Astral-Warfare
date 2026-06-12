@@ -70,21 +70,21 @@ public class ParticleEmitter implements AutoCloseable {
                     new ClientboundParticleBatchPacket(currentTypeId, new ArrayList<>(currentBatch))
             );
         } catch (Exception t) {
-            // S-11修复：记录网络发送失败日志，便于排查连接问题
-            LOGGER.debug("Particle batch send failed", t);
+            // M-12修复：使用 WARN 级别记录网络发送失败，确保生产环境可见
+            LOGGER.warn("Particle batch send failed", t);
         }
         currentBatch.clear();
         currentTypeId = -1;
     }
 
     // AutoCloseable 实现：确保在 try-with-resources 中自动 flush
-    // try-catch：网络异常时静默丢弃，不破坏调用方事务
+    // try-catch：网络异常时记录警告但不破坏调用方事务，避免一次粒子发送失败中断 BOSS 逻辑
     @Override
     public void close() {
         try {
             flush();
         } catch (Exception t) {
-            // 网络异常时静默丢弃，不破坏调用方事务
+            LOGGER.warn("Particle batch close failed", t);
         }
     }
 }

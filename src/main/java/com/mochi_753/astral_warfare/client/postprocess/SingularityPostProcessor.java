@@ -16,13 +16,14 @@ public class SingularityPostProcessor extends PostProcessor {
 
     // 当前帧的黑洞屏幕坐标和着色器参数
     // 由 SingularityRenderHandler 在 AFTER_TRANSLUCENT_BLOCKS 阶段更新
-    private float screenX;
-    private float screenY;
-    private float radius;
-    private float intensity;
-    private float animTime;
+    // C-06修复：声明为 volatile，保证跨线程可见性（写于渲染线程，读于后处理线程）
+    private volatile float screenX;
+    private volatile float screenY;
+    private volatile float radius;
+    private volatile float intensity;
+    private volatile float animTime;
     // 是否检测到黑洞实体（由外部事件监听器设置）
-    private boolean singularityDetected;
+    private volatile boolean singularityDetected;
 
     // 返回后处理链的资源路径
     // 对应 shaders/post/singularity_distortion.json

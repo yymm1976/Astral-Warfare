@@ -38,13 +38,6 @@ public record ClientboundMazeSyncPacket(
     @Override
     public Type<? extends CustomPacketPayload> type() { return TYPE; }
 
-    // 客户端接收到迷宫同步包时更新缓存
-    // S-07修复：缓存逻辑已移入 MazeDataCache（独立职责 + volatile）
-    public void updateClientCache() {
-        com.mochi_753.astral_warfare.client.MazeDataCache.setLastMazeData(
-                new MazeData(cx, cy, cz, activeGroup, gridSize, System.currentTimeMillis()));
-    }
-
     // 迷宫渲染数据记录
     public record MazeData(double cx, double cy, double cz, int activeGroup, int gridSize, long timestamp) {}
 }

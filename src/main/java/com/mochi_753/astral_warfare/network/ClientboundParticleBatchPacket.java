@@ -53,8 +53,7 @@ public record ClientboundParticleBatchPacket(int particleTypeId, List<ParticleEn
     }
 
     // 解码：按相同顺序读取数据
-    // Phase 32：上限从 512 提升到 1024，超过时截断+日志警告而非抛异常
-    // 原因：Phase 28 将单批粒子数推到 360，某些法术同类型粒子累积超过 512 导致崩溃
+    // 上限 1024 是网络安全边界，超过时直接拒绝，避免异常大包让客户端长时间循环读取
     private static final int MAX_PARTICLES_PER_BATCH = 1024;
 
     private static ClientboundParticleBatchPacket decode(RegistryFriendlyByteBuf buf) {
@@ -64,14 +63,13 @@ public record ClientboundParticleBatchPacket(int particleTypeId, List<ParticleEn
             throw new IllegalArgumentException("Invalid particle batch count: " + count);
         }
         if (count > MAX_PARTICLES_PER_BATCH) {
-            LOGGER.warn("Particle batch count {} exceeds limit {}, truncating", count, MAX_PARTICLES_PER_BATCH);
-            count = MAX_PARTICLES_PER_BATCH;
+            LOGGER.warn("Rejected particle batch count {} exceeds limit {}", count, MAX_PARTICLES_PER_BATCH);
+            throw new IllegalArgumentException("Particle batch count exceeds limit: " + count);
         }
+        // count 已通过硬上限检查，可安全按声明数量读取并保留全部条目
         List<ParticleEntry> entries = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
-            entries.add(new ParticleEntry(
-                    buf.readDouble(), buf.readDouble(), buf.readDouble(), buf.readInt()
-            ));
+            entries.add(new ParticleEntry(buf.readDouble(), buf.readDouble(), buf.readDouble(), buf.readInt()));
         }
         return new ClientboundParticleBatchPacket(particleTypeId, entries);
     }

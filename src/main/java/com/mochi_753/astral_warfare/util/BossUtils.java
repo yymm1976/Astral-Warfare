@@ -3,6 +3,7 @@ package com.mochi_753.astral_warfare.util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluids;
 
 // BOSS 通用工具类
@@ -43,14 +44,35 @@ public class BossUtils {
     // 使用方式：entity.teleportTo(x, y, z) 后调用此方法
     public static void findSafeTeleportPosition(Entity entity) {
         BlockPos tpPos = entity.blockPosition();
-        if (entity.level().getBlockState(tpPos).isSolidRender(entity.level(), tpPos)) {
+        BlockPos headPos = tpPos.above();
+        // I-10修复：同时检查脚部和头部位置，确保两格高实体不会被卡住
+        if (entity.level().getBlockState(tpPos).isSolidRender(entity.level(), tpPos)
+                || entity.level().getBlockState(headPos).isSolidRender(entity.level(), headPos)) {
             for (int y = tpPos.getY(); y < tpPos.getY() + 10; y++) {
-                BlockPos checkPos = new BlockPos(tpPos.getX(), y, tpPos.getZ());
-                if (!entity.level().getBlockState(checkPos).isSolidRender(entity.level(), checkPos)) {
-                    entity.teleportTo(tpPos.getX(), y, tpPos.getZ());
+                BlockPos feetCheck = new BlockPos(tpPos.getX(), y, tpPos.getZ());
+                BlockPos headCheck = feetCheck.above();
+                // I-10修复：检查两格垂直净空（适配两格高实体）+ 危险方块检测
+                if (!entity.level().getBlockState(feetCheck).isSolidRender(entity.level(), feetCheck)
+                        && !entity.level().getBlockState(headCheck).isSolidRender(entity.level(), headCheck)
+                        && !isHazardous(entity.level(), feetCheck)
+                        && !isHazardous(entity.level(), headCheck)) {
+                    // I-10修复：保留实体的小数 X/Z 坐标，避免传送后位置偏移
+                    entity.teleportTo(entity.getX(), y, entity.getZ());
                     break;
                 }
             }
         }
+    }
+
+    // I-10修复：检测指定位置是否包含危险方块（岩浆、火焰、岩浆块、营火）
+    // 用于 findSafeTeleportPosition 避免将实体传送到危险位置
+    private static boolean isHazardous(Level level, BlockPos pos) {
+        if (level.getFluidState(pos).is(Fluids.LAVA)) return true;
+        var block = level.getBlockState(pos).getBlock();
+        return block == Blocks.FIRE
+                || block == Blocks.SOUL_FIRE
+                || block == Blocks.MAGMA_BLOCK
+                || block == Blocks.CAMPFIRE
+                || block == Blocks.SOUL_CAMPFIRE;
     }
 }

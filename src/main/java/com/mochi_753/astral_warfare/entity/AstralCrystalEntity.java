@@ -1,6 +1,6 @@
 package com.mochi_753.astral_warfare.entity;
 
-import com.mochi_753.astral_warfare.client.particle.StellaParticles;
+import com.mochi_753.astral_warfare.network.ParticleIds;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -126,9 +126,9 @@ public class AstralCrystalEntity extends LivingEntity {
             // S-49修复：使用 StellaParticles 常量替代硬编码数字，避免 ID 不一致
             if (this.level() instanceof ServerLevel) {
                 try (ParticleEmitter emitter = new ParticleEmitter(this)) {
-                    emitter.add(StellaParticles.ID_IMPACT_WAVE, this.getX(), this.getY() + 0.5, this.getZ(), 0);
+                    emitter.add(ParticleIds.ID_IMPACT_WAVE, this.getX(), this.getY() + 0.5, this.getZ(), 0);
                     for (int i = 0; i < 20; i++) {
-                        emitter.add(StellaParticles.ID_ASTRAL_BEAM,
+                        emitter.add(ParticleIds.ID_ASTRAL_BEAM,
                                 this.getX() + (this.random.nextDouble() - 0.5) * 1.0,
                                 this.getY() + this.random.nextDouble() * 1.5,
                                 this.getZ() + (this.random.nextDouble() - 0.5) * 1.0, 0);

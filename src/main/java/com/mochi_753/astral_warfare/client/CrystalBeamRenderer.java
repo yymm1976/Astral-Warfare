@@ -111,7 +111,8 @@ public class CrystalBeamRenderer {
             }
         }
 
-        bufferSource.endBatch();
+        // M-06修复：指定 RenderType 避免 flush 所有缓冲
+        bufferSource.endBatch(RenderType.lines());
     }
 
     // 绘制从起点到终点的能量射线（优化版）

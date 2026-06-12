@@ -1,6 +1,6 @@
 package com.mochi_753.astral_warfare.entity;
 
-import com.mochi_753.astral_warfare.client.particle.StellaParticles;
+import com.mochi_753.astral_warfare.network.ParticleIds;
 import com.mochi_753.astral_warfare.init.ModConstants;
 import com.mochi_753.astral_warfare.network.ParticleEmitter;
 import net.minecraft.nbt.CompoundTag;
@@ -121,7 +121,7 @@ public class VoidFissureEntity extends Entity {
                 for (int i = 0; i < 2; i++) {
                     double ox = (this.random.nextDouble() - 0.5) * 0.6;
                     double oz = (this.random.nextDouble() - 0.5) * 0.6;
-                    emitter.add(StellaParticles.ID_VOID_SPARK,
+                    emitter.add(ParticleIds.ID_VOID_SPARK,
                             this.getX() + ox, this.getY() + 0.1, this.getZ() + oz, 0);
                 }
             }
