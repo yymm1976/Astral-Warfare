@@ -1,0 +1,35 @@
+﻿Starting a Gradle Daemon, 1 incompatible and 3 stopped Daemons could not be reused, use --status for details
+> Task :generateModMetadata
+> Task :createMinecraftArtifacts UP-TO-DATE
+> Task :compileJava FAILED
+./gradlew : 
+所在位置 行:1 字符: 5
++ & { ./gradlew compileJava --console=plain 2>&1 | Out-File -FilePath " ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava'.
+> Could not resolve all files for configuration ':compileClasspath'.
+   > Could not find top.theillusivec4.curios:curios-neoforge:9.0.12+1.21.1.
+     Searched in the following locations:
+       - https://maven.neoforged.net/releases/top/theillusivec4/curios/curios-n
+eoforge/9.0.12+1.21.1/curios-neoforge-9.0.12+1.21.1.pom
+       - https://api.modrinth.com/maven/top/theillusivec4/curios/curios-neoforg
+e/9.0.12+1.21.1/curios-neoforge-9.0.12+1.21.1.pom
+       - https://maven.theillusivec4.top/top/theillusivec4/curios/curios-neofor
+ge/9.0.12+1.21.1/curios-neoforge-9.0.12+1.21.1.pom
+     Required by:
+         root project '1.21.1-BOSS'
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 22s
+3 actionable tasks: 2 executed, 1 up-to-date

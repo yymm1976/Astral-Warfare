@@ -1,0 +1,20 @@
+{
+  "stella_evoker_phase1": {
+    "subtitle": "subtitles.astral_warfare.stella_evoker_phase1",
+    "sounds": [
+      {
+        "name": "astral_warfare:stella_evoker_phase1",
+        "stream": true
+      }
+    ]
+  },
+  "stella_evoker_phase2": {
+    "subtitle": "subtitles.astral_warfare.stella_evoker_phase2",
+    "sounds": [
+      {
+        "name": "astral_warfare:stella_evoker_phase2",
+        "stream": true
+      }
+    ]
+  }
+}

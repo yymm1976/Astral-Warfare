@@ -1,0 +1,8 @@
+{
+  "type": "astral_warfare:astral_altar",
+  "biomes": "#astral_warfare:has_structure/astral_altar",
+  "spawn_overrides": {},
+  "step": "surface_structures",
+  "terrain_adaptation": "beard_thin",
+  "radius": 8
+}

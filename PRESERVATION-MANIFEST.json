@@ -1,0 +1,2705 @@
+{
+  "schema": "dsh112.desktop-minecraft-preservation-manifest.v1",
+  "generatedAt": "2026-11-12T18:28:05.182454+00:00",
+  "repository": "yymm1976/Astral-Warfare",
+  "sourceRoot": "C:\\Users\\杨铭\\Desktop\\MC模组开发",
+  "groups": [
+    {
+      "name": "1.21.1-BOSS",
+      "path": "C:\\Users\\杨铭\\Desktop\\MC模组开发\\1.21.1-BOSS",
+      "originalGit": {
+        "head": "6ffce6ce4d7b2e21042f418f70bed52b6a70eb3b",
+        "branch": "main",
+        "upstream": "@{upstream}",
+        "remotes": {
+          "origin": "https://github.com/yymm1976/Astral-Warfare.git"
+        },
+        "thirdPartyOrigin": false,
+        "gitDirectoryBytes": 16557625,
+        "trackedCount": 119,
+        "untrackedCount": 0,
+        "ignoredCount": 341,
+        "untracked": [],
+        "ignored": [
+          ".classpath",
+          ".eclipse/configurations/Client.launch",
+          ".eclipse/configurations/Data.launch",
+          ".eclipse/configurations/GameTestServer.launch",
+          ".eclipse/configurations/Server.launch",
+          ".gradle/9.2.1/checksums/checksums.lock",
+          ".gradle/9.2.1/checksums/md5-checksums.bin",
+          ".gradle/9.2.1/checksums/sha1-checksums.bin",
+          ".gradle/9.2.1/executionHistory/executionHistory.bin",
+          ".gradle/9.2.1/executionHistory/executionHistory.lock",
+          ".gradle/9.2.1/fileChanges/last-build.bin",
+          ".gradle/9.2.1/fileHashes/fileHashes.bin",
+          ".gradle/9.2.1/fileHashes/fileHashes.lock",
+          ".gradle/9.2.1/fileHashes/resourceHashesCache.bin",
+          ".gradle/9.2.1/gc.properties",
+          ".gradle/buildOutputCleanup/buildOutputCleanup.lock",
+          ".gradle/buildOutputCleanup/cache.properties",
+          ".gradle/buildOutputCleanup/outputFiles.bin",
+          ".gradle/file-system.probe",
+          ".gradle/vcs-1/gc.properties",
+          ".project",
+          ".settings/org.eclipse.jdt.core.prefs",
+          ".trae/specs/tune-particles-and-execution-range/checklist.md",
+          ".trae/specs/tune-particles-and-execution-range/spec.md",
+          ".trae/specs/tune-particles-and-execution-range/tasks.md",
+          ".vscode/launch.json",
+          ".vscode/settings.json",
+          "bin/main/META-INF/accesstransformer.cfg",
+          "bin/main/META-INF/neoforge.mods.toml",
+          "bin/main/assets/astral_warfare/lang/en_us.json",
+          "bin/main/assets/astral_warfare/lang/zh_cn.json",
+          "bin/main/assets/astral_warfare/models/item/nocturnal_astrolabe.json",
+          "bin/main/assets/astral_warfare/models/item/stella_core.json",
+          "bin/main/assets/astral_warfare/models/item/void_halberd.json",
+          "bin/main/assets/astral_warfare/textures/entity/starcore_golem.png",
+          "bin/main/assets/astral_warfare/textures/entity/void_glow.png",
+          "bin/main/assets/astral_warfare/textures/item/nocturnal_astrolabe.png",
+          "bin/main/assets/astral_warfare/textures/item/stella_core.png",
+          "bin/main/assets/astral_warfare/textures/item/void_halberd.png",
+          "bin/main/astral_warfare.mixins.json",
+          "bin/main/com/mochi_753/astral_warfare/AstralWarfare.class",
+          "bin/main/com/mochi_753/astral_warfare/attachment/ManaData.class",
+          "bin/main/com/mochi_753/astral_warfare/client/AstralCrystalRenderer.class",
+          "bin/main/com/mochi_753/astral_warfare/client/ClientEvents.class",
+          "bin/main/com/mochi_753/astral_warfare/client/ClientManaData.class",
+          "bin/main/com/mochi_753/astral_warfare/client/CrystalBeamRenderer.class",
+          "bin/main/com/mochi_753/astral_warfare/client/StarcoreGolemRenderer.class",
+          "bin/main/com/mochi_753/astral_warfare/client/StellaBossBarOverlay.class",
+          "bin/main/com/mochi_753/astral_warfare/client/StellaEvokerRenderer$AstralGlowLayer.class",
+          "bin/main/com/mochi_753/astral_warfare/client/StellaEvokerRenderer$VoidHalberdLayer.class",
+          "bin/main/com/mochi_753/astral_warfare/client/StellaEvokerRenderer.class",
+          "bin/main/com/mochi_753/astral_warfare/effect/VoidEntrapmentEffect.class",
+          "bin/main/com/mochi_753/astral_warfare/entity/AstralCrystalEntity.class",
+          "bin/main/com/mochi_753/astral_warfare/entity/NightfallSingularityEntity.class",
+          "bin/main/com/mochi_753/astral_warfare/entity/StarcoreGolemEntity.class",
+          "bin/main/com/mochi_753/astral_warfare/entity/StellaDyingStateMachine.class",
+          "bin/main/com/mochi_753/astral_warfare/entity/StellaEvokerEntity.class",
+          "bin/main/com/mochi_753/astral_warfare/entity/ai/DespairExecutionGoal$State.class",
+          "bin/main/com/mochi_753/astral_warfare/entity/ai/DespairExecutionGoal.class",
+          "bin/main/com/mochi_753/astral_warfare/entity/ai/Phase2MeleeGoal.class",
+          "bin/main/com/mochi_753/astral_warfare/entity/ai/SpellCastGoal.class",
+          "bin/main/com/mochi_753/astral_warfare/entity/ai/SpellType.class",
+          "bin/main/com/mochi_753/astral_warfare/entity/ai/StellaFlyingMoveControl.class",
+          "bin/main/com/mochi_753/astral_warfare/event/PlayerDisconnectHandler.class",
+          "bin/main/com/mochi_753/astral_warfare/event/StellaDamageEventHandler.class",
+          "bin/main/com/mochi_753/astral_warfare/init/ModAttachments.class",
+          "bin/main/com/mochi_753/astral_warfare/init/ModConfig.class",
+          "bin/main/com/mochi_753/astral_warfare/init/ModConstants.class",
+          "bin/main/com/mochi_753/astral_warfare/init/ModEffects.class",
+          "bin/main/com/mochi_753/astral_warfare/init/ModEntities.class",
+          "bin/main/com/mochi_753/astral_warfare/init/ModItems.class",
+          "bin/main/com/mochi_753/astral_warfare/item/NocturnalAstrolabeItem.class",
+          "bin/main/com/mochi_753/astral_warfare/item/StellaCoreItem.class",
+          "bin/main/com/mochi_753/astral_warfare/item/VoidHalberdItem.class",
+          "bin/main/com/mochi_753/astral_warfare/network/ClientboundStellaManaPacket.class",
+          "bin/main/com/mochi_753/astral_warfare/network/ModPayloads.class",
+          "bin/main/com/mochi_753/astral_warfare/worldgen/AstralAltarStructure$AstralAltarPiece.class",
+          "bin/main/com/mochi_753/astral_warfare/worldgen/AstralAltarStructure.class",
+          "bin/main/com/mochi_753/astral_warfare/worldgen/ModStructures.class",
+          "bin/main/data/astral_warfare/loot_table/entities/stella_evoker.json",
+          "bin/main/data/astral_warfare/tags/worldgen/biome/has_structure/astral_altar.json",
+          "bin/main/data/astral_warfare/worldgen/structure/astral_altar.json",
+          "bin/main/data/astral_warfare/worldgen/structure_set/astral_altar.json",
+          "build.log",
+          "build/classes/java/main/com/mochi_753/astral_warfare/AstralWarfare.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/attachment/ManaData.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/client/AstralCrystalRenderer.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/client/ClientEvents.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/client/ClientManaData.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/client/ClientPayloadHandler.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/client/CrystalBeamRenderer.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/client/JumpInputHandler.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/client/MazeDataCache.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/client/NightfallSingularityRenderer.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/client/PlayerAnimationHandler.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/client/ScreenShakeManager.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/client/StarTrackMazeRenderer.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/client/StarcoreGolemRenderer.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/client/StellaBattleMusic$BattleBgmSoundInstance.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/client/StellaBattleMusic.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/client/StellaBossBarOverlay.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/client/StellaEvokerModel.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/client/StellaEvokerRenderer$AstralGlowLayer.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/client/StellaEvokerRenderer$VoidHalberdLayer.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/client/StellaEvokerRenderer.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/client/VoidFissureRenderer.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/client/VoidSigilRenderer.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/client/model/AstralCrystalModel.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/client/model/StarcoreGolemModel.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/client/particle/StellaParticles.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/client/postprocess/SingularityPostProcessor.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/client/postprocess/SingularityRenderHandler.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/effect/VoidBleedEffect.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/effect/VoidEntrapmentEffect.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/entity/AstralCrystalEntity.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/entity/NightfallSingularityEntity.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/entity/StarcoreGolemEntity.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/entity/StellaDyingStateMachine.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/entity/StellaEvokerEntity.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/entity/StellaGateSurgeAbility.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/entity/StellaManaSystem.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/entity/StellaTransitionStateMachine.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/entity/VoidFissureEntity.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/entity/ai/DespairExecutionGoal$State.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/entity/ai/DespairExecutionGoal.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/entity/ai/GolemMoveToBossGoal.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/entity/ai/Phase2MeleeGoal$State.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/entity/ai/Phase2MeleeGoal.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/entity/ai/SpellCastGoal$1.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/entity/ai/SpellCastGoal.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/entity/ai/SpellType.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/entity/ai/StellaFlyingMoveControl.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/event/PlayerDisconnectHandler.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/event/StellaDamageEventHandler.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/init/ModAttachments.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/init/ModConfig.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/init/ModConstants.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/init/ModCreativeTabs.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/init/ModDamageTypes.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/init/ModEffects.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/init/ModEntities.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/init/ModItems.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/init/ModSounds.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/item/NocturnalAstrolabeItem.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/item/StellaCoreItem.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/item/VoidHalberdItem.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/network/ClientboundLodestoneParticlePacket.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/network/ClientboundMazeSyncPacket$MazeData.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/network/ClientboundMazeSyncPacket.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/network/ClientboundParticleBatchPacket$ParticleEntry.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/network/ClientboundParticleBatchPacket.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/network/ClientboundScreenShakePacket.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/network/ClientboundStellaManaPacket.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/network/ClientboundStellaManaRemovePacket.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/network/ModPayloads.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/network/ParticleEmitter.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/network/ParticleIds.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/network/ServerboundJumpInputPacket.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/util/BossUtils.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/worldgen/AstralAltarStructure$AstralAltarPiece.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/worldgen/AstralAltarStructure.class",
+          "build/classes/java/main/com/mochi_753/astral_warfare/worldgen/ModStructures.class",
+          "build/generated/sources/modMetadata/META-INF/neoforge.mods.toml",
+          "build/libs/astral_warfare-1.21.1-1.0.1.jar",
+          "build/moddev/artifacts/neoforge-21.1.218-client-extra-aka-minecraft-resources.jar",
+          "build/moddev/artifacts/neoforge-21.1.218-merged.jar",
+          "build/moddev/artifacts/neoforge-21.1.218-sources.jar",
+          "build/moddev/artifacts/neoforge-21.1.218.jar",
+          "build/reports/problems/problems-report.html",
+          "build/resources/main/META-INF/accesstransformer.cfg",
+          "build/resources/main/META-INF/neoforge.mods.toml",
+          "build/resources/main/assets/astral_warfare/animations/stella_evoker.animation.json",
+          "build/resources/main/assets/astral_warfare/geo/stella_evoker.geo.json",
+          "build/resources/main/assets/astral_warfare/lang/en_us.json",
+          "build/resources/main/assets/astral_warfare/lang/zh_cn.json",
+          "build/resources/main/assets/astral_warfare/models/item/nocturnal_astrolabe.json",
+          "build/resources/main/assets/astral_warfare/models/item/starcore_golem_spawn_egg.json",
+          "build/resources/main/assets/astral_warfare/models/item/stella_core.json",
+          "build/resources/main/assets/astral_warfare/models/item/stella_evoker_spawn_egg.json",
+          "build/resources/main/assets/astral_warfare/models/item/void_halberd.json",
+          "build/resources/main/assets/astral_warfare/player_animations/void_entrapment.json",
+          "build/resources/main/assets/astral_warfare/shaders/post/singularity_distortion.json",
+          "build/resources/main/assets/astral_warfare/shaders/program/singularity_distortion.fsh",
+          "build/resources/main/assets/astral_warfare/shaders/program/singularity_distortion.json",
+          "build/resources/main/assets/astral_warfare/shaders/program/singularity_distortion.vsh",
+          "build/resources/main/assets/astral_warfare/sounds.json",
+          "build/resources/main/assets/astral_warfare/sounds/stella_evoker_phase1.ogg",
+          "build/resources/main/assets/astral_warfare/sounds/stella_evoker_phase2.ogg",
+          "build/resources/main/assets/astral_warfare/textures/entity/astral_crystal.png",
+          "build/resources/main/assets/astral_warfare/textures/entity/starcore_golem.png",
+          "build/resources/main/assets/astral_warfare/textures/entity/stella_evoker.png",
+          "build/resources/main/assets/astral_warfare/textures/entity/void_glow.png",
+          "build/resources/main/assets/astral_warfare/textures/item/nocturnal_astrolabe.png",
+          "build/resources/main/assets/astral_warfare/textures/item/stella_core.png",
+          "build/resources/main/assets/astral_warfare/textures/item/void_halberd.png",
+          "build/resources/main/data/astral_warfare/damage_type/void_bleed.json",
+          "build/resources/main/data/astral_warfare/damage_type/void_eruption.json",
+          "build/resources/main/data/astral_warfare/loot_table/entities/astral_crystal.json",
+          "build/resources/main/data/astral_warfare/loot_table/entities/nightfall_singularity.json",
+          "build/resources/main/data/astral_warfare/loot_table/entities/starcore_golem.json",
+          "build/resources/main/data/astral_warfare/loot_table/entities/stella_evoker.json",
+          "build/resources/main/data/astral_warfare/loot_table/entities/void_fissure.json",
+          "build/resources/main/data/astral_warfare/tags/worldgen/biome/has_structure/astral_altar.json",
+          "build/resources/main/data/astral_warfare/worldgen/structure/astral_altar.json",
+          "build/resources/main/data/astral_warfare/worldgen/structure_set/astral_altar.json",
+          "build/tmp/compileJava/compileTransaction/stash-dir/AstralCrystalEntity.class.uniqueId46",
+          "build/tmp/compileJava/compileTransaction/stash-dir/AstralCrystalModel.class.uniqueId37",
+          "build/tmp/compileJava/compileTransaction/stash-dir/AstralCrystalRenderer.class.uniqueId18",
+          "build/tmp/compileJava/compileTransaction/stash-dir/AstralWarfare.class.uniqueId20",
+          "build/tmp/compileJava/compileTransaction/stash-dir/BossUtils.class.uniqueId0",
+          "build/tmp/compileJava/compileTransaction/stash-dir/ClientEvents.class.uniqueId8",
+          "build/tmp/compileJava/compileTransaction/stash-dir/ClientManaData.class.uniqueId35",
+          "build/tmp/compileJava/compileTransaction/stash-dir/ClientboundMazeSyncPacket$MazeData.class.uniqueId56",
+          "build/tmp/compileJava/compileTransaction/stash-dir/ClientboundMazeSyncPacket.class.uniqueId19",
+          "build/tmp/compileJava/compileTransaction/stash-dir/ClientboundParticleBatchPacket$ParticleEntry.class.uniqueId38",
+          "build/tmp/compileJava/compileTransaction/stash-dir/ClientboundParticleBatchPacket.class.uniqueId22",
+          "build/tmp/compileJava/compileTransaction/stash-dir/CrystalBeamRenderer.class.uniqueId23",
+          "build/tmp/compileJava/compileTransaction/stash-dir/DespairExecutionGoal$State.class.uniqueId17",
+          "build/tmp/compileJava/compileTransaction/stash-dir/DespairExecutionGoal.class.uniqueId31",
+          "build/tmp/compileJava/compileTransaction/stash-dir/GolemMoveToBossGoal.class.uniqueId55",
+          "build/tmp/compileJava/compileTransaction/stash-dir/ManaData.class.uniqueId25",
+          "build/tmp/compileJava/compileTransaction/stash-dir/MazeDataCache.class.uniqueId41",
+          "build/tmp/compileJava/compileTransaction/stash-dir/ModAttachments.class.uniqueId49",
+          "build/tmp/compileJava/compileTransaction/stash-dir/ModConstants.class.uniqueId50",
+          "build/tmp/compileJava/compileTransaction/stash-dir/ModCreativeTabs.class.uniqueId2",
+          "build/tmp/compileJava/compileTransaction/stash-dir/ModEffects.class.uniqueId3",
+          "build/tmp/compileJava/compileTransaction/stash-dir/ModEntities.class.uniqueId34",
+          "build/tmp/compileJava/compileTransaction/stash-dir/ModItems.class.uniqueId48",
+          "build/tmp/compileJava/compileTransaction/stash-dir/ModPayloads.class.uniqueId44",
+          "build/tmp/compileJava/compileTransaction/stash-dir/NightfallSingularityEntity.class.uniqueId9",
+          "build/tmp/compileJava/compileTransaction/stash-dir/NightfallSingularityRenderer.class.uniqueId10",
+          "build/tmp/compileJava/compileTransaction/stash-dir/NocturnalAstrolabeItem.class.uniqueId33",
+          "build/tmp/compileJava/compileTransaction/stash-dir/ParticleEmitter.class.uniqueId42",
+          "build/tmp/compileJava/compileTransaction/stash-dir/Phase2MeleeGoal$State.class.uniqueId58",
+          "build/tmp/compileJava/compileTransaction/stash-dir/Phase2MeleeGoal.class.uniqueId28",
+          "build/tmp/compileJava/compileTransaction/stash-dir/PlayerDisconnectHandler.class.uniqueId30",
+          "build/tmp/compileJava/compileTransaction/stash-dir/SingularityPostProcessor.class.uniqueId36",
+          "build/tmp/compileJava/compileTransaction/stash-dir/SingularityRenderHandler.class.uniqueId52",
+          "build/tmp/compileJava/compileTransaction/stash-dir/SpellCastGoal$1.class.uniqueId4",
+          "build/tmp/compileJava/compileTransaction/stash-dir/SpellCastGoal.class.uniqueId5",
+          "build/tmp/compileJava/compileTransaction/stash-dir/SpellType.class.uniqueId43",
+          "build/tmp/compileJava/compileTransaction/stash-dir/StarTrackMazeRenderer.class.uniqueId51",
+          "build/tmp/compileJava/compileTransaction/stash-dir/StarcoreGolemEntity.class.uniqueId1",
+          "build/tmp/compileJava/compileTransaction/stash-dir/StarcoreGolemModel.class.uniqueId29",
+          "build/tmp/compileJava/compileTransaction/stash-dir/StarcoreGolemRenderer.class.uniqueId11",
+          "build/tmp/compileJava/compileTransaction/stash-dir/StellaBattleMusic$BattleBgmSoundInstance.class.uniqueId15",
+          "build/tmp/compileJava/compileTransaction/stash-dir/StellaBattleMusic.class.uniqueId7",
+          "build/tmp/compileJava/compileTransaction/stash-dir/StellaBossBarOverlay.class.uniqueId24",
+          "build/tmp/compileJava/compileTransaction/stash-dir/StellaDamageEventHandler.class.uniqueId6",
+          "build/tmp/compileJava/compileTransaction/stash-dir/StellaDyingStateMachine.class.uniqueId40",
+          "build/tmp/compileJava/compileTransaction/stash-dir/StellaEvokerEntity.class.uniqueId14",
+          "build/tmp/compileJava/compileTransaction/stash-dir/StellaEvokerModel.class.uniqueId53",
+          "build/tmp/compileJava/compileTransaction/stash-dir/StellaEvokerRenderer$AstralGlowLayer.class.uniqueId57",
+          "build/tmp/compileJava/compileTransaction/stash-dir/StellaEvokerRenderer$VoidHalberdLayer.class.uniqueId45",
+          "build/tmp/compileJava/compileTransaction/stash-dir/StellaEvokerRenderer.class.uniqueId16",
+          "build/tmp/compileJava/compileTransaction/stash-dir/StellaFlyingMoveControl.class.uniqueId13",
+          "build/tmp/compileJava/compileTransaction/stash-dir/StellaGateSurgeAbility.class.uniqueId27",
+          "build/tmp/compileJava/compileTransaction/stash-dir/StellaManaSystem.class.uniqueId32",
+          "build/tmp/compileJava/compileTransaction/stash-dir/StellaTransitionStateMachine.class.uniqueId39",
+          "build/tmp/compileJava/compileTransaction/stash-dir/VoidBleedEffect.class.uniqueId12",
+          "build/tmp/compileJava/compileTransaction/stash-dir/VoidEntrapmentEffect.class.uniqueId26",
+          "build/tmp/compileJava/compileTransaction/stash-dir/VoidFissureEntity.class.uniqueId47",
+          "build/tmp/compileJava/compileTransaction/stash-dir/VoidFissureRenderer.class.uniqueId54",
+          "build/tmp/compileJava/compileTransaction/stash-dir/VoidSigilRenderer.class.uniqueId21",
+          "build/tmp/compileJava/previous-compilation-data.bin",
+          "build/tmp/createMinecraftArtifacts/nfrt-problem-report.json",
+          "build/tmp/createMinecraftArtifacts/nfrt_artifact_manifest.properties",
+          "build/tmp/jar/MANIFEST.MF",
+          "build/tmp/neoformruntime/20260612-002227_binaryPatch/console_output.txt",
+          "build/tmp/neoformruntime/20260612-002227_binaryPatch/joined.lzma",
+          "build/tmp/neoformruntime/20260612-002248_applyDevTransforms/ats/accesstransformer.cfg",
+          "build/tmp/neoformruntime/20260612-002248_applyDevTransforms/console_output.txt",
+          "build2.log",
+          "build_final.txt",
+          "build_full.txt",
+          "build_log.txt",
+          "build_log3.txt",
+          "compile_log.txt",
+          "dep_log.txt",
+          "eclipse.txt",
+          "eclipse2.txt",
+          "gradle/wrapper/gradle-wrapper.jar",
+          "mc_src2.zip",
+          "mcp.json",
+          "run/command_history.txt",
+          "run/config/astral_warfare-server.toml",
+          "run/config/curios-client.toml",
+          "run/config/curios-common.toml",
+          "run/config/fml.toml",
+          "run/config/lodestone-client.toml",
+          "run/config/neoforge-client.toml",
+          "run/config/neoforge-common.toml",
+          "run/config/neoforge-server.toml",
+          "run/crash-reports/crash-2026-06-01_16.48.21-client.txt",
+          "run/downloads/log.json",
+          "run/logs/2026-05-28-2.log.gz",
+          "run/logs/debug-1.log.gz",
+          "run/logs/debug.log",
+          "run/logs/latest.log",
+          "run/options.txt",
+          "run/saves/New World/DIM-1/data/neoforge_data_attachments.dat",
+          "run/saves/New World/DIM-1/data/raids.dat",
+          "run/saves/New World/DIM1/data/neoforge_data_attachments.dat",
+          "run/saves/New World/DIM1/data/raids_end.dat",
+          "run/saves/New World/advancements/380df991-f603-344c-a090-369bad2a924a.json",
+          "run/saves/New World/data/neoforge_data_attachments.dat",
+          "run/saves/New World/data/raids.dat",
+          "run/saves/New World/entities/r.-1.-1.mca",
+          "run/saves/New World/entities/r.-1.0.mca",
+          "run/saves/New World/entities/r.0.-1.mca",
+          "run/saves/New World/entities/r.0.0.mca",
+          "run/saves/New World/icon.png",
+          "run/saves/New World/level.dat",
+          "run/saves/New World/level.dat_old",
+          "run/saves/New World/playerdata/380df991-f603-344c-a090-369bad2a924a.dat",
+          "run/saves/New World/playerdata/380df991-f603-344c-a090-369bad2a924a.dat_old",
+          "run/saves/New World/poi/r.-1.-1.mca",
+          "run/saves/New World/poi/r.0.-1.mca",
+          "run/saves/New World/poi/r.0.0.mca",
+          "run/saves/New World/region/r.-1.-1.mca",
+          "run/saves/New World/region/r.-1.0.mca",
+          "run/saves/New World/region/r.0.-1.mca",
+          "run/saves/New World/region/r.0.0.mca",
+          "run/saves/New World/serverconfig/readme.txt",
+          "run/saves/New World/session.lock",
+          "run/saves/New World/stats/380df991-f603-344c-a090-369bad2a924a.json",
+          "run/usercache.json",
+          "run/usernamecache.json",
+          "software/bernie/geckolib/loading/json/typeadapter/BakedAnimationsAdapter.java",
+          "software/bernie/geckolib/loading/object/BakedAnimations.java",
+          "software/bernie/geckolib/model/GeoModel.java",
+          "sync.txt",
+          "team/lodestar/lodestone/registry/common/particle/LodestoneParticleTypes.class",
+          "temp_lodestone/DynamicShaderFxInstance.class",
+          "temp_lodestone/LodestoneShaders.class",
+          "temp_lodestone/MultiInstancePostProcessor.class",
+          "temp_lodestone/PostProcessHandler.class",
+          "temp_lodestone/PostProcessor.class",
+          "temp_lodestone/ShaderDataBuffer.class",
+          "temp_lodestone_shaders/common_math.glsl",
+          "temp_neoforge/ViewportEvent.java"
+        ],
+        "statusNulRecords": 0,
+        "refs": [
+          {
+            "ref": "refs/heads/main",
+            "objectId": "6ffce6ce4d7b2e21042f418f70bed52b6a70eb3b",
+            "objectType": "commit",
+            "subject": "fix: resolve code review issues"
+          }
+        ],
+        "stashReflog": []
+      },
+      "fileCount": 460,
+      "bytes": 120752892
+    }
+  ],
+  "gitFiles": [
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".classpath",
+      "bytes": 81656
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".eclipse/configurations/Client.launch",
+      "bytes": 1130
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".eclipse/configurations/Data.launch",
+      "bytes": 1131
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".eclipse/configurations/GameTestServer.launch",
+      "bytes": 1153
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".eclipse/configurations/Server.launch",
+      "bytes": 1137
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".gitattributes",
+      "bytes": 78
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".gitignore",
+      "bytes": 290
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".project",
+      "bytes": 694
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".reasonix/truncated-results/1780397767426-f9c9e7fb-web_fetch.txt",
+      "bytes": 32151
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".settings/org.eclipse.jdt.core.prefs",
+      "bytes": 665
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".trae/specs/tune-particles-and-execution-range/checklist.md",
+      "bytes": 598
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".trae/specs/tune-particles-and-execution-range/spec.md",
+      "bytes": 2837
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".trae/specs/tune-particles-and-execution-range/tasks.md",
+      "bytes": 3003
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".vscode/launch.json",
+      "bytes": 3023
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".vscode/settings.json",
+      "bytes": 121
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".workbuddy/memory/2026-06-04.md",
+      "bytes": 509
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "CODE_REVIEW_DEEP.md",
+      "bytes": 25645
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "CODE_REVIEW_REPORT.md",
+      "bytes": 16968
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "GECKOLIB_COMPLIANCE_REPORT.md",
+      "bytes": 15061
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build.gradle.kts",
+      "bytes": 5762
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build.log",
+      "bytes": 10746
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build2.log",
+      "bytes": 1798
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build_final.txt",
+      "bytes": 1010
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build_full.txt",
+      "bytes": 5784
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build_log.txt",
+      "bytes": 7065
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build_log3.txt",
+      "bytes": 1580
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "compile_log.txt",
+      "bytes": 3424
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "dep_log.txt",
+      "bytes": 9511
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "docs/review-fix-plan.md",
+      "bytes": 2367
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "eclipse.txt",
+      "bytes": 2110
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "eclipse2.txt",
+      "bytes": 294
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "gradle.properties",
+      "bytes": 481
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "gradle/wrapper/gradle-wrapper.jar",
+      "bytes": 43764
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "gradle/wrapper/gradle-wrapper.properties",
+      "bytes": 252
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "gradlew",
+      "bytes": 8733
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "gradlew.bat",
+      "bytes": 2843
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "mc_src2.zip",
+      "bytes": 9378340
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "mcp.json",
+      "bytes": 115
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "settings.gradle.kts",
+      "bytes": 163
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "software/bernie/geckolib/loading/json/typeadapter/BakedAnimationsAdapter.java",
+      "bytes": 8568
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "software/bernie/geckolib/loading/object/BakedAnimations.java",
+      "bytes": 644
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "software/bernie/geckolib/model/GeoModel.java",
+      "bytes": 10482
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/AstralWarfare.java",
+      "bytes": 4843
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/attachment/ManaData.java",
+      "bytes": 4783
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/client/AstralCrystalRenderer.java",
+      "bytes": 2484
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/client/ClientEvents.java",
+      "bytes": 3267
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/client/ClientManaData.java",
+      "bytes": 4034
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/client/ClientPayloadHandler.java",
+      "bytes": 3871
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/client/CrystalBeamRenderer.java",
+      "bytes": 10621
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/client/JumpInputHandler.java",
+      "bytes": 1940
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/client/MazeDataCache.java",
+      "bytes": 824
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/client/NightfallSingularityRenderer.java",
+      "bytes": 1243
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/client/PlayerAnimationHandler.java",
+      "bytes": 4847
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/client/ScreenShakeManager.java",
+      "bytes": 2706
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/client/StarTrackMazeRenderer.java",
+      "bytes": 6969
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/client/StarcoreGolemRenderer.java",
+      "bytes": 1266
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/client/StellaBattleMusic.java",
+      "bytes": 13128
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/client/StellaBossBarOverlay.java",
+      "bytes": 10334
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/client/StellaEvokerModel.java",
+      "bytes": 2126
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/client/StellaEvokerRenderer.java",
+      "bytes": 6380
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/client/VoidFissureRenderer.java",
+      "bytes": 952
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/client/VoidSigilRenderer.java",
+      "bytes": 14269
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/client/model/AstralCrystalModel.java",
+      "bytes": 5685
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/client/model/StarcoreGolemModel.java",
+      "bytes": 12311
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/client/particle/StellaParticles.java",
+      "bytes": 17231
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/client/postprocess/SingularityPostProcessor.java",
+      "bytes": 3501
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/client/postprocess/SingularityRenderHandler.java",
+      "bytes": 4353
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/effect/VoidBleedEffect.java",
+      "bytes": 8466
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/effect/VoidEntrapmentEffect.java",
+      "bytes": 8773
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/entity/AstralCrystalEntity.java",
+      "bytes": 6945
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/entity/NightfallSingularityEntity.java",
+      "bytes": 16315
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/entity/StarcoreGolemEntity.java",
+      "bytes": 7210
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/entity/StellaDyingStateMachine.java",
+      "bytes": 7100
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/entity/StellaEvokerEntity.java",
+      "bytes": 63373
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/entity/StellaGateSurgeAbility.java",
+      "bytes": 9788
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/entity/StellaManaSystem.java",
+      "bytes": 12089
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/entity/StellaTransitionStateMachine.java",
+      "bytes": 9800
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/entity/VoidFissureEntity.java",
+      "bytes": 6327
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/entity/ai/DespairExecutionGoal.java",
+      "bytes": 33995
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/entity/ai/GolemMoveToBossGoal.java",
+      "bytes": 2697
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/entity/ai/Phase2MeleeGoal.java",
+      "bytes": 38336
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/entity/ai/SpellCastGoal.java",
+      "bytes": 54315
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/entity/ai/SpellType.java",
+      "bytes": 3573
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/entity/ai/StellaFlyingMoveControl.java",
+      "bytes": 9255
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/event/PlayerDisconnectHandler.java",
+      "bytes": 1711
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/event/StellaDamageEventHandler.java",
+      "bytes": 1827
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/init/ModAttachments.java",
+      "bytes": 1499
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/init/ModConfig.java",
+      "bytes": 5059
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/init/ModConstants.java",
+      "bytes": 9977
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/init/ModCreativeTabs.java",
+      "bytes": 1916
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/init/ModDamageTypes.java",
+      "bytes": 2471
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/init/ModEffects.java",
+      "bytes": 1822
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/init/ModEntities.java",
+      "bytes": 3512
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/init/ModItems.java",
+      "bytes": 2921
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/init/ModSounds.java",
+      "bytes": 1601
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/item/NocturnalAstrolabeItem.java",
+      "bytes": 12063
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/item/StellaCoreItem.java",
+      "bytes": 565
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/item/VoidHalberdItem.java",
+      "bytes": 1500
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/network/ClientboundLodestoneParticlePacket.java",
+      "bytes": 2432
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/network/ClientboundMazeSyncPacket.java",
+      "bytes": 1914
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/network/ClientboundParticleBatchPacket.java",
+      "bytes": 3978
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/network/ClientboundScreenShakePacket.java",
+      "bytes": 1551
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/network/ClientboundStellaManaPacket.java",
+      "bytes": 2271
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/network/ClientboundStellaManaRemovePacket.java",
+      "bytes": 1653
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/network/ModPayloads.java",
+      "bytes": 7259
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/network/ParticleEmitter.java",
+      "bytes": 3608
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/network/ParticleIds.java",
+      "bytes": 1172
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/network/ServerboundJumpInputPacket.java",
+      "bytes": 1861
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/util/BossUtils.java",
+      "bytes": 4333
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/worldgen/AstralAltarStructure.java",
+      "bytes": 9137
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/java/com/mochi_753/astral_warfare/worldgen/ModStructures.java",
+      "bytes": 1989
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/META-INF/accesstransformer.cfg",
+      "bytes": 519
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/assets/astral_warfare/animations/stella_evoker.animation.json",
+      "bytes": 16404
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/assets/astral_warfare/geo/stella_evoker.geo.json",
+      "bytes": 1746
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/assets/astral_warfare/lang/en_us.json",
+      "bytes": 3009
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/assets/astral_warfare/lang/zh_cn.json",
+      "bytes": 2892
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/assets/astral_warfare/models/item/nocturnal_astrolabe.json",
+      "bytes": 120
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/assets/astral_warfare/models/item/starcore_golem_spawn_egg.json",
+      "bytes": 52
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/assets/astral_warfare/models/item/stella_core.json",
+      "bytes": 112
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/assets/astral_warfare/models/item/stella_evoker_spawn_egg.json",
+      "bytes": 52
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/assets/astral_warfare/models/item/void_halberd.json",
+      "bytes": 112
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/assets/astral_warfare/player_animations/void_entrapment.json",
+      "bytes": 637
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/assets/astral_warfare/shaders/post/singularity_distortion.json",
+      "bytes": 329
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/assets/astral_warfare/shaders/program/singularity_distortion.fsh",
+      "bytes": 5192
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/assets/astral_warfare/shaders/program/singularity_distortion.json",
+      "bytes": 1076
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/assets/astral_warfare/shaders/program/singularity_distortion.vsh",
+      "bytes": 538
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/assets/astral_warfare/sounds.json",
+      "bytes": 431
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/assets/astral_warfare/sounds/stella_evoker_phase1.ogg",
+      "bytes": 2683716
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/assets/astral_warfare/sounds/stella_evoker_phase2.ogg",
+      "bytes": 3635788
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/assets/astral_warfare/textures/entity/astral_crystal.png",
+      "bytes": 176626
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/assets/astral_warfare/textures/entity/starcore_golem.png",
+      "bytes": 432
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/assets/astral_warfare/textures/entity/stella_evoker.png",
+      "bytes": 9974
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/assets/astral_warfare/textures/entity/void_glow.png",
+      "bytes": 6432
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/assets/astral_warfare/textures/item/nocturnal_astrolabe.png",
+      "bytes": 255
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/assets/astral_warfare/textures/item/stella_core.png",
+      "bytes": 247
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/assets/astral_warfare/textures/item/void_halberd.png",
+      "bytes": 345
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/data/astral_warfare/damage_type/void_bleed.json",
+      "bytes": 112
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/data/astral_warfare/damage_type/void_eruption.json",
+      "bytes": 115
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/data/astral_warfare/loot_table/entities/astral_crystal.json",
+      "bytes": 111
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/data/astral_warfare/loot_table/entities/nightfall_singularity.json",
+      "bytes": 118
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/data/astral_warfare/loot_table/entities/starcore_golem.json",
+      "bytes": 519
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/data/astral_warfare/loot_table/entities/stella_evoker.json",
+      "bytes": 1287
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/data/astral_warfare/loot_table/entities/void_fissure.json",
+      "bytes": 109
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/data/astral_warfare/tags/worldgen/biome/has_structure/astral_altar.json",
+      "bytes": 99
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/data/astral_warfare/worldgen/structure/astral_altar.json",
+      "bytes": 212
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/resources/data/astral_warfare/worldgen/structure_set/astral_altar.json",
+      "bytes": 230
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "src/main/templates/META-INF/neoforge.mods.toml",
+      "bytes": 1123
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "sync.txt",
+      "bytes": 1594
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "team/lodestar/lodestone/registry/common/particle/LodestoneParticleTypes.class",
+      "bytes": 3399
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "temp_lodestone/DynamicShaderFxInstance.class",
+      "bytes": 971
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "temp_lodestone/LodestoneShaders.class",
+      "bytes": 4486
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "temp_lodestone/MultiInstancePostProcessor.class",
+      "bytes": 5458
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "temp_lodestone/PostProcessHandler.class",
+      "bytes": 3402
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "temp_lodestone/PostProcessor.class",
+      "bytes": 11459
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "temp_lodestone/ShaderDataBuffer.class",
+      "bytes": 1910
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "temp_lodestone_shaders/common_math.glsl",
+      "bytes": 3138
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "temp_neoforge/ViewportEvent.java",
+      "bytes": 11025
+    }
+  ],
+  "releaseFiles": [
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/META-INF/accesstransformer.cfg",
+      "bytes": 251
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/META-INF/neoforge.mods.toml",
+      "bytes": 639
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/assets/astral_warfare/lang/en_us.json",
+      "bytes": 1223
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/assets/astral_warfare/lang/zh_cn.json",
+      "bytes": 1448
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/assets/astral_warfare/models/item/nocturnal_astrolabe.json",
+      "bytes": 120
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/assets/astral_warfare/models/item/stella_core.json",
+      "bytes": 112
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/assets/astral_warfare/models/item/void_halberd.json",
+      "bytes": 112
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/assets/astral_warfare/textures/entity/starcore_golem.png",
+      "bytes": 432
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/assets/astral_warfare/textures/entity/void_glow.png",
+      "bytes": 6432
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/assets/astral_warfare/textures/item/nocturnal_astrolabe.png",
+      "bytes": 255
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/assets/astral_warfare/textures/item/stella_core.png",
+      "bytes": 247
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/assets/astral_warfare/textures/item/void_halberd.png",
+      "bytes": 188
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/astral_warfare.mixins.json",
+      "bytes": 267
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/AstralWarfare.class",
+      "bytes": 3039
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/attachment/ManaData.class",
+      "bytes": 4517
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/client/AstralCrystalRenderer.class",
+      "bytes": 4724
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/client/ClientEvents.class",
+      "bytes": 2656
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/client/ClientManaData.class",
+      "bytes": 2287
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/client/CrystalBeamRenderer.class",
+      "bytes": 3105
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/client/StarcoreGolemRenderer.class",
+      "bytes": 2125
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/client/StellaBossBarOverlay.class",
+      "bytes": 1035
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/client/StellaEvokerRenderer$AstralGlowLayer.class",
+      "bytes": 4566
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/client/StellaEvokerRenderer$VoidHalberdLayer.class",
+      "bytes": 4955
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/client/StellaEvokerRenderer.class",
+      "bytes": 4399
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/effect/VoidEntrapmentEffect.class",
+      "bytes": 2001
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/entity/AstralCrystalEntity.class",
+      "bytes": 9722
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/entity/NightfallSingularityEntity.class",
+      "bytes": 8213
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/entity/StarcoreGolemEntity.class",
+      "bytes": 7328
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/entity/StellaDyingStateMachine.class",
+      "bytes": 3283
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/entity/StellaEvokerEntity.class",
+      "bytes": 15957
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/entity/ai/DespairExecutionGoal$State.class",
+      "bytes": 6286
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/entity/ai/DespairExecutionGoal.class",
+      "bytes": 12961
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/entity/ai/Phase2MeleeGoal.class",
+      "bytes": 5297
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/entity/ai/SpellCastGoal.class",
+      "bytes": 13313
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/entity/ai/SpellType.class",
+      "bytes": 2661
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/entity/ai/StellaFlyingMoveControl.class",
+      "bytes": 5999
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/event/PlayerDisconnectHandler.class",
+      "bytes": 1072
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/event/StellaDamageEventHandler.class",
+      "bytes": 959
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/init/ModAttachments.class",
+      "bytes": 1242
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/init/ModConfig.class",
+      "bytes": 3013
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/init/ModConstants.class",
+      "bytes": 1201
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/init/ModEffects.class",
+      "bytes": 1317
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/init/ModEntities.class",
+      "bytes": 3322
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/init/ModItems.class",
+      "bytes": 1153
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/item/NocturnalAstrolabeItem.class",
+      "bytes": 7086
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/item/StellaCoreItem.class",
+      "bytes": 697
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/item/VoidHalberdItem.class",
+      "bytes": 1160
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/network/ClientboundStellaManaPacket.class",
+      "bytes": 1739
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/network/ModPayloads.class",
+      "bytes": 917
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/worldgen/AstralAltarStructure$AstralAltarPiece.class",
+      "bytes": 5669
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/worldgen/AstralAltarStructure.class",
+      "bytes": 4535
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/com/mochi_753/astral_warfare/worldgen/ModStructures.class",
+      "bytes": 1805
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/data/astral_warfare/loot_table/entities/stella_evoker.json",
+      "bytes": 1277
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/data/astral_warfare/tags/worldgen/biome/has_structure/astral_altar.json",
+      "bytes": 168
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/data/astral_warfare/worldgen/structure/astral_altar.json",
+      "bytes": 212
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "bin/main/data/astral_warfare/worldgen/structure_set/astral_altar.json",
+      "bytes": 230
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/AstralWarfare.class",
+      "bytes": 5055
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/attachment/ManaData.class",
+      "bytes": 4874
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/client/AstralCrystalRenderer.class",
+      "bytes": 4064
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/client/ClientEvents.class",
+      "bytes": 4794
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/client/ClientManaData.class",
+      "bytes": 4929
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/client/ClientPayloadHandler.class",
+      "bytes": 7518
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/client/CrystalBeamRenderer.class",
+      "bytes": 10032
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/client/JumpInputHandler.class",
+      "bytes": 2226
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/client/MazeDataCache.class",
+      "bytes": 1048
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/client/NightfallSingularityRenderer.class",
+      "bytes": 1746
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/client/PlayerAnimationHandler.class",
+      "bytes": 6129
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/client/ScreenShakeManager.class",
+      "bytes": 2539
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/client/StarTrackMazeRenderer.class",
+      "bytes": 8702
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/client/StarcoreGolemRenderer.class",
+      "bytes": 2964
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/client/StellaBattleMusic$BattleBgmSoundInstance.class",
+      "bytes": 1973
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/client/StellaBattleMusic.class",
+      "bytes": 7172
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/client/StellaBossBarOverlay.class",
+      "bytes": 8919
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/client/StellaEvokerModel.class",
+      "bytes": 1940
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/client/StellaEvokerRenderer$AstralGlowLayer.class",
+      "bytes": 4444
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/client/StellaEvokerRenderer$VoidHalberdLayer.class",
+      "bytes": 4741
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/client/StellaEvokerRenderer.class",
+      "bytes": 2099
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/client/VoidFissureRenderer.class",
+      "bytes": 1683
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/client/VoidSigilRenderer.class",
+      "bytes": 13644
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/client/model/AstralCrystalModel.class",
+      "bytes": 4836
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/client/model/StarcoreGolemModel.class",
+      "bytes": 7268
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/client/particle/StellaParticles.class",
+      "bytes": 10175
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/client/postprocess/SingularityPostProcessor.class",
+      "bytes": 2198
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/client/postprocess/SingularityRenderHandler.class",
+      "bytes": 5027
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/effect/VoidBleedEffect.class",
+      "bytes": 6103
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/effect/VoidEntrapmentEffect.class",
+      "bytes": 6984
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/entity/AstralCrystalEntity.class",
+      "bytes": 6730
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/entity/NightfallSingularityEntity.class",
+      "bytes": 9284
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/entity/StarcoreGolemEntity.class",
+      "bytes": 8138
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/entity/StellaDyingStateMachine.class",
+      "bytes": 4891
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/entity/StellaEvokerEntity.class",
+      "bytes": 40763
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/entity/StellaGateSurgeAbility.class",
+      "bytes": 10409
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/entity/StellaManaSystem.class",
+      "bytes": 11972
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/entity/StellaTransitionStateMachine.class",
+      "bytes": 11219
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/entity/VoidFissureEntity.class",
+      "bytes": 6975
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/entity/ai/DespairExecutionGoal$State.class",
+      "bytes": 1705
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/entity/ai/DespairExecutionGoal.class",
+      "bytes": 21130
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/entity/ai/GolemMoveToBossGoal.class",
+      "bytes": 3910
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/entity/ai/Phase2MeleeGoal$State.class",
+      "bytes": 1865
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/entity/ai/Phase2MeleeGoal.class",
+      "bytes": 18506
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/entity/ai/SpellCastGoal$1.class",
+      "bytes": 1085
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/entity/ai/SpellCastGoal.class",
+      "bytes": 29204
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/entity/ai/SpellType.class",
+      "bytes": 5302
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/entity/ai/StellaFlyingMoveControl.class",
+      "bytes": 6669
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/event/PlayerDisconnectHandler.class",
+      "bytes": 1625
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/event/StellaDamageEventHandler.class",
+      "bytes": 1389
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/init/ModAttachments.class",
+      "bytes": 2660
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/init/ModConfig.class",
+      "bytes": 4263
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/init/ModConstants.class",
+      "bytes": 2991
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/init/ModCreativeTabs.class",
+      "bytes": 4097
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/init/ModDamageTypes.class",
+      "bytes": 2142
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/init/ModEffects.class",
+      "bytes": 2483
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/init/ModEntities.class",
+      "bytes": 6170
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/init/ModItems.class",
+      "bytes": 3537
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/init/ModSounds.class",
+      "bytes": 2417
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/item/NocturnalAstrolabeItem.class",
+      "bytes": 11682
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/item/StellaCoreItem.class",
+      "bytes": 868
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/item/VoidHalberdItem.class",
+      "bytes": 2320
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/network/ClientboundLodestoneParticlePacket.class",
+      "bytes": 5031
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/network/ClientboundMazeSyncPacket$MazeData.class",
+      "bytes": 2346
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/network/ClientboundMazeSyncPacket.class",
+      "bytes": 5074
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/network/ClientboundParticleBatchPacket$ParticleEntry.class",
+      "bytes": 2125
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/network/ClientboundParticleBatchPacket.class",
+      "bytes": 6819
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/network/ClientboundScreenShakePacket.class",
+      "bytes": 4704
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/network/ClientboundStellaManaPacket.class",
+      "bytes": 4996
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/network/ClientboundStellaManaRemovePacket.class",
+      "bytes": 4387
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/network/ModPayloads.class",
+      "bytes": 8893
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/network/ParticleEmitter.class",
+      "bytes": 2647
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/network/ParticleIds.class",
+      "bytes": 661
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/network/ServerboundJumpInputPacket.class",
+      "bytes": 3925
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/util/BossUtils.class",
+      "bytes": 3471
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/worldgen/AstralAltarStructure$AstralAltarPiece.class",
+      "bytes": 6516
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/worldgen/AstralAltarStructure.class",
+      "bytes": 7078
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/classes/java/main/com/mochi_753/astral_warfare/worldgen/ModStructures.class",
+      "bytes": 3494
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/generated/sources/modMetadata/META-INF/neoforge.mods.toml",
+      "bytes": 1080
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/libs/astral_warfare-1.21.1-1.0.1.jar",
+      "bytes": 6687384
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/moddev/artifacts/neoforge-21.1.218-client-extra-aka-minecraft-resources.jar",
+      "bytes": 9361844
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/moddev/artifacts/neoforge-21.1.218-merged.jar",
+      "bytes": 32185942
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/moddev/artifacts/neoforge-21.1.218-sources.jar",
+      "bytes": 9378341
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/moddev/artifacts/neoforge-21.1.218.jar",
+      "bytes": 22675047
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/reports/problems/problems-report.html",
+      "bytes": 136422
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/META-INF/accesstransformer.cfg",
+      "bytes": 519
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/META-INF/neoforge.mods.toml",
+      "bytes": 1080
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/assets/astral_warfare/animations/stella_evoker.animation.json",
+      "bytes": 16404
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/assets/astral_warfare/geo/stella_evoker.geo.json",
+      "bytes": 1746
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/assets/astral_warfare/lang/en_us.json",
+      "bytes": 3009
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/assets/astral_warfare/lang/zh_cn.json",
+      "bytes": 2892
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/assets/astral_warfare/models/item/nocturnal_astrolabe.json",
+      "bytes": 120
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/assets/astral_warfare/models/item/starcore_golem_spawn_egg.json",
+      "bytes": 52
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/assets/astral_warfare/models/item/stella_core.json",
+      "bytes": 112
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/assets/astral_warfare/models/item/stella_evoker_spawn_egg.json",
+      "bytes": 52
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/assets/astral_warfare/models/item/void_halberd.json",
+      "bytes": 112
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/assets/astral_warfare/player_animations/void_entrapment.json",
+      "bytes": 637
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/assets/astral_warfare/shaders/post/singularity_distortion.json",
+      "bytes": 329
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/assets/astral_warfare/shaders/program/singularity_distortion.fsh",
+      "bytes": 5192
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/assets/astral_warfare/shaders/program/singularity_distortion.json",
+      "bytes": 1076
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/assets/astral_warfare/shaders/program/singularity_distortion.vsh",
+      "bytes": 538
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/assets/astral_warfare/sounds.json",
+      "bytes": 431
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/assets/astral_warfare/sounds/stella_evoker_phase1.ogg",
+      "bytes": 2683716
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/assets/astral_warfare/sounds/stella_evoker_phase2.ogg",
+      "bytes": 3635788
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/assets/astral_warfare/textures/entity/astral_crystal.png",
+      "bytes": 176626
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/assets/astral_warfare/textures/entity/starcore_golem.png",
+      "bytes": 432
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/assets/astral_warfare/textures/entity/stella_evoker.png",
+      "bytes": 9974
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/assets/astral_warfare/textures/entity/void_glow.png",
+      "bytes": 6432
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/assets/astral_warfare/textures/item/nocturnal_astrolabe.png",
+      "bytes": 255
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/assets/astral_warfare/textures/item/stella_core.png",
+      "bytes": 247
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/assets/astral_warfare/textures/item/void_halberd.png",
+      "bytes": 345
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/data/astral_warfare/damage_type/void_bleed.json",
+      "bytes": 112
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/data/astral_warfare/damage_type/void_eruption.json",
+      "bytes": 115
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/data/astral_warfare/loot_table/entities/astral_crystal.json",
+      "bytes": 111
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/data/astral_warfare/loot_table/entities/nightfall_singularity.json",
+      "bytes": 118
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/data/astral_warfare/loot_table/entities/starcore_golem.json",
+      "bytes": 519
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/data/astral_warfare/loot_table/entities/stella_evoker.json",
+      "bytes": 1287
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/data/astral_warfare/loot_table/entities/void_fissure.json",
+      "bytes": 109
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/data/astral_warfare/tags/worldgen/biome/has_structure/astral_altar.json",
+      "bytes": 99
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/data/astral_warfare/worldgen/structure/astral_altar.json",
+      "bytes": 212
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/resources/main/data/astral_warfare/worldgen/structure_set/astral_altar.json",
+      "bytes": 230
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/AstralCrystalEntity.class.uniqueId46",
+      "bytes": 6742
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/AstralCrystalModel.class.uniqueId37",
+      "bytes": 4836
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/AstralCrystalRenderer.class.uniqueId18",
+      "bytes": 4183
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/AstralWarfare.class.uniqueId20",
+      "bytes": 5055
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/BossUtils.class.uniqueId0",
+      "bytes": 2699
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/ClientEvents.class.uniqueId8",
+      "bytes": 4794
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/ClientManaData.class.uniqueId35",
+      "bytes": 4929
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/ClientboundMazeSyncPacket$MazeData.class.uniqueId56",
+      "bytes": 2346
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/ClientboundMazeSyncPacket.class.uniqueId19",
+      "bytes": 5438
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/ClientboundParticleBatchPacket$ParticleEntry.class.uniqueId38",
+      "bytes": 2125
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/ClientboundParticleBatchPacket.class.uniqueId22",
+      "bytes": 6766
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/CrystalBeamRenderer.class.uniqueId23",
+      "bytes": 9981
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/DespairExecutionGoal$State.class.uniqueId17",
+      "bytes": 1758
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/DespairExecutionGoal.class.uniqueId31",
+      "bytes": 21298
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/GolemMoveToBossGoal.class.uniqueId55",
+      "bytes": 3910
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/ManaData.class.uniqueId25",
+      "bytes": 4482
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/MazeDataCache.class.uniqueId41",
+      "bytes": 1048
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/ModAttachments.class.uniqueId49",
+      "bytes": 2660
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/ModConstants.class.uniqueId50",
+      "bytes": 3115
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/ModCreativeTabs.class.uniqueId2",
+      "bytes": 4097
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/ModEffects.class.uniqueId3",
+      "bytes": 2483
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/ModEntities.class.uniqueId34",
+      "bytes": 6170
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/ModItems.class.uniqueId48",
+      "bytes": 3537
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/ModPayloads.class.uniqueId44",
+      "bytes": 9871
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/NightfallSingularityEntity.class.uniqueId9",
+      "bytes": 9285
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/NightfallSingularityRenderer.class.uniqueId10",
+      "bytes": 1746
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/NocturnalAstrolabeItem.class.uniqueId33",
+      "bytes": 11682
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/ParticleEmitter.class.uniqueId42",
+      "bytes": 2590
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/Phase2MeleeGoal$State.class.uniqueId58",
+      "bytes": 1865
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/Phase2MeleeGoal.class.uniqueId28",
+      "bytes": 18521
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/PlayerDisconnectHandler.class.uniqueId30",
+      "bytes": 1625
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/SingularityPostProcessor.class.uniqueId36",
+      "bytes": 2198
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/SingularityRenderHandler.class.uniqueId52",
+      "bytes": 4662
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/SpellCastGoal$1.class.uniqueId4",
+      "bytes": 1085
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/SpellCastGoal.class.uniqueId5",
+      "bytes": 29282
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/SpellType.class.uniqueId43",
+      "bytes": 5321
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/StarTrackMazeRenderer.class.uniqueId51",
+      "bytes": 8651
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/StarcoreGolemEntity.class.uniqueId1",
+      "bytes": 8258
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/StarcoreGolemModel.class.uniqueId29",
+      "bytes": 7147
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/StarcoreGolemRenderer.class.uniqueId11",
+      "bytes": 2964
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/StellaBattleMusic$BattleBgmSoundInstance.class.uniqueId15",
+      "bytes": 1973
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/StellaBattleMusic.class.uniqueId7",
+      "bytes": 7177
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/StellaBossBarOverlay.class.uniqueId24",
+      "bytes": 8867
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/StellaDamageEventHandler.class.uniqueId6",
+      "bytes": 1389
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/StellaDyingStateMachine.class.uniqueId40",
+      "bytes": 4903
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/StellaEvokerEntity.class.uniqueId14",
+      "bytes": 40620
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/StellaEvokerModel.class.uniqueId53",
+      "bytes": 1940
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/StellaEvokerRenderer$AstralGlowLayer.class.uniqueId57",
+      "bytes": 4444
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/StellaEvokerRenderer$VoidHalberdLayer.class.uniqueId45",
+      "bytes": 4741
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/StellaEvokerRenderer.class.uniqueId16",
+      "bytes": 2099
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/StellaFlyingMoveControl.class.uniqueId13",
+      "bytes": 6409
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/StellaGateSurgeAbility.class.uniqueId27",
+      "bytes": 10287
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/StellaManaSystem.class.uniqueId32",
+      "bytes": 12047
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/StellaTransitionStateMachine.class.uniqueId39",
+      "bytes": 11203
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/VoidBleedEffect.class.uniqueId12",
+      "bytes": 6115
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/VoidEntrapmentEffect.class.uniqueId26",
+      "bytes": 6773
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/VoidFissureEntity.class.uniqueId47",
+      "bytes": 6987
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/VoidFissureRenderer.class.uniqueId54",
+      "bytes": 1683
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/compileTransaction/stash-dir/VoidSigilRenderer.class.uniqueId21",
+      "bytes": 13204
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/compileJava/previous-compilation-data.bin",
+      "bytes": 243166
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/createMinecraftArtifacts/nfrt-problem-report.json",
+      "bytes": 2
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/createMinecraftArtifacts/nfrt_artifact_manifest.properties",
+      "bytes": 30696
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/jar/MANIFEST.MF",
+      "bytes": 25
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/neoformruntime/20260612-002227_binaryPatch/console_output.txt",
+      "bytes": 955
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/neoformruntime/20260612-002227_binaryPatch/joined.lzma",
+      "bytes": 3241598
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/neoformruntime/20260612-002248_applyDevTransforms/ats/accesstransformer.cfg",
+      "bytes": 69974
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "build/tmp/neoformruntime/20260612-002248_applyDevTransforms/console_output.txt",
+      "bytes": 989
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/command_history.txt",
+      "bytes": 38
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/config/astral_warfare-server.toml",
+      "bytes": 978
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/config/curios-client.toml",
+      "bytes": 766
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/config/curios-common.toml",
+      "bytes": 159
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/config/fml.toml",
+      "bytes": 1550
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/config/lodestone-client.toml",
+      "bytes": 925
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/config/neoforge-client.toml",
+      "bytes": 578
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/config/neoforge-common.toml",
+      "bytes": 772
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/config/neoforge-server.toml",
+      "bytes": 1177
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/crash-reports/crash-2026-06-01_16.48.21-client.txt",
+      "bytes": 24245
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/downloads/log.json",
+      "bytes": 0
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/logs/2026-05-28-2.log.gz",
+      "bytes": 5117
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/logs/debug-1.log.gz",
+      "bytes": 16277
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/logs/debug.log",
+      "bytes": 176366
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/logs/latest.log",
+      "bytes": 43080
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/options.txt",
+      "bytes": 3530
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/saves/New World/DIM-1/data/neoforge_data_attachments.dat",
+      "bytes": 48
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/saves/New World/DIM-1/data/raids.dat",
+      "bytes": 89
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/saves/New World/DIM1/data/neoforge_data_attachments.dat",
+      "bytes": 48
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/saves/New World/DIM1/data/raids_end.dat",
+      "bytes": 89
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/saves/New World/advancements/380df991-f603-344c-a090-369bad2a924a.json",
+      "bytes": 325
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/saves/New World/data/neoforge_data_attachments.dat",
+      "bytes": 48
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/saves/New World/data/raids.dat",
+      "bytes": 89
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/saves/New World/entities/r.-1.-1.mca",
+      "bytes": 49152
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/saves/New World/entities/r.-1.0.mca",
+      "bytes": 61440
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/saves/New World/entities/r.0.-1.mca",
+      "bytes": 65536
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/saves/New World/entities/r.0.0.mca",
+      "bytes": 86016
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/saves/New World/icon.png",
+      "bytes": 5294
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/saves/New World/level.dat",
+      "bytes": 2573
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/saves/New World/level.dat_old",
+      "bytes": 2575
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/saves/New World/playerdata/380df991-f603-344c-a090-369bad2a924a.dat",
+      "bytes": 946
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/saves/New World/playerdata/380df991-f603-344c-a090-369bad2a924a.dat_old",
+      "bytes": 947
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/saves/New World/poi/r.-1.-1.mca",
+      "bytes": 16384
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/saves/New World/poi/r.0.-1.mca",
+      "bytes": 53248
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/saves/New World/poi/r.0.0.mca",
+      "bytes": 49152
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/saves/New World/region/r.-1.-1.mca",
+      "bytes": 2777088
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/saves/New World/region/r.-1.0.mca",
+      "bytes": 2670592
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/saves/New World/region/r.0.-1.mca",
+      "bytes": 2781184
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/saves/New World/region/r.0.0.mca",
+      "bytes": 2674688
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/saves/New World/serverconfig/readme.txt",
+      "bytes": 469
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/saves/New World/session.lock",
+      "bytes": 3
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/saves/New World/stats/380df991-f603-344c-a090-369bad2a924a.json",
+      "bytes": 228
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/usercache.json",
+      "bytes": 102
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": "run/usernamecache.json",
+      "bytes": 51
+    }
+  ],
+  "sensitiveFiles": [],
+  "excludedCacheFiles": [
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".gradle/9.2.1/checksums/checksums.lock",
+      "bytes": 17
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".gradle/9.2.1/checksums/md5-checksums.bin",
+      "bytes": 19297
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".gradle/9.2.1/checksums/sha1-checksums.bin",
+      "bytes": 21467
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".gradle/9.2.1/executionHistory/executionHistory.bin",
+      "bytes": 618539
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".gradle/9.2.1/executionHistory/executionHistory.lock",
+      "bytes": 17
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".gradle/9.2.1/fileChanges/last-build.bin",
+      "bytes": 1
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".gradle/9.2.1/fileHashes/fileHashes.bin",
+      "bytes": 30847
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".gradle/9.2.1/fileHashes/fileHashes.lock",
+      "bytes": 17
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".gradle/9.2.1/fileHashes/resourceHashesCache.bin",
+      "bytes": 28187
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".gradle/9.2.1/gc.properties",
+      "bytes": 0
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".gradle/buildOutputCleanup/buildOutputCleanup.lock",
+      "bytes": 17
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".gradle/buildOutputCleanup/cache.properties",
+      "bytes": 53
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".gradle/buildOutputCleanup/outputFiles.bin",
+      "bytes": 19055
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".gradle/file-system.probe",
+      "bytes": 8
+    },
+    {
+      "group": "1.21.1-BOSS",
+      "path": ".gradle/vcs-1/gc.properties",
+      "bytes": 0
+    }
+  ],
+  "links": [],
+  "releaseUnits": {
+    "bin": {
+      "fileCount": 56,
+      "bytes": 180929
+    },
+    "build": {
+      "fileCount": 188,
+      "bytes": 91434953
+    },
+    "run": {
+      "fileCount": 44,
+      "bytes": 11573962
+    }
+  },
+  "remoteReleaseAssets": [],
+  "recoveryStatus": "pending-upload"
+}

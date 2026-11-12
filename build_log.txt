@@ -1,0 +1,116 @@
+﻿Initialized native services in: C:\Users\杨铭\.gradle\native
+Initialized jansi services in: C:\Users\杨铭\.gradle\native
+The client will now receive all logging from the daemon (pid: 11544). The daemon log file: C:\Users\鏉ㄩ摥\.gradle\daemon\9.2.1\daemon-11544.out.log
+Starting 2nd build in daemon [uptime: 1 mins 9.193 secs, performance: 100%, GC rate: 0.00/s, heap usage: 0% of 6 GiB]
+Using 16 worker leases.
+Operational build model parameters: {requiresToolingModels=false, parallelProjectExecution=true, configureOnDemand=false, configurationCache=false, configurationCacheParallelStore=false, configurationCacheParallelLoad=true, isolatedProjects=false, parallelProjectConfiguration=false, intermediateModelCache=false, parallelToolingApiActions=true, invalidateCoupledProjects=false, modelAsProjectDependency=false, resilientModelBuilding=false}
+Invalidating in-memory cache of C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\.gradle\9.2.1\fileHashes\fileHashes.bin
+Invalidating in-memory cache of C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\.gradle\buildOutputCleanup\outputFiles.bin
+Invalidating in-memory cache of C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\.gradle\9.2.1\fileHashes\resourceHashesCache.bin
+Now considering [C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS] as hierarchies to watch
+Watching the file system is configured to be enabled if available
+File system watching is active
+Starting Build
+Resolved plugin [id: 'org.gradle.toolchains.foojay-resolver-convention', version: '1.0.0']
+Settings evaluated using settings file 'C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\settings.gradle.kts'.
+Using local directory build cache for the root build (location = C:\Users\鏉ㄩ摥\.gradle\caches\build-cache-1, remove unused entries = after 7 days).
+Projects loaded. Root project using build file 'C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\build.gradle.kts'.
+Included projects: [root project '1.21.1-BOSS']
+
+> Configure project :
+Evaluating root project '1.21.1-BOSS' using build file 'C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\build.gradle.kts'.
+Resolved plugin [id: 'java-library']
+Resolved plugin [id: 'maven-publish']
+Resolved plugin [id: 'net.neoforged.moddev', version: '2.0.139']
+Resolved plugin [id: 'idea']
+Resolved plugin [id: 'eclipse']
+All projects evaluated.
+Task name matched 'build'
+Selected primary task 'build' from project :
+Tasks to be executed: [task ':generateModMetadata', task ':createMinecraftArtifacts', task ':compileJava', task ':processResources', task ':classes', task ':jarJar', task ':jar', task ':assemble', task ':compileTestJava', task ':processTestResources', task ':testClasses', task ':test', task ':check', task ':build']
+Tasks that were excluded: []
+Resolve mutations for :generateModMetadata (Thread[#193,Execution worker,5,main]) started.
+:generateModMetadata (Thread[#193,Execution worker,5,main]) started.
+Invalidating in-memory cache of C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS\.gradle\9.2.1\executionHistory\executionHistory.bin
+
+> Task :generateModMetadata UP-TO-DATE
+Caching disabled for task ':generateModMetadata' because:
+  Not worth caching
+Skipping task ':generateModMetadata' as it is up-to-date.
+Resolve mutations for :createMinecraftArtifacts (Thread[#193,Execution worker,5,main]) started.
+:createMinecraftArtifacts (Thread[#193,Execution worker,5,main]) started.
+
+> Task :createMinecraftArtifacts UP-TO-DATE
+Caching disabled for task ':createMinecraftArtifacts' because:
+  Implements its own caching
+Skipping task ':createMinecraftArtifacts' as it is up-to-date.
+Resolve mutations for :compileJava (Thread[#193,Execution worker,5,main]) started.
+:compileJava (Thread[#193,Execution worker,5,main]) started.
+
+> Task :compileJava UP-TO-DATE
+Caching disabled for task ':compileJava' because:
+  Gradle does not know how file 'build\classes\java\main\com\mochi_753\examplemod' was created (output property 'destinationDirectory'). Task output caching requires exclusive access to output paths to guarantee correctness (i.e. multiple tasks are not allowed to produce output in the same location).
+Skipping task ':compileJava' as it is up-to-date.
+Resolve mutations for :processResources (Thread[#193,Execution worker,5,main]) started.
+:processResources (Thread[#193,Execution worker,5,main]) started.
+
+> Task :processResources UP-TO-DATE
+Caching disabled for task ':processResources' because:
+  Not worth caching
+Skipping task ':processResources' as it is up-to-date.
+Resolve mutations for :classes (Thread[#193,Execution worker,5,main]) started.
+:classes (Thread[#198,Execution worker Thread 6,5,main]) started.
+
+> Task :classes UP-TO-DATE
+Skipping task ':classes' as it has no actions.
+Resolve mutations for :jarJar (Thread[#193,Execution worker,5,main]) started.
+:jarJar (Thread[#193,Execution worker,5,main]) started.
+
+> Task :jarJar NO-SOURCE
+Skipping task ':jarJar' as it has no source files and no previous output files.
+Resolve mutations for :jar (Thread[#193,Execution worker,5,main]) started.
+:jar (Thread[#193,Execution worker,5,main]) started.
+
+> Task :jar UP-TO-DATE
+Caching disabled for task ':jar' because:
+  Not worth caching
+Skipping task ':jar' as it is up-to-date.
+Resolve mutations for :assemble (Thread[#193,Execution worker,5,main]) started.
+:assemble (Thread[#193,Execution worker,5,main]) started.
+
+> Task :assemble UP-TO-DATE
+Skipping task ':assemble' as it has no actions.
+Resolve mutations for :compileTestJava (Thread[#193,Execution worker,5,main]) started.
+:compileTestJava (Thread[#193,Execution worker,5,main]) started.
+
+> Task :compileTestJava NO-SOURCE
+Skipping task ':compileTestJava' as it has no source files and no previous output files.
+Resolve mutations for :processTestResources (Thread[#193,Execution worker,5,main]) started.
+:processTestResources (Thread[#193,Execution worker,5,main]) started.
+
+> Task :processTestResources NO-SOURCE
+Skipping task ':processTestResources' as it has no source files and no previous output files.
+Resolve mutations for :testClasses (Thread[#193,Execution worker,5,main]) started.
+:testClasses (Thread[#193,Execution worker,5,main]) started.
+
+> Task :testClasses UP-TO-DATE
+Skipping task ':testClasses' as it has no actions.
+Resolve mutations for :test (Thread[#193,Execution worker,5,main]) started.
+:test (Thread[#197,Execution worker Thread 5,5,main]) started.
+
+> Task :test NO-SOURCE
+Skipping task ':test' as it has no source files and no previous output files.
+Resolve mutations for :check (Thread[#197,Execution worker Thread 5,5,main]) started.
+:check (Thread[#197,Execution worker Thread 5,5,main]) started.
+
+> Task :check UP-TO-DATE
+Skipping task ':check' as it has no actions.
+Resolve mutations for :build (Thread[#197,Execution worker Thread 5,5,main]) started.
+:build (Thread[#197,Execution worker Thread 5,5,main]) started.
+
+> Task :build UP-TO-DATE
+Skipping task ':build' as it has no actions.
+
+BUILD SUCCESSFUL in 2s
+5 actionable tasks: 5 up-to-date
+Watched directory hierarchies: [C:\Users\鏉ㄩ摥\Desktop\1.21.1-BOSS]
