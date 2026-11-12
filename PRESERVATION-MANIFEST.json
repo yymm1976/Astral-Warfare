@@ -2612,77 +2612,92 @@
     {
       "group": "1.21.1-BOSS",
       "path": ".gradle/9.2.1/checksums/checksums.lock",
-      "bytes": 17
+      "bytes": 17,
+      "matchesSecretName": false
     },
     {
       "group": "1.21.1-BOSS",
       "path": ".gradle/9.2.1/checksums/md5-checksums.bin",
-      "bytes": 19297
+      "bytes": 19297,
+      "matchesSecretName": false
     },
     {
       "group": "1.21.1-BOSS",
       "path": ".gradle/9.2.1/checksums/sha1-checksums.bin",
-      "bytes": 21467
+      "bytes": 21467,
+      "matchesSecretName": false
     },
     {
       "group": "1.21.1-BOSS",
       "path": ".gradle/9.2.1/executionHistory/executionHistory.bin",
-      "bytes": 618539
+      "bytes": 618539,
+      "matchesSecretName": false
     },
     {
       "group": "1.21.1-BOSS",
       "path": ".gradle/9.2.1/executionHistory/executionHistory.lock",
-      "bytes": 17
+      "bytes": 17,
+      "matchesSecretName": false
     },
     {
       "group": "1.21.1-BOSS",
       "path": ".gradle/9.2.1/fileChanges/last-build.bin",
-      "bytes": 1
+      "bytes": 1,
+      "matchesSecretName": false
     },
     {
       "group": "1.21.1-BOSS",
       "path": ".gradle/9.2.1/fileHashes/fileHashes.bin",
-      "bytes": 30847
+      "bytes": 30847,
+      "matchesSecretName": false
     },
     {
       "group": "1.21.1-BOSS",
       "path": ".gradle/9.2.1/fileHashes/fileHashes.lock",
-      "bytes": 17
+      "bytes": 17,
+      "matchesSecretName": false
     },
     {
       "group": "1.21.1-BOSS",
       "path": ".gradle/9.2.1/fileHashes/resourceHashesCache.bin",
-      "bytes": 28187
+      "bytes": 28187,
+      "matchesSecretName": false
     },
     {
       "group": "1.21.1-BOSS",
       "path": ".gradle/9.2.1/gc.properties",
-      "bytes": 0
+      "bytes": 0,
+      "matchesSecretName": false
     },
     {
       "group": "1.21.1-BOSS",
       "path": ".gradle/buildOutputCleanup/buildOutputCleanup.lock",
-      "bytes": 17
+      "bytes": 17,
+      "matchesSecretName": false
     },
     {
       "group": "1.21.1-BOSS",
       "path": ".gradle/buildOutputCleanup/cache.properties",
-      "bytes": 53
+      "bytes": 53,
+      "matchesSecretName": false
     },
     {
       "group": "1.21.1-BOSS",
       "path": ".gradle/buildOutputCleanup/outputFiles.bin",
-      "bytes": 19055
+      "bytes": 19055,
+      "matchesSecretName": false
     },
     {
       "group": "1.21.1-BOSS",
       "path": ".gradle/file-system.probe",
-      "bytes": 8
+      "bytes": 8,
+      "matchesSecretName": false
     },
     {
       "group": "1.21.1-BOSS",
       "path": ".gradle/vcs-1/gc.properties",
-      "bytes": 0
+      "bytes": 0,
+      "matchesSecretName": false
     }
   ],
   "links": [],
